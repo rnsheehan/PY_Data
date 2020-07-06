@@ -5,8 +5,7 @@
     <ProjectGuid>9c8a123a-b075-4d59-b5c3-6d0256372434</ProjectGuid>
     <ProjectHome>.</ProjectHome>
     <StartupFile>Phy_Data.py</StartupFile>
-    <SearchPath>
-    </SearchPath>
+    <SearchPath>..\..\Common;..\..\Plotting</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>Phy_Data</Name>
@@ -22,6 +21,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Phy_Data.py" />
+    <Compile Include="PY3108.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

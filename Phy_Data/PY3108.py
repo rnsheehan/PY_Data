@@ -12,11 +12,13 @@ import Common
 import Plotting
 
 MOD_NAME_STR = "PY3108"
+HOME = False
+USER = 'Robert' if HOME else 'robertsheehan/OneDrive - University College Cork/Documents'
 
 def CE_AMP_IV_Char(Vcc, Vb, Rc, Rb, Rbval, ratio, loud = False):
     
     # make plots of measured IV characteristic of npn-BJT CE amplifier
-    # make a plot of measured Ic versus Vce for various Vb
+    # make a plot of measured Ic versus Vce for various Vb and fixed Vcc
     # include load line on plot
     # R. Sheehan 6 - 7 - 2020
 
@@ -24,7 +26,7 @@ def CE_AMP_IV_Char(Vcc, Vb, Rc, Rb, Rbval, ratio, loud = False):
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        DATA_HOME = "c:/Users/Robert/Teaching/PY3108/Data/npn_BJT/CE_IV_Char/"
+        DATA_HOME = "c:/Users/" + USER +  "/Teaching/PY3108/Data/npn_BJT/CE_IV_Char/"
 
         os.chdir(DATA_HOME)
 
@@ -39,8 +41,12 @@ def CE_AMP_IV_Char(Vcc, Vb, Rc, Rb, Rbval, ratio, loud = False):
                 if loud: 
                     print(filename)
                 data = numpy.loadtxt(filename, delimiter = '\t', unpack = True); 
-                hv_data.append([data[2], data[1]])
-                labels.append('$I_{b}$ = %(v1)0.1f $\mu$A'%{"v1":1000.0*(Vb[i] / Rbval)})
+                Ib = numpy.mean(data[1])
+                dIb = 0.5*(numpy.max(data[1]) - numpy.min(data[1]))
+                hv_data.append([data[4], data[3]])
+                #labels.append('$I_{b}$ = %(v1)0.1f $\mu$A'%{"v1":1000.0*(Vb[i] / Rbval)})
+                labels.append('$I_{b}$ = %(v1)0.2f $\pm$ %(v2)0.2f mA'%{"v1":Ib, "v2":dIb})
+                #labels.append('$V_{b}$ = %(v1)0.1f V'%{"v1":Vb[i]})
                 marks.append(Plotting.labs_pts[ count%len(Plotting.labs_pts) ] )
             count = count + 1 
 
@@ -59,6 +65,64 @@ def CE_AMP_IV_Char(Vcc, Vb, Rc, Rb, Rbval, ratio, loud = False):
         args.x_label = '$V_{ce}$ / V'
         args.y_label = '$I_{c}$ / mA'
         args.fig_name = "Ichar_Vext_%(v0)d_Rc_%(v1)s_Rb_%(v2)s"%{"v0":Vcc, "v1":Rc, "v2":Rb, }
+
+        Plotting.plot_multiple_curves(hv_data, args)
+
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def CE_AMP_IV_Char_Compare(Vcc, Vb, Rc, Rb, Rbval, ratio, loud = False):
+    
+    # make plots of measured IV characteristic of npn-BJT CE amplifier
+    # make a plot of measured Ic versus Vce for various Vcc and fixed Vb
+    # include load line on plot
+    # R. Sheehan 7 - 7 - 2020
+
+    FUNC_NAME = ".CE_AMP_IV_Char_Compar()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = "c:/Users/" + USER +  "/Teaching/PY3108/Data/npn_BJT/CE_IV_Char/"
+
+        os.chdir(DATA_HOME)
+
+        print(os.getcwd())        
+
+        # import the data
+        hv_data = []; labels = []; marks = []; 
+        count = 0; 
+        for i in range(0, len(Vcc), 1):
+            filename = "Ichar_Vext_%(v0)d_Vb_%(v3)s_Rc_%(v1)s_Rb_%(v2)s.txt"%{"v0":Vcc[i], "v1":Rc, "v2":Rb, "v3":Vb}    
+            if glob.glob(filename):
+                if loud: 
+                    print(filename)
+                data = numpy.loadtxt(filename, delimiter = '\t', unpack = True); 
+                #Ib = numpy.mean(data[1])
+                #dIb = 0.5*(numpy.max(data[1]) - numpy.min(data[1]))
+                hv_data.append([data[4], data[3]])
+                #labels.append('$I_{b}$ = %(v1)0.1f $\mu$A'%{"v1":1000.0*(Vb[i] / Rbval)})
+                #labels.append('$I_{b}$ = %(v1)0.2f $\pm$ %(v2)0.2f mA'%{"v1":Ib, "v2":dIb})
+                labels.append('$V_{cc}$ = %(v1)0.1f V'%{"v1":Vcc[i]})
+                marks.append(Plotting.labs_pts[ count%len(Plotting.labs_pts) ] )
+            count = count + 1 
+
+        # Add Load Line
+        Icc = Vcc[-1] / (Rbval / ratio)
+        hv_data.append([[0.0, Vcc[-1]],[Vcc[-1] / (Rbval / ratio), 0.0]])
+        labels.append('LL $V_{cc}$ = %(v1)0.1f V'%{"v1":Vcc[-1]})
+        marks.append( Plotting.labs_line_only[1] )
+
+        # plot the data
+        args = Plotting.plot_arg_multiple()
+
+        args.loud = True
+        args.crv_lab_list = labels
+        args.mrk_list = marks
+        args.x_label = '$V_{ce}$ / V'
+        args.y_label = '$I_{c}$ / mA'
+        args.plt_range = [0, 8, 0, 60]
+        args.fig_name = "Ichar_Vb_%(v0)s_Rc_%(v1)s_Rb_%(v2)s"%{"v0":Vb, "v1":Rc, "v2":Rb}
 
         Plotting.plot_multiple_curves(hv_data, args)
 
@@ -89,17 +153,31 @@ def Plot_CE_Amp():
             CE_AMP_Vgain_Compare(Rc, Rb, ratios, vgain = True, loud = True)
 
         # Plot Measured characteristic
-        run_loop = True        
+        run_loop = False        
         if run_loop:
             Vcc = 5.0
-            Rc = ["0383", "0987", "0177", "0986", "00344"]; Rb = ["217", "217", "518", "564", "330"]
-            Rbval = [2.17, 21.99, 5.18, 56.4, 3.3]
-            ratios = [5.67, 21.99, 29.3, 57.2, 95.93]
-            
-            Vb = [0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0]
+            #Rc = ["0383", "0987", "0177", "0986", "00344"]; Rb = ["217", "217", "518", "564", "330"]
+            #Rbval = [2.17, 21.99, 5.18, 56.4, 3.3]
+            #ratios = [5.67, 21.99, 29.3, 57.2, 95.93]            
+            #Vb = [0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0]
+
+            Rc = ["0099", "0215", "0341", "0468", "0981", "177"]; Rb = ["0986", "215", "325", "0986", "1779", "387"]
+            Rbval = [0.986, 2.15, 3.25, 0.986, 1.779, 3.87]
+            ratios = [95.59, 100.00, 95.307, 21.07, 18.13, 21.86]            
+            Vb = [1.0, 1.2, 1.4, 1.6, 1.8, 2.0]
             
             for k in range(0, len(Rbval), 1):
                 CE_AMP_IV_Char(Vcc, Vb, Rc[k], Rb[k], Rbval[k], ratios[k], True)
+
+        # Plot Measured characteristic for different Vcc
+        run_loop = True        
+        if run_loop:
+            Vcc = [5.0, 7.0, 10.0, 12.0, 15.0]
+
+            Rc = "177"; Rb = "387"; Rbval = 3.87; ratios = 21.86; Vb = "10"; 
+            
+            CE_AMP_IV_Char_Compare(Vcc, Vb, Rc, Rb, Rbval, ratios, True)
+                
 
     except Exception as e:
         print(ERR_STATEMENT)
@@ -114,7 +192,7 @@ def CE_AMP_Vgain(Rc, Rb, vgain = True, loud = False):
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        DATA_HOME = "c:/Users/Robert/Teaching/PY3108/Data/npn_BJT/CE_Vgain/"
+        DATA_HOME = "c:/Users/" + USER +  "/Teaching/PY3108/Data/npn_BJT/CE_IV_Char/"
 
         os.chdir(DATA_HOME)
 
@@ -173,7 +251,7 @@ def CE_AMP_Vgain_Compare(Rc, Rb, ratios, vgain = True, loud = False):
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        DATA_HOME = "c:/Users/Robert/Teaching/PY3108/Data/npn_BJT/CE_Vgain/"
+        DATA_HOME = "c:/Users/" + USER +  "/Teaching/PY3108/Data/npn_BJT/CE_IV_Char/"
 
         os.chdir(DATA_HOME)
 

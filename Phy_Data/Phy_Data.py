@@ -1,12 +1,5 @@
 import sys
 import os 
-import glob
-import re
-
-#import math
-#import scipy
-#import numpy
-#import matplotlib.pyplot as plt
 
 # add path to our file
 #sys.path.append('c:/Users/Robert/Programming/Python/Common/')

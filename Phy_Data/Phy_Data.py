@@ -19,4 +19,6 @@ if __name__ == '__main__':
 
     #PY3108.Plot_CE_Amp()
 
-    PY3108.Plot_CE_Amp()
+    #PY3108.Plot_CE_Amp()
+
+    PY3108.OpAmpComparison()

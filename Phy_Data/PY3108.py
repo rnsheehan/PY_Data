@@ -465,3 +465,92 @@ def Vbe_Loop():
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
+
+def OpAmpComparison():
+
+    # plot the data obtained from comparing the different op-amps
+    # different op-amps were used to operate a current source
+    # some worked correctly, some didn't
+    # data is stored in columns of file in the form
+    # V_supplied (V) \t Vcontrol (V) \t VR3 (V) \t Vload (V) \t IR3 = Isourced (mA)
+    # R. Sheehan 23 - 11 - 2020
+
+    FUNC_NAME = ".Vbe_Loop()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = "c:/Users/" + USER +  "/Teaching/PY3108/Data/OpAmpTesting/"
+
+        os.chdir(DATA_HOME)
+
+        print(os.getcwd())
+
+        files = glob.glob("*.txt")
+
+        old_target, sys.stdout = sys.stdout, open('Regression_Analysis.txt', 'w')
+
+        print("PY3108 Current Source")
+        print("R1 = 55 Ohm, R2 = 10 Ohm, R3 = 5 Ohm, Rload = 10 Ohm")
+        print("R2 / (R1 R3) = 36.3636 Ohm^{-1}")
+        print("")
+        print("filename\tEstimate R2 / (R1 R3)\tEstimate Rload")
+
+        LOUDNESS = False
+
+        for f in files:
+            data = numpy.loadtxt(f, delimiter = '\t', unpack = True)
+            
+            # Make a plot of the measured voltages versus supplied voltage
+            hv_data = []; labels = []; marks = []; 
+            hv_data.append([data[0], data[1]]); labels.append('$V_{ctrl}$'); marks.append(Plotting.labs_pts[0]); 
+            hv_data.append([data[0], data[2]]); labels.append('$V_{R3}$'); marks.append(Plotting.labs_pts[1]); 
+            hv_data.append([data[0], data[3]]); labels.append('$V_{load}$'); marks.append(Plotting.labs_pts[2]); 
+
+            args = Plotting.plot_arg_multiple()
+
+            args.loud = LOUDNESS
+            args.x_label = 'Supplied Voltage / V'
+            args.y_label = 'Measured Voltage / V'
+            args.crv_lab_list = labels
+            args.mrk_list = marks
+            args.fig_name = 'Measured_Voltage' + f.replace('Isrc','').replace('.txt','')
+
+            Plotting.plot_multiple_curves(hv_data, args)
+
+            # Make a plot of sourced current versus supplied voltage
+
+            args = Plotting.plot_arg_single()
+
+            args.loud = LOUDNESS
+            args.x_label = 'Supplied Voltage / V'
+            args.y_label = 'Sourced Current / mA'
+            args.fig_name = 'Sourced_Current' + f.replace('Isrc','').replace('.txt','')
+
+            Plotting.plot_single_linear_fit_curve(data[0], data[4], args)
+
+            # Make a plot of voltage load versus sourced current
+            args = Plotting.plot_arg_single()
+
+            args.loud = LOUDNESS
+            args.x_label = 'Sourced Current / mA'
+            args.y_label = 'Load Voltage / V'
+            args.fig_name = 'Load_Voltage' + f.replace('Isrc','').replace('.txt','')
+
+            Plotting.plot_single_linear_fit_curve(data[4], data[3], args)
+
+            # Perform Regression Analysis on the data
+            pars1 = Common.linear_fit(data[0], data[4], [0, 1])
+            pars2 = Common.linear_fit(data[4], data[3], [0, 1])
+
+            #print(f)
+            #print("Estimate R2 / (R1 R3): ", pars1[1], " Ohm^{-1}")
+            #print("Estimate Rload: ", 1000.0*pars2[1], " Ohm")
+            #print("")
+            print(f,"\t",pars1[1],"\t",1000.0*pars2[1])
+
+
+        sys.stdout = old_target # return to the usual stdout
+
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)

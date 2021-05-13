@@ -21,6 +21,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Phy_Data.py" />
+    <Compile Include="PY2108.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="PY3108.py">
       <SubType>Code</SubType>
     </Compile>

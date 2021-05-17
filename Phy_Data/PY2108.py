@@ -52,7 +52,7 @@ def RC_FR_Plots():
         args.y_label = 'Gain'
         args.fig_name = "RC_LPF_C_2u"
         args.plt_range = [0.5, 30, 0, 1]
-        args.plt_title = "C = 2 $\mu$F"
+        args.plt_title = "C = 0.22 $\mu$F"
 
         Plotting.plot_multiple_curves(hv_data, args)
 

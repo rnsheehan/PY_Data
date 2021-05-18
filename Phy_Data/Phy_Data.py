@@ -22,4 +22,10 @@ if __name__ == '__main__':
 
     #PY3108.OpAmpComparison()
 
-    PY2108.LRC_FR_Plots()
+    #PY2108.RC_FR_Plots()
+
+    #PY2108.LRC_FR_Plots()
+
+    #PY2108.RC_FR_Compar_Plots()
+
+    PY2108.LRC_FR_Compar_Plots()

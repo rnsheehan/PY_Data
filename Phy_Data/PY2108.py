@@ -20,7 +20,7 @@ def RC_FR_Plots():
     # Plot the measured Frequency Response Data for some RC circuits
     # R. Sheehan 13 - 5 - 2021
 
-    FUNC_NAME = ".CE_AMP_IV_Char()" # use this in exception handling messages
+    FUNC_NAME = ".RC_FR_Plots()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
@@ -34,8 +34,8 @@ def RC_FR_Plots():
         hv_data = []; labels = []; marks = []; 
         count = 0; 
 
-        Rlist = [10, 46, 100]
-        fname_tmplt = "FR_R_%(v1)d_C_2u.txt"
+        Rlist = [10, 46, 100, 1000]
+        fname_tmplt = "FR_R_%(v1)d_C_2u_Alt.txt"
         for R in Rlist: 
             filename = fname_tmplt%{"v1":R}
             data = numpy.loadtxt(filename, delimiter = '\t', unpack = True); 
@@ -53,8 +53,8 @@ def RC_FR_Plots():
         args.mrk_list = marks
         args.x_label = 'Frequency / kHz'
         args.y_label = 'Response / dB'
-        args.fig_name = "RC_LPF_C_2u"
-        args.plt_range = [0.5, 30, -6, 0]
+        args.fig_name = "RC_LPF_C_2u_Alt"
+        args.plt_range = [0.5, 30, -7, 1]
         args.plt_title = "C = 0.22 $\mu$F"
 
         Plotting.plot_multiple_curves(hv_data, args)
@@ -68,7 +68,7 @@ def RC_FR_Compar_Plots():
     # Plot the measured Frequency Response Data for some RC circuits
     # R. Sheehan 13 - 5 - 2021
 
-    FUNC_NAME = ".CE_AMP_IV_Char()" # use this in exception handling messages
+    FUNC_NAME = ".RC_FR_Compar_Plots()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
@@ -79,7 +79,7 @@ def RC_FR_Compar_Plots():
         print(os.getcwd())
 
         # import the data
-        Rlist = [10, 46, 100]
+        Rlist = [10, 46, 100, 1000]
         fname_tmplt = "FR_R_%(v1)d_C_2u%(v2)s"
         for R in Rlist: 
             hv_data = []; labels = []; marks = []; count = 0;
@@ -89,7 +89,7 @@ def RC_FR_Compar_Plots():
             scl = data[1][0]
             for i in range(0, len(data[1]), 1):
                 data[1][i] = 10.0*math.log10( data[1][i] / scl )
-            hv_data.append(data); labels.append("Standard"); marks.append(Plotting.labs_pts[ count%len(Plotting.labs_pts) ] );
+            hv_data.append(data); labels.append("SFMG"); marks.append(Plotting.labs_pts[ count%len(Plotting.labs_pts) ] );
 
             count = count + 1;
 
@@ -98,7 +98,7 @@ def RC_FR_Compar_Plots():
             scl = data[1][0]
             for i in range(0, len(data[1]), 1):
                 data[1][i] = 10.0*math.log10( data[1][i] / scl )
-            hv_data.append(data); labels.append("Alternate"); marks.append(Plotting.labs_pts[ count%len(Plotting.labs_pts) ] );
+            hv_data.append(data); labels.append("AD9833"); marks.append(Plotting.labs_pts[ count%len(Plotting.labs_pts) ] );
 
             count = count + 1; 
 
@@ -111,7 +111,7 @@ def RC_FR_Compar_Plots():
             args.x_label = 'Frequency / kHz'
             args.y_label = 'Response / dB'
             args.fig_name = "RC_LPF_C_2u_R_%(v1)d"%{"v1":R}
-            args.plt_range = [0.5, 30, -6, 1]
+            args.plt_range = [0.5, 30, -7, 1]
             args.plt_title = "C = 0.22 $\mu$F, R = %(v1)d $\Omega$"%{"v1":R}
 
             Plotting.plot_multiple_curves(hv_data, args)
@@ -126,7 +126,7 @@ def LRC_FR_Plots():
     # Plot the measured Frequency Response Data for some LRC circuits
     # R. Sheehan 13 - 5 - 2021
 
-    FUNC_NAME = ".CE_AMP_IV_Char()" # use this in exception handling messages
+    FUNC_NAME = ".LRC_FR_Plots()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
@@ -176,7 +176,7 @@ def LRC_FR_Compar_Plots():
     # Plot the measured Frequency Response Data for some LRC circuits
     # R. Sheehan 13 - 5 - 2021
 
-    FUNC_NAME = ".CE_AMP_IV_Char()" # use this in exception handling messages
+    FUNC_NAME = ".LRC_FR_Compar_Plots()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:

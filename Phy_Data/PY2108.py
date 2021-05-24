@@ -35,7 +35,7 @@ def RC_FR_Plots():
         count = 0; 
 
         Rlist = [10, 46, 100, 1000]
-        fname_tmplt = "FR_R_%(v1)d_C_2u_Alt.txt"
+        fname_tmplt = "FR_R_%(v1)d_C_2u_Alt_MCP602.txt"
         for R in Rlist: 
             filename = fname_tmplt%{"v1":R}
             data = numpy.loadtxt(filename, delimiter = '\t', unpack = True); 
@@ -53,7 +53,7 @@ def RC_FR_Plots():
         args.mrk_list = marks
         args.x_label = 'Frequency / kHz'
         args.y_label = 'Response / dB'
-        args.fig_name = "RC_LPF_C_2u_Alt"
+        args.fig_name = "RC_LPF_C_2u_Alt_MCP602"
         args.plt_range = [0.5, 30, -7, 1]
         args.plt_title = "C = 0.22 $\mu$F"
 
@@ -93,12 +93,12 @@ def RC_FR_Compar_Plots():
 
             count = count + 1;
 
-            filename = fname_tmplt%{"v1":R,"v2":"_Alt.txt"}
+            filename = fname_tmplt%{"v1":R,"v2":"_Alt_MCP602.txt"}
             data = numpy.loadtxt(filename, delimiter = '\t', unpack = True); 
             scl = data[1][0]
             for i in range(0, len(data[1]), 1):
                 data[1][i] = 10.0*math.log10( data[1][i] / scl )
-            hv_data.append(data); labels.append("AD9833"); marks.append(Plotting.labs_pts[ count%len(Plotting.labs_pts) ] );
+            hv_data.append(data); labels.append("AD9833+MCP602"); marks.append(Plotting.labs_pts[ count%len(Plotting.labs_pts) ] );
 
             count = count + 1; 
 
@@ -110,7 +110,7 @@ def RC_FR_Compar_Plots():
             args.mrk_list = marks
             args.x_label = 'Frequency / kHz'
             args.y_label = 'Response / dB'
-            args.fig_name = "RC_LPF_C_2u_R_%(v1)d"%{"v1":R}
+            args.fig_name = "RC_LPF_C_2u_R_%(v1)d_MCP602"%{"v1":R}
             args.plt_range = [0.5, 30, -7, 1]
             args.plt_title = "C = 0.22 $\mu$F, R = %(v1)d $\Omega$"%{"v1":R}
 
@@ -142,7 +142,7 @@ def LRC_FR_Plots():
 
         Llist = [100, 220]
         Clist = [100, 220]
-        fname_tmplt = "RLC_R_10_L_%(v1)d_C_%(v2)dn_Alt.txt"
+        fname_tmplt = "RLC_R_10_L_%(v1)d_C_%(v2)dn_Alt_MCP602.txt"
         for i in range(0, len(Llist), 1):
             for j in range(0, len(Clist), 1):
                 filename = fname_tmplt%{"v1":Llist[i], "v2":Clist[j]}
@@ -161,7 +161,7 @@ def LRC_FR_Plots():
         args.mrk_list = marks
         args.x_label = 'Frequency / kHz'
         args.y_label = 'Response / dB'
-        args.fig_name = "RLC_BPF_R_10_Alt"
+        args.fig_name = "RLC_BPF_R_10_Alt_MCP602"
         args.plt_range = [10, 80, -6, 0]
         args.plt_title = "R = 10 $\Omega$"
 
@@ -201,15 +201,15 @@ def LRC_FR_Compar_Plots():
                 scl = numpy.amax(data[1])
                 for k in range(0, len(data[1]), 1):
                     data[1][k] = 10*math.log10( data[1][k] / scl )
-                hv_data.append(data); labels.append("Standard"); marks.append(Plotting.labs_pts[ count%len(Plotting.labs_pts) ] );
+                hv_data.append(data); labels.append("SFMG"); marks.append(Plotting.labs_pts[ count%len(Plotting.labs_pts) ] );
                 count = count + 1;
                 
-                filename = fname_tmplt%{"v1":Llist[i], "v2":Clist[j], "v3":"_Alt.txt"}
+                filename = fname_tmplt%{"v1":Llist[i], "v2":Clist[j], "v3":"_Alt_MCP602.txt"}
                 data = numpy.loadtxt(filename, delimiter = '\t', unpack = True); 
                 scl = numpy.amax(data[1])
                 for k in range(0, len(data[1]), 1):
                     data[1][k] = 10*math.log10( data[1][k] / scl )
-                hv_data.append(data); labels.append("Alternate"); marks.append(Plotting.labs_pts[ count%len(Plotting.labs_pts) ] );
+                hv_data.append(data); labels.append("AD9833+MCP602"); marks.append(Plotting.labs_pts[ count%len(Plotting.labs_pts) ] );
                 count = count + 1;
 
                 # plot the data
@@ -220,7 +220,7 @@ def LRC_FR_Compar_Plots():
                 args.mrk_list = marks
                 args.x_label = 'Frequency / kHz'
                 args.y_label = 'Response / dB'
-                args.fig_name = "RLC_BPF_L_%(v1)d_C_%(v2)d"%{"v1":Llist[i], "v2":Clist[j]}
+                args.fig_name = "RLC_BPF_L_%(v1)d_C_%(v2)d_MCP602"%{"v1":Llist[i], "v2":Clist[j]}
                 args.plt_range = [10, 80, -6, 0]
                 args.plt_title = "R = 10 $\Omega$, L = %(v1)d $\mu$H, C = %(v2)d nF"%{"v1":Llist[i], "v2":Clist[j]}
 

@@ -142,7 +142,7 @@ def LRC_FR_Plots():
 
         Llist = [100, 220]
         Clist = [100, 220]
-        fname_tmplt = "RLC_R_10_L_%(v1)d_C_%(v2)dn_Alt_MCP602.txt"
+        fname_tmplt = "RLC_R_10_L_%(v1)d_C_%(v2)dn_Alt_MCP6022.txt"
         for i in range(0, len(Llist), 1):
             for j in range(0, len(Clist), 1):
                 filename = fname_tmplt%{"v1":Llist[i], "v2":Clist[j]}
@@ -161,7 +161,7 @@ def LRC_FR_Plots():
         args.mrk_list = marks
         args.x_label = 'Frequency / kHz'
         args.y_label = 'Response / dB'
-        args.fig_name = "RLC_BPF_R_10_Alt_MCP602"
+        args.fig_name = "RLC_BPF_R_10_Alt_MCP6022"
         args.plt_range = [10, 80, -6, 0]
         args.plt_title = "R = 10 $\Omega$"
 
@@ -204,12 +204,12 @@ def LRC_FR_Compar_Plots():
                 hv_data.append(data); labels.append("SFMG"); marks.append(Plotting.labs_pts[ count%len(Plotting.labs_pts) ] );
                 count = count + 1;
                 
-                filename = fname_tmplt%{"v1":Llist[i], "v2":Clist[j], "v3":"_Alt_MCP602.txt"}
+                filename = fname_tmplt%{"v1":Llist[i], "v2":Clist[j], "v3":"_Alt_MCP6022.txt"}
                 data = numpy.loadtxt(filename, delimiter = '\t', unpack = True); 
                 scl = numpy.amax(data[1])
                 for k in range(0, len(data[1]), 1):
                     data[1][k] = 10*math.log10( data[1][k] / scl )
-                hv_data.append(data); labels.append("AD9833+MCP602"); marks.append(Plotting.labs_pts[ count%len(Plotting.labs_pts) ] );
+                hv_data.append(data); labels.append("AD9833+MCP6022"); marks.append(Plotting.labs_pts[ count%len(Plotting.labs_pts) ] );
                 count = count + 1;
 
                 # plot the data
@@ -220,7 +220,7 @@ def LRC_FR_Compar_Plots():
                 args.mrk_list = marks
                 args.x_label = 'Frequency / kHz'
                 args.y_label = 'Response / dB'
-                args.fig_name = "RLC_BPF_L_%(v1)d_C_%(v2)d_MCP602"%{"v1":Llist[i], "v2":Clist[j]}
+                args.fig_name = "RLC_BPF_L_%(v1)d_C_%(v2)d_MCP6022"%{"v1":Llist[i], "v2":Clist[j]}
                 args.plt_range = [10, 80, -6, 0]
                 args.plt_title = "R = 10 $\Omega$, L = %(v1)d $\mu$H, C = %(v2)d nF"%{"v1":Llist[i], "v2":Clist[j]}
 

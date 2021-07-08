@@ -231,3 +231,142 @@ def LRC_FR_Compar_Plots():
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
+
+def AM_Diode_Meas_Compar():
+
+    # Plot the measured diode characteristic data
+    # data taken from a standard set-up and an AM based set-up
+    # R. Sheehan 8 - 7 - 2021
+
+    FUNC_NAME = ".AM_Diode_Meas_Compar()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = "c:/Users/" + USER +  "/Teaching/PY2108/Data/AM_Diode_Test/"
+
+        os.chdir(DATA_HOME)
+
+        print(os.getcwd())
+
+        # the data
+        Rd = 0.01; # impedance of resistor used to determine diode current
+        Vr_std = [0, 0, 0, 0, 0, 0.004, 0.0256, 0.0727, 0.1306, 0.1983, 0.269, 
+                  0.35, 0.427, 0.508, 0.588, 0.678, 0.76, 0.845, 0.929, 1.019, 1.103]; # voltage across diode resistor measured using standard set up
+        Vd_std = [0, 0.0922, 0.1895, 0.295, 0.392, 0.487, 0.561, 0.615, 0.649, 0.675, 
+                  0.694, 0.708, 0.726, 0.737, 0.747, 0.755, 0.765, 0.772, 0.779, 0.786, 0.791]; # voltage across diode measured using standard set up
+        Id_std = []; # current going into diode measured using standard set up
+        for i in range(0, len(Vr_std), 1):
+            Id_std.append(Vr_std[i] / Rd)
+
+        # make a fit to the data using the diode equation
+        T = 25; 
+        pars_std = diode_fit(Id_std, Vd_std, T); 
+
+        # generate residual data based on fit
+        Vd_std_fit = []
+        for i in range(0, len(Id_std), 1):
+            Vd_std_fit.append( diode_voltage(Id_std[i], pars_std[0], pars_std[1], T) )
+
+        Vr_AM = [0, 0, 0.0028, 0.0878, 0.176, 0.355, 0.521, 0.72, 0.902]; # voltage across diode resistor measured using AM
+        Vd_AM = [0, 0.185, 0.47, 0.617, 0.661, 0.706, 0.735, 0.756, 0.774]; # voltage across diode measured using AM
+        Id_AM = []; 
+        for i in range(0, len(Vd_AM), 1):
+            Id_AM.append(Vr_AM[i] / Rd)
+
+        # make a fit to the data using the diode equation
+        pars_AM = diode_fit(Id_AM, Vd_AM, T); 
+
+        # generate residual data based on fit
+        Vd_AM_fit = []
+        for i in range(0, len(Id_AM), 1):
+            Vd_AM_fit.append( diode_voltage(Id_AM[i], pars_AM[0], pars_AM[1], T) )
+
+        # Make a plot of the standard measurement with its fit
+        args = Plotting.plot_arg_multiple()
+
+        hv_data = []; 
+        hv_data.append([Id_std, Vd_std])
+        hv_data.append([Id_std, Vd_std_fit])
+
+        args.loud = True
+        args.crv_lab_list = ["Std.", "Fit"]
+        args.mrk_list = [ Plotting.labs_pts[0], Plotting.labs_lins[1] ]
+        args.x_label = 'Current / mA'
+        args.y_label = 'Voltage / V'
+        args.fig_name = "Diode_Std_Meas_Rd_10"
+        args.plt_range = [0, 111, 0, 0.8]
+
+        Plotting.plot_multiple_curves(hv_data, args)
+
+        hv_data = []; 
+        hv_data.append([Id_AM, Vd_AM])
+        hv_data.append([Id_AM, Vd_AM_fit])
+
+        args.crv_lab_list = ["AM", "Fit"]
+        args.fig_name = "Diode_AM_Meas_Rd_10"
+        
+        Plotting.plot_multiple_curves(hv_data, args)
+
+        # plot the combined data
+        #args = Plotting.plot_arg_multiple()
+
+        #hv_data = []; 
+        #hv_data.append([Id_std, Vd_std])
+        #hv_data.append([Id_AM, Vd_AM])
+
+        #args.loud = False
+        #args.crv_lab_list = ["Std.", "AM"]
+        #args.mrk_list = [ Plotting.labs[0], Plotting.labs[1] ]
+        #args.x_label = 'Current / mA'
+        #args.y_label = 'Voltage / V'
+        #args.fig_name = "Diode_Meas_Rd_10"
+        #args.plt_range = [0, 111, 0, 0.8]
+
+        #Plotting.plot_multiple_curves(hv_data, args)
+
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def diode_voltage(x, eta, eye0, T):
+    # ideal diode equation inverted for voltage with Ohm's law contribution
+    # across diode included, see Tyndall Notebook 2353, page 100
+    # (k_{B} / q) = 8.61733e-5 [J / C K]
+    # series resistance needs to have negative sign for some reason
+    # what does eye0 represent? Bias saturation current
+
+    # For this function to work you need to use np.log, not math.log!!!
+
+    # need to define temperature as a global variable so that it gets assigned when function is called
+    T_term = 8.61733e-5*Common.convert_C_K(T) # at T = 25 C T_term = 0.0256926 [J/C]
+    
+    return ( eta*T_term*numpy.log( 1.0 + (x/eye0) ) )
+
+def diode_fit(hor_data, vert_data, T):
+    # fit the diode voltage equation to the data
+    # it is assumed that hor_data is input in units of mA and vert_data in units of V
+    # Temperature T is input in units of deg C
+    # T is converted to units of K inside function diode_voltage
+    # I_{0} is computed in units of mA, printed in units of uA
+    # eta is dimensionless
+
+    from scipy.optimize import curve_fit
+
+    params = ['eta', 'I_{0}']
+
+    # lambda function needed to include temperature dependence in fit calculations
+    # https://docs.python.org/2/tutorial/controlflow.html#lambda-expressions
+
+    popt, pcov = curve_fit( lambda x, eta, eye0: diode_voltage(x, eta, eye0, T), hor_data, vert_data )
+
+    #print("Fit parameters =",popt)
+    #print("Fit covariance =",pcov)
+    print("eta =", popt[0], " +/- ", math.sqrt(abs(pcov[0][0])) ) # dimensionless
+    print("I_{0} =", 1000*popt[1], " +/- ", 1000*math.sqrt(abs(pcov[1][1])), "uA" ) # computed in units of mA, express in uA fo convenience
+
+    #for i in range(0, len(params), 1):
+    #    print(params[i]," =",popt[i]," +/-",math.sqrt(abs(pcov[i][i])))
+
+    print(" ")
+
+    return popt

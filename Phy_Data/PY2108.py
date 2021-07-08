@@ -370,3 +370,104 @@ def diode_fit(hor_data, vert_data, T):
     print(" ")
 
     return popt
+
+def AM_BJT_Meas_Compar():
+
+    # Plot the measured BJT characteristic data
+    # data taken from a standard set-up and an AM based set-up
+    # R. Sheehan 8 - 7 - 2021
+
+    FUNC_NAME = ".AM_BJT_Meas_Compar()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = "c:/Users/" + USER +  "/Teaching/PY2108/Data/AM_BJT_Test/"
+
+        os.chdir(DATA_HOME)
+
+        print(os.getcwd())
+
+        Ic15=[0, 0, 0, 0, 2.8, 12.57142857, 23.04285714, 31.41428571, 34.91428571, 
+              39.8, 41.88571429, 42.58571429, 46.08571429, 46.08571429, 50.28571429, 52.35714286] # Measured collector current for Vbset = 1.5 V
+        Ib15=[1.075, 1.124, 0.929, 1.075, 0.879, 0.684, 0.586, 0.489, 0.44, 0.342, 
+              0.342, 0.489, 0.293, 0.489, 0.489, 0.293] # Measured base current for Vbset = 1.5 V
+        Vce15=[0, 0, 0, 0, 0.0244, 0.0782, 0.1271, 0.2151, 0.347, 0.5083, 0.6794, 
+               0.8407, 1.0068, 1.1681, 1.3196, 1.5152] # Measured collector-emitter voltage for Vbset = 1.5 V
+
+        Ic16=[0, 0, 0, 0, 4.185714286, 16.75714286, 27.22857143, 37, 46.78571429, 
+              55.85714286, 59.34285714, 63.54285714, 64.24285714, 65.62857143, 69.12857143, 71.22857143] # Measured collector current for Vbset = 1.6 V
+        Ib16=[1.612, 1.661, 1.612, 1.612, 1.418, 1.125, 1.026, 0.928, 0.978, 
+              0.782, 0.831, 0.782, 0.88, 0.929, 0.831, 0.978] # Measured base current for Vbset = 1.6 V
+        Vce16=[0, 0, 0, 0, 0.0147, 0.0587, 0.0929, 0.1369, 0.1955, 0.2884, 
+               0.435, 0.5865, 0.738, 0.8847, 1.0313, 1.173] # Measured collector-emitter voltage for Vbset = 1.6 V
+
+        Ic17=[0, 0, 0, 0, 4.185714286, 16.75714286, 30.02857143, 41.9, 50.97142857, 
+              60.74285714, 71.22857143, 76.81428571, 78.2, 81.68571429, 85.18571429, 83.8] # Measured collector current for Vbset = 1.7 V
+        Ib17=[2.248, 2.248, 2.297, 2.248, 2.297, 2.151, 1.71, 1.662, 1.662, 
+              1.613, 1.564, 1.368, 1.515, 1.417, 1.27, 1.417] # Measured base current for Vbset = 1.7 V
+        Vce17=[0, 0, 0, 0, 0.0147, 0.0489, 0.0831, 0.1124, 0.1515, 0.1955, 
+               0.259, 0.3519, 0.4643, 0.5914, 0.7136, 0.8895] # Measured collector-emitter voltage for Vbset = 1.7 V
+
+        # plot the IV characteristic
+        hv_data = []; labels = []; marks = []; 
+        hv_data.append([Vce15, Ic15]); labels.append("$I_{b}\,=\,0.6$ mA"); marks.append(Plotting.labs_pts[0]); 
+        hv_data.append([Vce16, Ic16]); labels.append("$I_{b}\,=\,1.1$ mA"); marks.append(Plotting.labs_pts[1]); 
+        hv_data.append([Vce17, Ic17]); labels.append("$I_{b}\,=\,1.8$ mA"); marks.append(Plotting.labs_pts[2]); 
+
+        # plot the data
+        args = Plotting.plot_arg_multiple()
+
+        args.loud = True
+        args.crv_lab_list = labels
+        args.mrk_list = marks
+        args.x_label = 'Collector-Emitter Voltage / V'
+        args.y_label = 'Collector Current / mA'
+        args.fig_name = "AM_BJT_IV"
+        args.plt_range = [0, 1.6, 0, 90]
+        args.plt_title = "$R_{b}\,=\,100\,\Omega,\,R_{c}\,=\,7\,\Omega$"
+
+        Plotting.plot_multiple_curves(hv_data, args)
+
+        # plot the gain characteristic
+        hv_data = []; labels = []; marks = []; 
+        hv_data.append([Ib15, Ic15]); labels.append("$I_{b}\,=\,0.6$ mA"); marks.append(Plotting.labs_pts[0]); 
+        hv_data.append([Ib16, Ic16]); labels.append("$I_{b}\,=\,1.1$ mA"); marks.append(Plotting.labs_pts[1]); 
+        hv_data.append([Ib17, Ic17]); labels.append("$I_{b}\,=\,1.8$ mA"); marks.append(Plotting.labs_pts[2]); 
+
+        args.loud = True
+        args.crv_lab_list = labels
+        args.mrk_list = marks
+        args.x_label = 'Base Current / mA'
+        args.y_label = 'Collector Current / mA'
+        args.fig_name = "AM_BJT_Gain_1"
+        args.plt_range = [0, 2.5, 0, 90]
+        args.plt_title = "$R_{b}\,=\,100\,\Omega,\,R_{c}\,=\,7\,\Omega$"
+
+        Plotting.plot_multiple_curves(hv_data, args)
+
+        args.fig_name = "AM_BJT_Gain_Fit_1"
+        Plotting.plot_multiple_linear_fit_curves(hv_data, args)
+
+        # plot the gain characteristic
+        hv_data = []; labels = []; marks = []; 
+        hv_data.append([Ic15, Ib15]); labels.append("$I_{b}\,=\,0.6$ mA"); marks.append(Plotting.labs_pts[0]); 
+        hv_data.append([Ic16, Ib16]); labels.append("$I_{b}\,=\,1.1$ mA"); marks.append(Plotting.labs_pts[1]); 
+        hv_data.append([Ic17, Ib17]); labels.append("$I_{b}\,=\,1.8$ mA"); marks.append(Plotting.labs_pts[2]); 
+
+        args.loud = True
+        args.crv_lab_list = labels
+        args.mrk_list = marks
+        args.y_label = 'Base Current / mA'
+        args.x_label = 'Collector Current / mA'
+        args.fig_name = "AM_BJT_Gain_2"
+        args.plt_range = [0, 90, 0, 2.5]
+        args.plt_title = "$R_{b}\,=\,100\,\Omega,\,R_{c}\,=\,7\,\Omega$"
+
+        Plotting.plot_multiple_curves(hv_data, args)
+
+        args.fig_name = "AM_BJT_Gain_Fit_2"
+        Plotting.plot_multiple_linear_fit_curves(hv_data, args)
+        
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)

@@ -426,7 +426,7 @@ def AM_BJT_Meas_Compar():
         args.plt_range = [0, 1.6, 0, 90]
         args.plt_title = "$R_{b}\,=\,100\,\Omega,\,R_{c}\,=\,7\,\Omega$"
 
-        Plotting.plot_multiple_curves(hv_data, args)
+        #Plotting.plot_multiple_curves(hv_data, args)
 
         # plot the gain characteristic
         hv_data = []; labels = []; marks = []; 
@@ -443,7 +443,7 @@ def AM_BJT_Meas_Compar():
         args.plt_range = [0, 2.5, 0, 90]
         args.plt_title = "$R_{b}\,=\,100\,\Omega,\,R_{c}\,=\,7\,\Omega$"
 
-        Plotting.plot_multiple_curves(hv_data, args)
+        #Plotting.plot_multiple_curves(hv_data, args)
 
         args.fig_name = "AM_BJT_Gain_Fit_1"
         Plotting.plot_multiple_linear_fit_curves(hv_data, args)
@@ -463,7 +463,7 @@ def AM_BJT_Meas_Compar():
         args.plt_range = [0, 90, 0, 2.5]
         args.plt_title = "$R_{b}\,=\,100\,\Omega,\,R_{c}\,=\,7\,\Omega$"
 
-        Plotting.plot_multiple_curves(hv_data, args)
+        #Plotting.plot_multiple_curves(hv_data, args)
 
         args.fig_name = "AM_BJT_Gain_Fit_2"
         Plotting.plot_multiple_linear_fit_curves(hv_data, args)

@@ -232,7 +232,7 @@ def LRC_FR_Compar_Plots():
         print(ERR_STATEMENT)
         print(e)
 
-def AM_Diode_Meas_Compar():
+def AM_Diode_Meas_Compar_1():
 
     # Plot the measured diode characteristic data
     # data taken from a standard set-up and an AM based set-up
@@ -323,6 +323,71 @@ def AM_Diode_Meas_Compar():
         #args.plt_range = [0, 111, 0, 0.8]
 
         #Plotting.plot_multiple_curves(hv_data, args)
+
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def AM_Diode_Meas_Compar_2():
+
+    # Plot the measured diode characteristic data
+    # data taken from a standard set-up and an AM based set-up
+    # R. Sheehan 8 - 7 - 2021
+
+    FUNC_NAME = ".AM_Diode_Meas_Compar()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = "c:/Users/" + USER +  "/Teaching/PY2108/Data/AM_Diode_Test/"
+
+        os.chdir(DATA_HOME)
+
+        print(os.getcwd())
+
+        #Rd = [10, 22, 47]
+        Rd = [47]
+
+        fname = "AM_FR101_Swp_%(v1)d_Rd_%(v2)d.txt"
+
+        for i in range(0, len(Rd), 1):
+            diode_data = numpy.array([])
+            for j in range(1, 4, 1):
+                file = fname%{"v1":j,"v2":Rd[i]}
+                print(file)
+                data = numpy.loadtxt(file, delimiter = '\t', unpack = True); 
+                if j == 1:
+                    diode_data = data
+                else:
+                    diode_data = numpy.append(diode_data, data, 1)
+
+            # sort the data
+            diode_data[1], diode_data[0] = Common.sort_two_col(diode_data[1], diode_data[0])
+
+            # make a fit to the data using the diode equation
+            T = 20; 
+            pars_std = diode_fit(diode_data[0], diode_data[1], T); 
+
+            # generate residual data based on fit
+            Vd_fit = []
+            for k in range(0, len(diode_data[0]), 1):
+                Vd_fit.append( diode_voltage(diode_data[0][k], pars_std[0], pars_std[1], T) )
+
+            # Make a plot of the data
+            args = Plotting.plot_arg_multiple()
+
+            hv_data = []; 
+            hv_data.append([diode_data[0], diode_data[1]])
+            hv_data.append([diode_data[0], Vd_fit])
+
+            args.loud = True
+            args.crv_lab_list = ["Data", "Fit"]
+            args.mrk_list = [ Plotting.labs_pts[0], Plotting.labs_lins[1] ]
+            args.x_label = 'Current / mA'
+            args.y_label = 'Voltage / V'
+            args.fig_name = "AM_Diode_Meas_Rd_%(v2)d"%{"v2":Rd[i]}
+            args.plt_range = [0, 120, 0, 0.8]
+
+            Plotting.plot_multiple_curves(hv_data, args)
 
     except Exception as e:
         print(ERR_STATEMENT)

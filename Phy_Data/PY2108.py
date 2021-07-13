@@ -344,24 +344,31 @@ def AM_Diode_Meas_Compar_2():
 
         print(os.getcwd())
 
-        #Rd = [10, 22, 47]
-        Rd = [47]
+        # the data obtained manually
+        Rd = 0.01; # impedance of resistor used to determine diode current
+        Vr_std = [0, 0, 0, 0, 0, 0.004, 0.0256, 0.0727, 0.1306, 0.1983, 0.269, 
+                  0.35, 0.427, 0.508, 0.588, 0.678, 0.76, 0.845, 0.929, 1.019, 1.103]; # voltage across diode resistor measured using standard set up
+        Vd_std = [0, 0.0922, 0.1895, 0.295, 0.392, 0.487, 0.561, 0.615, 0.649, 0.675, 
+                  0.694, 0.708, 0.726, 0.737, 0.747, 0.755, 0.765, 0.772, 0.779, 0.786, 0.791]; # voltage across diode measured using standard set up
+        Id_std = []; # current going into diode measured using standard set up
+        for i in range(0, len(Vr_std), 1):
+            Id_std.append(Vr_std[i] / Rd)
 
-        fname = "AM_FR101_Swp_%(v1)d_Rd_%(v2)d.txt"
+        fname = "AM_FR101_Swp_%(v1)d_Rd_10.txt"
 
-        for i in range(0, len(Rd), 1):
-            diode_data = numpy.array([])
-            for j in range(1, 4, 1):
-                file = fname%{"v1":j,"v2":Rd[i]}
-                print(file)
-                data = numpy.loadtxt(file, delimiter = '\t', unpack = True); 
-                if j == 1:
-                    diode_data = data
-                else:
-                    diode_data = numpy.append(diode_data, data, 1)
+        #diode_data = numpy.array([])
+        for j in range(1, 4, 1):
+            file = fname%{"v1":j}
+            print(file)
+            #data = numpy.loadtxt(file, delimiter = '\t', unpack = True); 
+            diode_data = numpy.loadtxt(file, delimiter = '\t', unpack = True); 
+            #if j == 1:
+            #    diode_data = data
+            #else:
+            #    diode_data = numpy.append(diode_data, data, 1)
 
             # sort the data
-            diode_data[1], diode_data[0] = Common.sort_two_col(diode_data[1], diode_data[0])
+            #diode_data[1], diode_data[0] = Common.sort_two_col(diode_data[1], diode_data[0])
 
             # make a fit to the data using the diode equation
             T = 20; 
@@ -384,11 +391,20 @@ def AM_Diode_Meas_Compar_2():
             args.mrk_list = [ Plotting.labs_pts[0], Plotting.labs_lins[1] ]
             args.x_label = 'Current / mA'
             args.y_label = 'Voltage / V'
-            args.fig_name = "AM_Diode_Meas_Rd_%(v2)d"%{"v2":Rd[i]}
-            args.plt_range = [0, 120, 0, 0.8]
+            args.fig_name = file.replace(".txt","")
+            args.plt_range = [0, 130, 0, 0.9]
 
             Plotting.plot_multiple_curves(hv_data, args)
 
+            hv_data = []; 
+            hv_data.append([diode_data[0], diode_data[1]])
+            hv_data.append([Id_std, Vd_std])
+
+            args.crv_lab_list = ["AM", "Std"]
+            args.mrk_list = [ Plotting.labs_pts[0], Plotting.labs_pts[1] ]
+            args.fig_name = file.replace(".txt","") + "_vs_Man_Meas"
+
+            Plotting.plot_multiple_curves(hv_data, args)
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)

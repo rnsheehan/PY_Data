@@ -30,6 +30,8 @@ if __name__ == '__main__':
 
     #PY2108.LRC_FR_Compar_Plots()
 
-    PY2108.AM_Diode_Meas_Compar_1()
+    #PY2108.AM_Diode_Meas_Compar_1()
 
-    #PY2108.AM_BJT_Meas_Compar()
+    #PY2108.AM_BJT_Meas_Compar_2()
+
+    PY2108.AM_BJT_Meas_Imped_Anal()

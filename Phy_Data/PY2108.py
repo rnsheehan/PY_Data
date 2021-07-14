@@ -331,8 +331,8 @@ def AM_Diode_Meas_Compar_1():
 def AM_Diode_Meas_Compar_2():
 
     # Plot the measured diode characteristic data
-    # data taken from a standard set-up and an AM based set-up
-    # R. Sheehan 8 - 7 - 2021
+    # data taken froman AM based set-up
+    # R. Sheehan 12 - 7 - 2021
 
     FUNC_NAME = ".AM_Diode_Meas_Compar()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
@@ -452,7 +452,7 @@ def diode_fit(hor_data, vert_data, T):
 
     return popt
 
-def AM_BJT_Meas_Compar():
+def AM_BJT_Meas_Compar_1():
 
     # Plot the measured BJT characteristic data
     # data taken from a standard set-up and an AM based set-up
@@ -548,6 +548,196 @@ def AM_BJT_Meas_Compar():
 
         args.fig_name = "AM_BJT_Gain_Fit_2"
         Plotting.plot_multiple_linear_fit_curves(hv_data, args)
+        
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def AM_BJT_Meas_Compar_2():
+
+    # Plot the measured BJT characteristic data
+    # data taken from an AM based set-up
+    # R. Sheehan 13 - 7 - 2021
+
+    FUNC_NAME = ".AM_BJT_Meas_Compar()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = "c:/Users/" + USER +  "/Teaching/PY2108/Data/AM_BJT_Test/"
+
+        os.chdir(DATA_HOME)
+
+        print(os.getcwd())
+
+        Vb = range(130, 190, 5)
+
+        #Rb = 0.1; Rc = 0.0047; rat = 21
+        #Rb = 0.1; Rc = 0.0058; rat = 17
+        Rb = 0.1; Rc = 0.0082; rat = 12
+
+        fname = "AM_BJT_Vb_%(v1)d_R_%(v2)d.txt"
+
+        IV_data = []; G_data = []; labels = []; marks = []; 
+
+        count = 0
+        for i in range(1, len(Vb), 2):
+            file = fname%{"v1":Vb[i], "v2":rat}
+
+            data = numpy.loadtxt(file, delimiter = '\t', unpack = True)
+
+            # average base current
+            #Ib = 1000.0*numpy.mean(data[2])
+            Ib = numpy.mean(data[2])
+
+            # Gather data for IV characteristic
+            IV_data.append([data[4], data[3]]); 
+            G_data.append([data[2], data[3]]); 
+            #labels.append("$I_{b}\,=\,%(v1)0.0f\,\mu A$"%{"v1":Ib}); 
+            labels.append("$I_{b}\,=\,%(v1)0.2f$ mA"%{"v1":Ib}); 
+            marks.append( Plotting.labs_pts[count%len(Plotting.labs_pts)] ); 
+
+            count = count + 1
+
+        # plot the IV data
+        # figure out how to correctly add in the load-line
+        args = Plotting.plot_arg_multiple()
+
+        args.loud = True
+        args.crv_lab_list = labels
+        args.mrk_list = marks
+        args.x_label = 'Collector-Emitter Voltage / V'
+        args.y_label = 'Collector Current / mA'
+        args.fig_name = "AM_BJT_IV_R_%(v1)d"%{"v1":rat}
+        args.plt_range = [0, 2, 0, 120]
+        args.plt_title = "$R_{b}\,=\,%(v1)0.1f\,\Omega,\,R_{c}\,=\,%(v2)0.1f\,\Omega$"%{"v1":1000*Rb, "v2":1000*Rc}
+
+        Plotting.plot_multiple_curves(IV_data, args)
+
+        args.x_label = 'Base Current / mA'
+        args.y_label = 'Collector Current / mA'
+        args.fig_name = "AM_BJT_G_R_%(v1)d"%{"v1":rat}
+        args.plt_range = [0, 4, 0, 120]
+        args.plt_title = "$R_{b}\,=\,%(v1)0.1f\,\Omega,\,R_{c}\,=\,%(v2)0.1f\,\Omega$"%{"v1":1000*Rb, "v2":1000*Rc}
+
+        Plotting.plot_multiple_linear_fit_curves(G_data, args)
+        
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def AM_BJT_Meas_Imped_Anal():
+
+    # Examine the data from the BJT measurements to determine what load is being seen by the AM
+    # E.g. Vset and Vobserved are not the same in the case of a loaded and unloaded set-up
+    # in the case of an unloaded Vout Vexpected = m Vset + c, m = 0.9277, c = -0.1546
+    # The DUT sees a much higher impedance which limits the current input in the device
+    # What is the impedance? 
+    # R. Sheehan 13 - 7 - 2021
+
+    FUNC_NAME = ".AM_BJT_Meas_Imped_Anal()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = "c:/Users/" + USER +  "/Teaching/PY2108/Data/AM_BJT_Test/"
+
+        os.chdir(DATA_HOME)
+
+        print(os.getcwd())
+
+        Vb = range(130, 190, 5)
+
+        #Rb = 0.1; Rc = 0.0047; rat = 21
+        #Rb = 0.1; Rc = 0.0058; rat = 17
+        Rb = 0.1; Rc = 0.0082; rat = 12
+
+        fname = "AM_BJT_Vb_%(v1)d_R_%(v2)d.txt"
+
+        # Output (Formatted Data):
+        # Vbin = A2, Vcin = A0, Irb = A2 - A3 / Rb, Irc = A0 - A1 / Rc, Vce = A4 - A5
+        # A3 = VBE ~ 0.7 V - 0.8 V
+        # determine from files plot of Vb-observed versus Vb-set
+        # determine from files Vc-observed versus Vc-set
+
+        Vc_set = numpy.arange(0, 3.1, 0.1); # actual Vc set points from AM
+        Vb_set = numpy.arange(1.3, 1.90, 0.05); # actual Vb set points from AM
+        Vb_real = []; Vb_err = []; 
+        Vc_real_all = numpy.zeros( shape=(len(Vb_set), len(Vc_set)) )
+        
+        count = 0
+        for i in range(0, len(Vb), 1):
+            file = fname%{"v1":Vb[i], "v2":rat}
+
+            data = numpy.loadtxt(file, delimiter = '\t', unpack = True)
+
+            # Gather real Vc
+            
+            Vc_real_all[count] = data[1]
+
+            # gather real Vb
+            # average real Vb
+            Vb_real.append( numpy.mean(data[0]) )
+            Vb_err.append( 0.5*( numpy.max(data[0]) - numpy.min(data[0]) ) )
+
+            #print(numpy.mean(data[0]), ",", numpy.max(data[0]), ",", numpy.min(data[0]))
+
+            count = count + 1
+
+        # linear fit to Vb_real versus Vb_set
+        pars = Common.linear_fit(numpy.asarray(Vb_set), numpy.asarray(Vb_real), [0, 1], True)
+
+        # Make a plot of Vb_real versus Vb_set
+        args = Plotting.plot_arg_single()
+
+        args.loud = True
+        args.marker = Plotting.labs_pts[0]
+        args.curve_label = '$V_{b}^{meas}$ = %(m)0.3f $V_{b}^{set}$ %(c)0.3f'%{"m":pars[1], "c":pars[0]}
+        args.x_label = 'Set-Point $V_{b}$ / V'
+        args.y_label = 'Measured $V_{b}$ / V'
+        args.fig_name = "AM_BJT_Set_Meas_Vb_%(v1)d"%{"v1":rat}
+        args.plt_range = [1.25, 1.9, 0.6, 1.2]
+
+        Plotting.plot_single_linear_fit_curve_with_errors(Vb_set, Vb_real, Vb_err, args)
+
+        # analyse VC data
+
+        # plot all the Vc data
+        hv_data = []; labels = []; marks = []
+        count = 0
+        for i in range(0, len(Vb_set), 1):
+            hv_data.append([Vc_set, Vc_real_all[i]]); labels.append("$V_{b}$ = %(v1)0.2f"%{"v1":Vb_set[i]});
+            marks.append(Plotting.labs_pts[count%len(Plotting.labs_pts)])
+            count = count + 1
+
+        args = Plotting.plot_arg_multiple()
+
+        args.loud = True
+        args.crv_lab_list = labels
+        args.mrk_list = marks
+        args.x_label = 'Set-Point $V_{c}$ / V'
+        args.y_label = 'Measured $V_{c}$ / V'
+        args.fig_name = "AM_BJT_Set_Meas_Vc_%(v1)d"%{"v1":rat}
+        args.plt_range = [0, 3, 0, 2.5]
+
+        Plotting.plot_multiple_curves(hv_data, args)
+
+        # plot the averaged data
+        Vc_real = []; Vc_err = []; 
+        for i in range(0, len(Vc_set), 1):
+            Vc_real.append(numpy.mean(Vc_real_all[:,i]))
+            Vc_err.append(0.5*( numpy.max(Vc_real_all[:,i]) - numpy.min(Vc_real_all[:,i]) ))
+        
+        # Make a plot of Vc_real versus Vc_set
+        
+        args.loud = True
+        args.marker = Plotting.labs_pts[0]
+        args.curve_label = '$V_{c}^{meas}$'%{"m":pars[1], "c":pars[0]}
+        args.x_label = 'Set-Point $V_{c}$ / V'
+        args.y_label = 'Measured $V_{c}$ / V'
+        args.fig_name = "AM_BJT_Set_Meas_Vc_err_%(v1)d"%{"v1":rat}
+        args.plt_range = [0, 3, 0, 2.5]
+
+        #Plotting.plot_single_curve(Vc_set, Vc_real, args)
+        Plotting.plot_single_curve_with_errors(Vc_set, Vc_real, Vc_err, args)
         
     except Exception as e:
         print(ERR_STATEMENT)

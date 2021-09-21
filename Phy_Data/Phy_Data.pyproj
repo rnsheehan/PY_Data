@@ -20,6 +20,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="LLM.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Phy_Data.py" />
     <Compile Include="PY2108.py">
       <SubType>Code</SubType>

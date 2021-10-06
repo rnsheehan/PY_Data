@@ -37,4 +37,9 @@ if __name__ == '__main__':
 
     #PY2108.AM_BJT_Meas_Imped_Anal()
 
-    LLM.JDSU_EDFA_Plot()
+    #LLM.JDSU_EDFA_Plot()
+    
+    #LLM.JDSU_Filter_Plot()
+
+    LLM.JDSU_Isolator_Plot()
+

@@ -41,5 +41,7 @@ if __name__ == '__main__':
     
     #LLM.JDSU_Filter_Plot()
 
-    LLM.JDSU_Isolator_Plot()
+    #LLM.JDSU_Isolator_Plot()
+
+    LLM.LLM_Setup()
 

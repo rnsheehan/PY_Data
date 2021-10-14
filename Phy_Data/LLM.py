@@ -16,6 +16,88 @@ MOD_NAME_STR = "LLM"
 HOME = False
 USER = 'Robert' if HOME else 'robertsheehan/OneDrive - University College Cork/Documents'
 
+def JDSU_DFB_LIV():
+
+    # plot the measured JDSU DFB LIV data
+    # R. Sheehan 14 - 10 - 2021
+
+    FUNC_NAME = ".JDSU_DFB_LIV()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        dir_name = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/CPT_Tests/JDSU_DFB_EDFA/'
+
+        if os.path.isdir(dir_name):
+            os.chdir(dir_name)
+            print(os.getcwd())
+
+            files = glob.glob('DFB_LIV_T_*.txt')
+            
+            # Plot the measured LIV data            
+            hv_data_v = []; hv_data_mW = []; hv_data_dBm = []; marks = []; labels = []; 
+            indices = [0, 3, 5]
+            for i in range(0, len(indices), 1):
+                labels.append(files[ indices[i] ].replace('DFB_LIV_','').replace('.txt','').replace('_',' = '))
+                marks.append( Plotting.labs_lins[ i % ( len( Plotting.labs_lins ) ) ] )
+                data = numpy.loadtxt(files[ indices[i] ], delimiter = '\t', unpack = True)
+                hv_data_v.append([data[0], data[1]])
+                hv_data_mW.append([data[0], data[2]])
+                hv_data_dBm.append([data[0], data[3]])
+
+            # plot the data
+            args = Plotting.plot_arg_multiple()
+
+            args.loud = True
+            args.crv_lab_list = labels
+            args.mrk_list = marks
+            args.x_label = '$I_{DFB}$ / mA'
+            args.y_label = '$V_{DFB}$ / V'
+            args.fig_name = 'JDSU_DFB_Voltage'
+            args.plt_range = [0, 50, 0, 1.1]
+
+            #Plotting.plot_multiple_curves(hv_data_v, args)
+
+            args.y_label = '$P_{DFB}$ / mW'
+            args.fig_name = 'JDSU_DFB_PmW'
+            args.plt_range = [0, 50, 0, 7]
+
+            #Plotting.plot_multiple_curves(hv_data_mW, args)
+
+            args.y_label = '$P_{DFB}$ / dBm'
+            args.fig_name = 'JDSU_DFB_PdBm'
+            args.plt_range = [0, 50, -40, 10]
+
+            #Plotting.plot_multiple_curves(hv_data_dBm, args)
+
+            # Plot the peak voltage, power as function of temperature
+            Tvals = []
+            Vpeak = []
+            Ppeak = []
+            for i in range(0, len(files), 1):
+                Tvals.append( float( files[ i ].replace('DFB_LIV_T','').replace('.txt','').replace('_','') ) )
+                data = numpy.loadtxt(files[ i ], delimiter = '\t', unpack = True)
+                Vpeak.append(data[1][-1])
+                Ppeak.append(data[2][-1])
+
+            # plot the data
+            args = Plotting.plot_arg_multiple()
+
+            args.loud = True
+            args.crv_lab_list = labels
+            args.mrk_list = marks
+            args.x_label = '$T_{DFB}$ / C'
+            args.y_label = '$V_{DFB}$ / V'
+            args.y_label_2 = '$P_{DFB}$ / mW'
+            args.fig_name = 'JDSU_DFB_I_50'
+            
+            Plotting.plot_two_axis(Tvals, Vpeak, Ppeak, args)            
+
+        else:
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
 def JDSU_EDFA_Plot():
 
     # generate a plot of the measured JDSU laser spectrum data after amplification with EDFA

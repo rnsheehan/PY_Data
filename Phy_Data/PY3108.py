@@ -559,3 +559,95 @@ def OpAmpComparison():
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
+
+def InAmp_Isrc_Char():
+
+    # plot the measured data from the characterisation of the InAmp based current source
+    # R. Sheehan 15 - 10 - 2021
+
+    FUNC_NAME = ".InAmp_Isrc_Char()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = "c:/Users/" + USER +  "/Teaching/PY3108/Data/Current_Source/Isrc_V2_2021/"
+
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+
+            print(os.getcwd())
+            
+            # Isrc Parameters
+            # InAmp INA122PA -> k = 5, R_{int} = 200k, R_{G} = 10k, R_{1} = 0.001k
+            k=5.0; Rint = 200.0; Rg = 10.0; R1 = 1.0/1000.0; 
+            G = k + Rint/Rg
+            Rlist = [5.2, 10.2, 14.9, 21.9]
+            files = ['IBM4_V2_R_5p2.txt', 'IBM4_V2_R_10p2.txt', 'IBM4_V2_R_14p9.txt', 'IBM4_V2_R_21p9.txt']
+
+            # read the data
+            hv_data = []; labels = []; marks = []; 
+            for i in range(0, len(files), 1):
+                data = numpy.loadtxt(files[i], delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[2]])
+                marks.append(Plotting.labs_pts[i])
+                labels.append('R = %(v1)0.1f $\Omega$'%{"v1":Rlist[i]})
+
+            # plot the data
+            args = Plotting.plot_arg_multiple()
+
+            args.loud = False
+            args.crv_lab_list = labels
+            args.mrk_list = marks
+            args.x_label = '$V_{in}$ / V'
+            args.y_label = '$I_{load}$ / mA'
+            args.fig_name = 'Isrc_v2_Current_Output'
+            args.plt_range = [0, 3.3, 0, 140]
+
+            Plotting.plot_multiple_curves(hv_data, args)
+
+            # Take an average over all the data sets
+            Vavg = []; Iavg = []; Verr = []; Ierr = []; 
+            N_data = len(hv_data[0][0])
+            N_meas = len(hv_data)
+            print(N_data)
+            for i in range(0, N_data, 1):
+                Vsum = 0.0; Isum = 0.0; Vmax = -50.0; Vmin = 50.0; Imax = -500.0; Imin = +500.0; 
+                for j in range(0, N_meas, 1):
+                    Vsum = Vsum + hv_data[j][0][i]
+                    Isum = Isum + hv_data[j][1][i]
+                    if hv_data[j][0][i] > Vmax: Vmax = hv_data[j][0][i]
+                    if hv_data[j][0][i] < Vmin: Vmin = hv_data[j][0][i]
+                    if hv_data[j][1][i] > Imax: Imax = hv_data[j][1][i]
+                    if hv_data[j][1][i] < Imin: Imin = hv_data[j][1][i]
+                Vsum = Vsum / N_meas
+                Isum = Isum / N_meas
+                Vavg.append(Vsum)
+                Iavg.append(Isum)
+                Verr.append(Vmax - Vmin)
+                Ierr.append(Imax - Imin)
+
+            # Make a linear fit to the data set
+            pars = Common.linear_fit(numpy.asarray(Vavg), numpy.asarray(Iavg), [0, 1], False)
+            print('Linear Fit')
+            print('Intercept: ',pars[0])
+            print('Slope: ',pars[1])
+            print('G R1 Actual: ', G*R1,', G R1 Fit: ',1.0/pars[1])
+
+            # Plot the averaged data
+            args = Plotting.plot_arg_single()
+
+            args.loud = True
+            args.curve_label = '$I_{load}$ = %(v1)0.3f $V_{in}$ + %(v2)0.3f'%{"v1":pars[1],"v2":pars[0]}
+            args.marker = Plotting.labs_pts[0]
+            args.x_label = '$V_{in}$ / V'
+            args.y_label = '$I_{load}$ / mA'
+            args.fig_name = 'Isrc_v2_Average_Current_Output'
+            args.plt_range = [0, 3.3, 0, 140]
+
+            #Plotting.plot_single_curve(Vavg, Iavg, args)
+            #Plotting.plot_single_linear_fit_curve(Vavg, Iavg, args)
+            Plotting.plot_single_linear_fit_curve_with_errors(Vavg, Iavg, Ierr, args)
+
+
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)

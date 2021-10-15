@@ -23,6 +23,8 @@ if __name__ == '__main__':
 
     #PY3108.OpAmpComparison()
 
+    PY3108.InAmp_Isrc_Char()
+
     #PY2108.RC_FR_Plots()
 
     #PY2108.LRC_FR_Plots()
@@ -43,5 +45,5 @@ if __name__ == '__main__':
 
     #LLM.JDSU_Isolator_Plot()
 
-    LLM.JDSU_DFB_LIV()
+    #LLM.JDSU_DFB_LIV()
 

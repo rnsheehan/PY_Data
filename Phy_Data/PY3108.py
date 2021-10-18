@@ -625,6 +625,10 @@ def InAmp_Isrc_Char():
                 Verr.append(Vmax - Vmin)
                 Ierr.append(Imax - Imin)
 
+            # estimate of largest errors
+            print("Max{ Verr }: ",max(Verr)*1000, " mV")
+            print("Max{ Ierr }: ",max(Ierr), " mA")
+
             # Make a linear fit to the data set
             pars = Common.linear_fit(numpy.asarray(Vavg), numpy.asarray(Iavg), [0, 1], False)
             print('Linear Fit')

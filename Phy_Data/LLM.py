@@ -275,3 +275,51 @@ def LLM_Setup():
         print(ERR_STATEMENT)
         print(e)
 
+def LLM_Sample_Data():
+
+    # make plots of the measured LLM sample data that you found
+    # R. Sheehan 20 - 10 - 2021
+
+    FUNC_NAME = ".LLM_Sample_Data()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/Lorentzian_Analysis/'
+
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+
+            print(os.getcwd())
+
+            # Get the data
+            files = ['Sample_LLM.txt']
+            #files = ['Sample_LLM.txt', 'Lorentz_fin1.csv', 'Lorentz_fin2.csv', 'Lorentz_draft.csv', 'Lorentz_iodeal.csv', 'Voigt_draft.csv', 'Voigt_fin1.csv']
+            for i in range(0, len(files), 1):
+                hv_data = []; labels = []; marks = []; 
+                data = numpy.loadtxt(files[i], skiprows = 1, unpack = True)
+                #data = numpy.loadtxt(files[i], delimiter = ',', skiprows = 1, unpack = True)
+                data[0] = data[0] / 1.0e+3; 
+                data[2] = data[2] / 1.0e+3; 
+                hv_data.append([data[0], data[1]]); labels.append('Raw Data'); marks.append(Plotting.labs_pts[2]); 
+                hv_data.append([data[2], data[3]]); labels.append('Lor Fit'); marks.append(Plotting.labs_lins[0]); 
+
+                # plot the data
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = 'Frequency / MHz'
+                args.y_label = 'Spectral Power / dBm'
+                args.fig_name = files[i].replace('.txt','')
+                #args.plt_range = [0, 3.3, 0, 140]
+
+                Plotting.plot_multiple_curves(hv_data, args)
+
+                hv_data.clear(); labels.clear(); marks.clear(); 
+        else:
+            raise EnvironmentError
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+

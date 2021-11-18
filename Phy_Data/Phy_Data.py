@@ -47,5 +47,11 @@ if __name__ == '__main__':
 
     #LLM.JDSU_DFB_LIV()
 
-    LLM.LLM_Sample_Data()
+    #LLM.LLM_Sample_Data()
+
+    #LLM.Spectra_vs_Current()
+
+    #LLM.Meas_Report()
+
+    LLM.LL_Result()
 

@@ -323,3 +323,204 @@ def LLM_Sample_Data():
         print(ERR_STATEMENT)
         print(e)
 
+def Spectra_vs_Current():
+
+    # make plot of measured spectra at different laser current values
+    # R. Sheehan 18 - 11 - 2021
+
+    FUNC_NAME = ".Spectra_vs_Current()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/'
+
+        method = 'DSHI'
+        laser = 'JDSU_DFB'
+        temperature = '20'
+        dlength = '25'
+
+        dir_name = '%(v1)s_%(v2)s_T_%(v3)s_D_%(v4)s/'%{"v1":method, "v2":laser, "v3":temperature, "v4":dlength}
+
+        new_dir = DATA_HOME + dir_name
+
+        if os.path.isdir(new_dir):
+            os.chdir(new_dir)
+
+            print(os.getcwd())
+
+            fname = 'LLM_Spctrm_I_%(v1)d.txt'
+            Ivals = list(range(40, 60, 5))
+
+            # import the measured data
+            hv_data = []; marks = []; labels = []
+            count = 0
+            for x in Ivals:
+                filename = fname%{"v1":x}
+                if glob.glob(filename):
+                    data = numpy.loadtxt(filename, unpack = True)
+                    hv_data.append(data); 
+                    marks.append(Plotting.labs_lins[count%len(Plotting.labs_lins)]);
+                    labels.append( 'I = %(v1)d mA'%{"v1":x} )
+                    count = count + 1
+            
+            # make the plot
+            args = Plotting.plot_arg_multiple()
+
+            args.loud = True
+            args.crv_lab_list = labels
+            args.mrk_list = marks
+            args.x_label = 'Frequency / MHz'
+            args.y_label = 'Spectral Power / dBm'
+            args.fig_name = dir_name.replace('/','_') + 'Spectra'
+            args.plt_range = [65, 95, -80, -50]
+
+            Plotting.plot_multiple_curves(hv_data, args)
+
+            hv_data.clear(); labels.clear(); marks.clear(); 
+            
+        else:
+            raise EnvironmentError
+
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Meas_Report():
+
+    # make plot of measured spectra at different laser current values
+    # R. Sheehan 18 - 11 - 2021
+
+    FUNC_NAME = ".Meas_Report()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/'
+
+        method = 'DSHI'
+        laser = 'JDSU_DFB'
+        temperature = '20'
+        dlength = '25'
+
+        dir_name = '%(v1)s_%(v2)s_T_%(v3)s_D_%(v4)s/'%{"v1":method, "v2":laser, "v3":temperature, "v4":dlength}
+
+        new_dir = DATA_HOME + dir_name
+
+        if os.path.isdir(new_dir):
+            os.chdir(new_dir)
+
+            print(os.getcwd())
+
+            nmeas = '300'
+            dT = '2000'
+            I = '50'
+
+            filename = 'LLM_Data_Nmeas_%(v1)s_dT_%(v2)s_I_%(v3)s.txt'%{"v1":nmeas, "v2":dT,"v3":I}
+
+            Meas_Analysis(filename)
+            
+        else:
+            raise EnvironmentError
+
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Meas_Analysis(filename):
+
+    # Read in the file containing the data from the Multi-LLM Meas
+    # file has rows of data in the form {time / s, fitted A / nW, fitted f_centre / MHz, fitted LL / MHz, chi^{2} / nu for fit, R^{2} coeff, gof probablity}
+    # Mainly interested in getting average LLM + error and also to see if there is zero correlation between LLM and time
+    # R. Sheehan 18 - 11 - 2021
+
+    FUNC_NAME = ".Meas_Analysis()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        
+        if glob.glob(filename):
+            data = numpy.loadtxt(filename, unpack = True)
+
+            # get average LL + error
+            LLave = numpy.mean(data[3])
+            LLstd = numpy.std(data[3])
+            LLspread = 0.5*(numpy.max(data[3]) - numpy.min(data[3]))
+
+            # get correlation between measured LLM and time data
+            # ideally this should be zero
+            LLrcoeff = numpy.corrcoef(data[0], data[3])
+
+            print(filename)
+            print('Laser Linewidth: ',LLave,' +/-',LLspread,' MHz')
+            print('Laser Linewidth: ',LLave,' +/-',LLstd,' MHz')
+            print('Laser Linewidth vs Time Correlation Coefficient: ', LLrcoeff[0][1])
+
+            # Plot LLM vs Time
+            args = Plotting.plot_arg_single()
+
+            args.loud = True
+            args.x_label = 'Time / min'
+            args.y_label = '$\Delta \\nu$ / MHz'
+            args.plt_title = '<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz'%{"v1":LLave,"v2":LLspread}
+            args.fig_name = filename.replace('.txt','_') + 'LLMvsTime'
+            args.plt_range = [0, 60, 1, 2]
+
+            Plotting.plot_single_linear_fit_curve(data[0]/60.0, data[3], args)
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot open' + filename
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def LL_Result():
+
+    # Plot the measured LL for various powers
+    # R. Sheehan 18 - 11 - 2021
+
+    FUNC_NAME = ".LL_Result()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/'
+
+        method = 'DSHI'
+        laser = 'JDSU_DFB'
+        temperature = '20'
+        dlength = '25'
+
+        dir_name = '%(v1)s_%(v2)s_T_%(v3)s_D_%(v4)s/'%{"v1":method, "v2":laser, "v3":temperature, "v4":dlength}
+
+        new_dir = DATA_HOME + dir_name
+
+        if os.path.isdir(new_dir):
+            
+            current_mA = [40, 45, 50, 50, 50, 55, 60, 65]
+            power_mW = [4.4748, 5.2278, 5.9808, 5.9808, 5.9808, 6.7338, 7.4868, 8.2398]
+            ll_MHz = [1.55, 1.53, 1.21, 1.26, 1.30, 1.24, 1.16, 1.12]
+            dll_MHz = [0.17, 0.29, 0.05, 0.10, 0.15, 0.11, 0.06, 0.06]
+
+            power_inverse = []
+            for i in range(0, len(power_mW), 1):
+                power_inverse.append(1.0/power_mW[i])
+
+            # Plot LLM vs Time
+            args = Plotting.plot_arg_single()
+
+            args.loud = True
+            args.x_label = 'Inverse Power $P^{-1}$ / mW$^{-1}$'
+            args.y_label = 'Laser Linewidth $\Delta \\nu$ / MHz'
+            #args.plt_title = '<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz'%{"v1":LLave,"v2":LLspread}
+            args.fig_name = 'JDSU_DFB_Laser_Linewidth_D_25'
+            args.plt_range = [0.1, 0.25, 1, 2]
+
+            #Plotting.plot_single_linear_fit_curve(power_inverse, ll_MHz, args)
+            Plotting.plot_single_linear_fit_curve_with_errors(power_inverse, ll_MHz, dll_MHz, args)
+
+        else:
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+

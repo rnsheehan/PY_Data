@@ -399,7 +399,7 @@ def Meas_Report():
         method = 'DSHI'
         laser = 'JDSU_DFB'
         temperature = '20'
-        dlength = '25'
+        dlength = '10'
 
         dir_name = '%(v1)s_%(v2)s_T_%(v3)s_D_%(v4)s/'%{"v1":method, "v2":laser, "v3":temperature, "v4":dlength}
 
@@ -410,13 +410,14 @@ def Meas_Report():
 
             print(os.getcwd())
 
-            nmeas = '300'
-            dT = '2000'
+            nmeas = '350'
+            #dT = '2000'
             I = '50'
 
-            filename = 'LLM_Data_Nmeas_%(v1)s_dT_%(v2)s_I_%(v3)s.txt'%{"v1":nmeas, "v2":dT,"v3":I}
+            #filename = glob.glob('LLM_Data_Nmeas_%(v1)s_dT_%(v2)s_I_%(v3)s*.txt'%{"v1":nmeas, "v2":dT,"v3":I})
+            filename = glob.glob('LLM_Data_Nmeas_%(v1)s_I_%(v3)s*.txt'%{"v1":nmeas, "v3":I})
 
-            Meas_Analysis(filename)
+            Meas_Analysis(filename[1])
             
         else:
             raise EnvironmentError

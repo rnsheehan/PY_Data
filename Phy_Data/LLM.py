@@ -453,12 +453,20 @@ def Meas_Analysis(filename):
             LLstd = numpy.std(data[3])
             LLspread = 0.5*(numpy.max(data[3]) - numpy.min(data[3]))
 
+            # get average R^{2} + error
+            Rave = numpy.mean(data[5])
+            Rstd = numpy.std(data[5])
+            Rspread = 0.5*(numpy.max(data[5]) - numpy.min(data[5]))
+
             # get correlation between measured LLM and time data
             # ideally this should be zero
             LLrcoeff = numpy.corrcoef(data[0], data[3])
 
             # compute the distribution Kurtosis
             KK = kurtosis(data[3], fisher = False)
+
+            # compute the distribution Kurtosis
+            KKR = kurtosis(data[5], fisher = False)
 
             print(filename)
             print('Laser Linewidth: ',LLave,' +/-',LLspread,' MHz')
@@ -480,22 +488,20 @@ def Meas_Analysis(filename):
             Plotting.plot_single_linear_fit_curve(data[0]/60.0, data[3], args)
 
             # Plot histogram of LLM data
-            #plt.hist(data[3])
-            #plt.title('<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz, k = %(v3)0.3f'%{"v1":LLave,"v2":LLspread, "v3":KK})
-            #plt.xlabel("Laser Linewidth / MHz")
-            #plt.ylabel("Frequency")
-            #plt.savefig(filename.replace('.txt','_') + 'Histogram')
-            #plt.show()
-            #plt.clf()
-            #plt.cla()
-            #plt.close()
-
+            
             args.x_label = 'Laser Linewidth / MHz'
             args.y_label = 'Frequency'
             args.fig_name = filename.replace('.txt','_') + 'Histogram'
             args.plt_title = '<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz, k = %(v3)0.3f'%{"v1":LLave,"v2":LLspread, "v3":KK}
 
             Plotting.plot_histogram(data[3], args)
+
+            args.x_label = 'Lorentzian Fit $R^{2}$ coefficient'
+            args.y_label = 'Frequency'
+            args.fig_name = filename.replace('.txt','_') + 'Histogram_Rsqr'
+            args.plt_title = '$R^{2}$ = %(v1)0.2f +/- %(v2)0.2f MHz, k = %(v3)0.3f'%{"v1":Rave,"v2":Rspread, "v3":KKR}
+
+            Plotting.plot_histogram(data[5], args)
 
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot open' + filename

@@ -399,7 +399,7 @@ def Meas_Report():
         method = 'DSHI'
         laser = 'JDSU_DFB'
         temperature = '20'
-        dlength = '10'
+        dlength = '25'
 
         dir_name = '%(v1)s_%(v2)s_T_%(v3)s_D_%(v4)s/'%{"v1":method, "v2":laser, "v3":temperature, "v4":dlength}
 
@@ -414,10 +414,10 @@ def Meas_Report():
             #dT = '2000'
             I = '50'
 
-            #filename = glob.glob('LLM_Data_Nmeas_%(v1)s_dT_%(v2)s_I_%(v3)s*.txt'%{"v1":nmeas, "v2":dT,"v3":I})
-            filename = glob.glob('LLM_Data_Nmeas_%(v1)s_I_%(v3)s*.txt'%{"v1":nmeas, "v3":I})
+            filename = glob.glob('LLM_Data_Nmeas_*_dT_*_I_*.txt')
+            #filename = glob.glob('LLM_Data_Nmeas_%(v1)s_I_%(v3)s*.txt'%{"v1":nmeas, "v3":I})
 
-            Meas_Analysis(filename[1])
+            for f in filename: Meas_Analysis(f)
             
         else:
             raise EnvironmentError
@@ -436,9 +436,16 @@ def Meas_Analysis(filename):
     FUNC_NAME = ".Meas_Analysis()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
-    try:
-        
+    try:        
         if glob.glob(filename):
+
+            from scipy.stats import kurtosis # use this to compute Kurtosis of measured LLM
+            # https://en.wikipedia.org/wiki/Kurtosis
+            # usual interpretation is Person's kurtosis K = 3 => normal distribution
+            # Fisher's kurtosis K - 3 => 0 => normal distribution
+            # K < 3 => platykurtic => distribution produces fewer and less extreme outliers than does the normal distribution
+            # K > 3 => leptokurtic => distribution produces more extreme outliers than does the normal distribution
+
             data = numpy.loadtxt(filename, unpack = True)
 
             # get average LL + error
@@ -450,22 +457,46 @@ def Meas_Analysis(filename):
             # ideally this should be zero
             LLrcoeff = numpy.corrcoef(data[0], data[3])
 
+            # compute the distribution Kurtosis
+            KK = kurtosis(data[3], fisher = False)
+
             print(filename)
             print('Laser Linewidth: ',LLave,' +/-',LLspread,' MHz')
             print('Laser Linewidth: ',LLave,' +/-',LLstd,' MHz')
+            print('Laser Linewidth vs Time Correlation Coefficient: ', LLrcoeff[1][0])
             print('Laser Linewidth vs Time Correlation Coefficient: ', LLrcoeff[0][1])
+            print('Kurtosis of data: ', KK)
 
             # Plot LLM vs Time
             args = Plotting.plot_arg_single()
 
-            args.loud = True
+            args.loud = False
             args.x_label = 'Time / min'
             args.y_label = '$\Delta \\nu$ / MHz'
-            args.plt_title = '<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz'%{"v1":LLave,"v2":LLspread}
+            args.plt_title = '<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz, r = %(v3)0.3f'%{"v1":LLave,"v2":LLspread, "v3":LLrcoeff[0][1]}
             args.fig_name = filename.replace('.txt','_') + 'LLMvsTime'
             args.plt_range = [0, 60, 1, 2]
 
             Plotting.plot_single_linear_fit_curve(data[0]/60.0, data[3], args)
+
+            # Plot histogram of LLM data
+            #plt.hist(data[3])
+            #plt.title('<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz, k = %(v3)0.3f'%{"v1":LLave,"v2":LLspread, "v3":KK})
+            #plt.xlabel("Laser Linewidth / MHz")
+            #plt.ylabel("Frequency")
+            #plt.savefig(filename.replace('.txt','_') + 'Histogram')
+            #plt.show()
+            #plt.clf()
+            #plt.cla()
+            #plt.close()
+
+            args.x_label = 'Laser Linewidth / MHz'
+            args.y_label = 'Frequency'
+            args.fig_name = filename.replace('.txt','_') + 'Histogram'
+            args.plt_title = '<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz, k = %(v3)0.3f'%{"v1":LLave,"v2":LLspread, "v3":KK}
+
+            Plotting.plot_histogram(data[3], args)
+
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot open' + filename
             raise Exception

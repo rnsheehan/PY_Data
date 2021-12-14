@@ -561,4 +561,147 @@ def LL_Result():
         print(ERR_STATEMENT)
         print(e)
 
+def Lorentz_Voigt_Fit_Analysis():
+
+    # make plots of the Lorentz and Voigt fits to the sample data sets
+    # Data is stored in rows of the files in the form
+    # row 0: freq fit data, row 1: LLM spctrl data, row 2: Voigt f vals, row 3: Voigt resids, row 4: Lorentz f vals, row 5: Lorentz f resids
+    # R. Sheehan 13 - 12 - 2021
+
+    FUNC_NAME = ".Lorentz_Voigt_Fit_Analysis()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/Sample_Data/'
+
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+
+            nfiles = 12
+            for i in range(40, 66, 5):
+                #file_tmplt = 'Smpl_LLM_%(v1)d_fit_results.txt'%{"v1":i}
+                file_tmplt = 'LLM_Spctrm_I_%(v1)d_fit_results.txt'%{"v1":i}
+                if glob.glob(file_tmplt):
+                    hv_data = []; marks = []; labels = []
+                    data = numpy.loadtxt(file_tmplt, delimiter = ',')
+                    hv_data.append([data[0], data[1]]); labels.append('Raw PSD'); marks.append(Plotting.labs_lins[0])
+                    hv_data.append([data[0], data[2]]); labels.append('Voigt'); marks.append(Plotting.labs_lins[1])
+                    hv_data.append([data[0], data[4]]); labels.append('Lorentz'); marks.append(Plotting.labs_lins[2])
+
+                    # make the plot
+                    args = Plotting.plot_arg_multiple()
+
+                    args.loud = False
+                    args.crv_lab_list = labels
+                    args.mrk_list = marks
+                    args.x_label = 'Frequency / MHz'
+                    args.y_label = 'Spectral Power / uW'
+                    args.fig_name = file_tmplt.replace('.txt','')
+                    #args.plt_range = [70, 90, 0, 4]
+
+                    Plotting.plot_multiple_curves(hv_data, args)
+
+                    hv_data.clear(); labels.clear(); marks.clear();
+
+        else:
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Voigt_Fit_Analysis():
+
+    # examine the fitted Voigt and Lorentz fit parameters
+    # File contains data in columns of the form
+    # col -1:Filename,col 0:Actual Peak / uW,col 1:Voigt h / uW,col 2:Voigt f_{0} / MHz,col 3:Voigt gamma / MHz,col 4:Voigt sigma / MHz,
+    # col 5:Voigt delta / MHz,col 6:Voigt peak / uW,col 7:Lorentz h / uW,col 8:Lorentz f_{0} / MHz,col 9:Lorentz gamma / MHz,col 10:Lorentz peak / uW
+    # indices of cols in file decremented by one to show there place in storage array data
+    # R. Sheehan 13 - 12 - 2021
+
+    FUNC_NAME = ".Voigt_Fit_Analysis()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/Sample_Data/'
+
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+
+            vals = numpy.arange(17)
+            
+            file_tmplt = 'Fitted_Parameter_Values.txt'
+            if glob.glob(file_tmplt):
+                hv_data = []; marks = []; labels = []
+                data = numpy.loadtxt(file_tmplt, delimiter = ',', skiprows = 1, unpack = True, usecols = list(range(1, 12)))
+
+                ## Peak Vals
+                #hv_data.append([vals, data[0]]); labels.append('Raw PSD Peak'); marks.append(Plotting.labs_pts[0])
+                #hv_data.append([vals, data[6]]); labels.append('Voigt Peak'); marks.append(Plotting.labs_pts[1])
+                #hv_data.append([vals, data[10]]); labels.append('Lorentz Peak'); marks.append(Plotting.labs_pts[2])
+                #f_ending = '_peaks'
+
+                ## HWHM Vals
+                #hv_data.append([vals, data[5]]); labels.append('Voigt HWHM'); marks.append(Plotting.labs_pts[1])
+                #hv_data.append([vals, data[9]]); labels.append('Lorentz HWHM'); marks.append(Plotting.labs_pts[2])
+                #f_ending = '_HWHM'
+
+                # HWHM Vals
+                hv_data.append([vals, data[5]]); labels.append('Voigt HWHM'); marks.append(Plotting.labs_pts[1])
+                hv_data.append([vals, data[3]]); labels.append('Voigt $\gamma$'); marks.append(Plotting.labs_pts[2])
+                hv_data.append([vals, data[4]]); labels.append('Voigt $\sigma$'); marks.append(Plotting.labs_pts[3])
+                f_ending = '_Voigt_vals'
+
+                ## HWHM Vals
+                #sub_data = []
+                #for i in range(0, len(data[5]), 1):
+                #    sub_data.append([data[5, i], data[3, i], data[4, i]])
+                #Common.sort_multi_col(sub_data)
+
+                ##hv_data.append([data[5], data[3]]); labels.append('Lorentz $\gamma$'); marks.append(Plotting.labs_pts[1])
+                ##hv_data.append([data[5], data[4]]); labels.append('Gauss $\sigma$'); marks.append(Plotting.labs_pts[2])
+                #hv_data.append([Common.get_col(sub_data,0), Common.get_col(sub_data,1)]); labels.append('Lorentz $\gamma$'); marks.append(Plotting.labs_pts[1])
+                #hv_data.append([Common.get_col(sub_data,0), Common.get_col(sub_data,2)]); labels.append('Gauss $\sigma$'); marks.append(Plotting.labs_pts[2])
+                #f_ending = '_Voigt_ctps'
+
+                ## Model Vals
+                ## Compare the computed values of Voigt HWHM with the model 
+                ## check out the following for performing 2D nonlinear fits
+                ## https://lmfit.github.io/lmfit-py/examples/example_two_dimensional_peak.html
+                ## https://scipython.com/blog/non-linear-least-squares-fitting-of-a-two-dimensional-data/
+                ## not sure it's worth the effort to be honest
+                ## need to have an interpolating function that can return Voigt delta given 
+                #model_delta = []
+                #model_diff = []
+                #c1=0.5*1.0692; c2=0.25*0.866639; c3=0.25*4.0; c4 = math.sqrt(2.0*math.log(2.0)); 
+                #for i in range(0, len(data[5]), 1):
+                #    model_val = (c1*data[3][i] + math.sqrt(c2*(data[3][i]**2)+c3*(data[4][i])**2) )
+                #    model_delta.append( model_val )
+
+                #    model_diff.append(model_val - data[5][i])
+                #hv_data.append([vals, data[5]]); labels.append('Voigt HWHM'); marks.append(Plotting.labs_pts[1])
+                #hv_data.append([vals, model_delta]); labels.append('Model HWHM'); marks.append(Plotting.labs_pts[2])
+                ##hv_data.append([vals, model_diff]); labels.append('Model - Voigt'); marks.append(Plotting.labs_pts[3])
+                #f_ending = '_HWHM_Model'
+
+                ## make the plot
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                #args.x_label = 'Frequency / MHz'
+                #args.y_label = 'Spectral Power / uW'
+                args.fig_name = file_tmplt.replace('.txt',f_ending)
+                #args.plt_range = [70, 90, 0, 4]
+
+                Plotting.plot_multiple_curves(hv_data, args)
+
+                hv_data.clear(); labels.clear(); marks.clear();
+
+        else:
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
 

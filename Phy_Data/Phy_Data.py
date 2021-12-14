@@ -51,7 +51,9 @@ if __name__ == '__main__':
 
     #LLM.Spectra_vs_Current()
 
-    LLM.Meas_Report()
+    #LLM.Meas_Report()
 
     #LLM.LL_Result()
+
+    LLM.Voigt_Fit_Analysis()
 

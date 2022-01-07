@@ -387,7 +387,7 @@ def Spectra_vs_Current():
 
 def Meas_Report():
 
-    # make plot of measured spectra at different laser current values
+    # plot the measured LLM versus time for each file
     # R. Sheehan 18 - 11 - 2021
 
     FUNC_NAME = ".Meas_Report()" # use this in exception handling messages
@@ -399,7 +399,7 @@ def Meas_Report():
         method = 'DSHI'
         laser = 'JDSU_DFB'
         temperature = '20'
-        dlength = '25'
+        dlength = '10'
 
         dir_name = '%(v1)s_%(v2)s_T_%(v3)s_D_%(v4)s/'%{"v1":method, "v2":laser, "v3":temperature, "v4":dlength}
 
@@ -410,14 +410,12 @@ def Meas_Report():
 
             print(os.getcwd())
 
-            nmeas = '350'
-            #dT = '2000'
-            I = '50'
+            filename = glob.glob('LLM_Data_Nmeas_300*.txt')
 
-            filename = glob.glob('LLM_Data_Nmeas_*_dT_*_I_*.txt')
-            #filename = glob.glob('LLM_Data_Nmeas_%(v1)s_I_%(v3)s*.txt'%{"v1":nmeas, "v3":I})
+            LL_Vfit = 7; LL_Vfit_Rsqr = 15; 
+            LL_Lfit = 8; LL_Lfit_Rsqr = 22; 
 
-            for f in filename: Meas_Analysis(f)
+            for f in filename: Meas_Analysis(f, LL_Vfit, LL_Vfit_Rsqr)
             
         else:
             raise EnvironmentError
@@ -426,7 +424,96 @@ def Meas_Report():
         print(ERR_STATEMENT)
         print(e)
 
-def Meas_Analysis(filename):
+def Meas_Analysis(filename, LL_col, LL_col_Rsqr):
+
+    # Read in the file containing the data from the Multi-LLM Meas
+    # file has rows of data in the form 
+    # {Time/s [0],	Tair/C [1],	Taom/s [2],	Taomdrv/s [3],	Pmax/dBm [4],	Fmax/MHz [5],	LLest/MHz [6],	LL_Vfit/MHz [7],	LL_Lfit/MHz [8],	Voigt_h/nW [9],	Voigt_c/MHz [10],	
+    # Voigt_Lor_HWHM/MHz [11],	Voigt_Gau_Stdev/MHz	[12], Voigt_chisqr [13],	Voigt_chisqr_nu [14],	Voigt_Rsqr [15],	Voigt_gof [16],	Lor_h/nW [17],	Lor_c/MHz [18],	Lor_HWHM/MHz [19],
+    # 	Lor_chisqr [20],	Lor_chisqr_nu [21],	Lor_Rsqr [22],	Lor_gof [23]}
+    # Mainly interested in getting average LLM + error and also to see if there is zero correlation between LLM and time
+    # R. Sheehan 7 - 1 - 2022
+
+    FUNC_NAME = ".Meas_Analysis()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:        
+        if glob.glob(filename):
+
+            from scipy.stats import kurtosis # use this to compute Kurtosis of measured LLM
+            # https://en.wikipedia.org/wiki/Kurtosis
+            # usual interpretation is Person's kurtosis K = 3 => normal distribution
+            # Fisher's kurtosis K - 3 => 0 => normal distribution
+            # K < 3 => platykurtic => distribution produces fewer and less extreme outliers than does the normal distribution
+            # K > 3 => leptokurtic => distribution produces more extreme outliers than does the normal distribution
+
+            data = numpy.loadtxt(filename, comments = '#', unpack = True)
+
+            time_col = 0; 
+
+            # get average LL + error
+            LLave = numpy.mean(data[LL_col])
+            LLstd = numpy.std(data[LL_col])
+            LLspread = 0.5*(numpy.max(data[LL_col]) - numpy.min(data[LL_col]))
+
+            # get average R^{2} + error
+            Rave = numpy.mean(data[LL_col_Rsqr])
+            Rstd = numpy.std(data[LL_col_Rsqr])
+            Rspread = 0.5*(numpy.max(data[LL_col_Rsqr]) - numpy.min(data[LL_col_Rsqr]))
+
+            # get correlation between measured LLM and time data
+            # ideally this should be zero
+            LLrcoeff = numpy.corrcoef(data[time_col], data[LL_col])
+
+            # compute the distribution Kurtosis
+            KK = kurtosis(data[LL_col], fisher = False)
+
+            # compute the distribution Kurtosis
+            KKR = kurtosis(data[LL_col_Rsqr], fisher = False)
+
+            print(filename)
+            print('Laser Linewidth: ',LLave,' +/-',LLspread,' MHz')
+            print('Laser Linewidth: ',LLave,' +/-',LLstd,' MHz')
+            print('Laser Linewidth vs Time Correlation Coefficient: ', LLrcoeff[1][0])
+            print('Laser Linewidth vs Time Correlation Coefficient: ', LLrcoeff[0][1])
+            print('Kurtosis of data: ', KK)
+
+            # Plot LLM vs Time
+            args = Plotting.plot_arg_single()
+
+            args.loud = False
+            args.x_label = 'Time / min'
+            args.y_label = '$\Delta \\nu$ / MHz'
+            args.plt_title = '<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz, r = %(v3)0.3f'%{"v1":LLave,"v2":LLstd, "v3":LLrcoeff[0][1]}
+            args.fig_name = filename.replace('.txt','_') + 'LLMvsTime'
+            #args.plt_range = [0, 60, 1, 2]
+
+            Plotting.plot_single_linear_fit_curve(data[time_col]/60.0, data[LL_col], args)
+
+            # Plot histogram of LLM data
+            
+            args.x_label = 'Laser Linewidth / MHz'
+            args.y_label = 'Frequency'
+            args.fig_name = filename.replace('.txt','_') + 'Histogram'
+            args.plt_title = '<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz, k = %(v3)0.3f'%{"v1":LLave,"v2":LLstd, "v3":KK}
+
+            Plotting.plot_histogram(data[LL_col], args)
+
+            args.x_label = 'Lorentzian Fit $R^{2}$ coefficient'
+            args.y_label = 'Frequency'
+            args.fig_name = filename.replace('.txt','_') + 'Histogram_Rsqr'
+            args.plt_title = '$R^{2}$ = %(v1)0.2f +/- %(v2)0.2f MHz, k = %(v3)0.3f'%{"v1":Rave,"v2":Rstd, "v3":KKR}
+
+            Plotting.plot_histogram(data[LL_col_Rsqr], args)
+
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot open' + filename
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Meas_Analysis_Old(filename):
 
     # Read in the file containing the data from the Multi-LLM Meas
     # file has rows of data in the form {time / s, fitted A / nW, fitted f_centre / MHz, fitted LL / MHz, chi^{2} / nu for fit, R^{2} coeff, gof probablity}
@@ -697,6 +784,56 @@ def Voigt_Fit_Analysis():
                 Plotting.plot_multiple_curves(hv_data, args)
 
                 hv_data.clear(); labels.clear(); marks.clear();
+
+        else:
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def NKT_PSD_Plot():
+
+    # make a plot of the measured LLM DSHI spectrum for the NKT laser
+    # stated NKT LL is sub-kHz, so not expecting to be able to measure NKT LL using DSHI
+    # this is in fact what occurs
+    # R. Sheehan 7 - 1 - 2022
+
+    FUNC_NAME = ".NKT_PSD_Plot()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_DIR = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/DSHI_NKT/'
+
+        if os.path.isdir(DATA_DIR):
+            os.chdir(DATA_DIR)
+            print(os.getcwd())
+
+            Dlist = [25, 50, 75]
+            file_tmplt = 'NKT_D_%(v1)d_Pin_8.txt'
+
+            hv_data = []; marks = []; labels = [];
+            for i in range(0, len(Dlist), 1):
+                filename = file_tmplt%{"v1":Dlist[i]}
+                if glob.glob(filename):
+                    data = numpy.loadtxt(filename, unpack = True)
+                    hv_data.append(data); 
+                    marks.append(Plotting.labs_lins[i])
+                    labels.append('D = %(v1)d km'%{"v1":Dlist[i]})
+
+            # make the plot
+            args = Plotting.plot_arg_multiple()
+
+            args.loud = True
+            args.crv_lab_list = labels
+            args.mrk_list = marks
+            args.x_label = 'Frequency / MHz'
+            args.y_label = 'Spectral Power / dBm'
+            args.fig_name = 'NKT_LLM_DSHI'
+            args.plt_range = [78, 82, -80, 0]
+
+            Plotting.plot_multiple_curves(hv_data, args)
+
+            hv_data.clear(); labels.clear(); marks.clear();
 
         else:
             raise Exception

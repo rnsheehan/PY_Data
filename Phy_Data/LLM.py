@@ -197,6 +197,39 @@ def JDSU_Isolator_Plot():
         print(ERR_STATEMENT)
         print(e)
 
+def JDSU_Only():
+
+    # generate a plot of the measured JDSU laser spectrum
+    # R. Sheehan 6 - 10 - 2021
+
+    FUNC_NAME = ".JDSU_Isolator_Plot()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        dir_name = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/CPT_Tests/JDSU_DFB_EDFA/'
+
+        if os.path.isdir(dir_name):
+
+            file_names = ['JDSU_DFB_Only.txt']
+
+            os.chdir(dir_name)
+            print("Current Directory: ")
+            print(os.getcwd())
+
+            #data = numpy.loadtxt(file_names[0], delimiter = ',', skiprows = 3, unpack = True, max_rows = 5001)
+
+            labels = ['JDSU DFB']
+            plot_range = [1550, 1560, -70, 5]
+            plt_title = ''
+            plt_name = 'JDSU_Only'
+
+            SpctrmPlt.multiple_optical_spectrum_plot(dir_name, file_names, labels, plot_range, plt_title, plt_name, loudness = True)
+        else:
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
 def LLM_Setup():
 
     FUNC_NAME = ".LLM_Setup()" # use this in exception handling messages

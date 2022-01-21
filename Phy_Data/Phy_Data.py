@@ -57,5 +57,5 @@ if __name__ == '__main__':
 
     #LLM.Voigt_Fit_Analysis()
 
-    LLM.LLM_Setup()
+    LLM.LL_Result_Voigt()
 

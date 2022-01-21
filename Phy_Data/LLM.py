@@ -681,6 +681,54 @@ def LL_Result():
         print(ERR_STATEMENT)
         print(e)
 
+def LL_Result_Voigt():
+
+    # Plot the measured LL for various powers
+    # R. Sheehan 18 - 11 - 2021
+
+    FUNC_NAME = ".LL_Result()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/'
+
+        
+        dir_name = 'Sample_Data'
+
+        new_dir = DATA_HOME + dir_name
+
+        if os.path.isdir(new_dir):
+
+            os.chdir(new_dir)
+            
+            current_mA = [40, 45, 50, 55, 60, 65]
+            power_mW = [4.4748, 5.2278, 5.9808, 6.7338, 7.4868, 8.2398]
+            ll_MHz = [2.16, 2.2, 2.23, 2.29, 2.39, 2.45]
+
+            power_inverse = []
+            for i in range(0, len(power_mW), 1):
+                power_inverse.append(1.0/power_mW[i])
+
+            # Plot LLM vs Time
+            args = Plotting.plot_arg_single()
+
+            args.loud = True
+            args.x_label = 'Inverse Power $P^{-1}$ / mW$^{-1}$'
+            args.y_label = 'Laser Linewidth $\Delta \\nu$ / MHz'
+            #args.plt_title = '<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz'%{"v1":LLave,"v2":LLspread}
+            args.fig_name = 'JDSU_DFB_Laser_Linewidth_D_25_Power'
+            #args.plt_range = [0.1, 0.25, 1, 2]
+
+            Plotting.plot_single_linear_fit_curve(power_inverse, ll_MHz, args)
+            #Plotting.plot_single_linear_fit_curve_with_errors(power_inverse, ll_MHz, dll_MHz, args)
+
+        else:
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
 def Lorentz_Voigt_Fit_Analysis():
 
     # make plots of the Lorentz and Voigt fits to the sample data sets

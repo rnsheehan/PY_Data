@@ -57,5 +57,7 @@ if __name__ == '__main__':
 
     #LLM.Voigt_Fit_Analysis()
 
-    LLM.LL_Result_Voigt()
+    #LLM.LL_Result_Voigt()
+
+    LLM.NKT_Spectral_Tune()
 

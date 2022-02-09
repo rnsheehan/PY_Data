@@ -922,4 +922,57 @@ def NKT_PSD_Plot():
         print(ERR_STATEMENT)
         print(e)
 
+def NKT_Spectral_Tune():
+    
+    # Plot the measured spectra of the NKT laser
+    # where the laser wavelength has been changed
+    # R. Sheehan 9 - 2 - 2022
+
+    FUNC_NAME = ".NKT_Spectral_Tune()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_DIR = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/NKT_Spectra/'
+
+        os.chdir(DATA_DIR)
+
+        args = Plotting.plot_arg_single()
+
+        args.loud = True
+        args.x_label = '$I_{set}$ mA'
+        args.y_label = '$\lambda_{meas}$ nm'
+        args.plt_range = [100, 200, 1549.7, 1550.4]
+        args.plt_title = '$T_{set}$ = 25 C, $\lambda_{set}$ = 1550 nm'
+        args.fig_name = 'NKT_Current_Tuning_meas_WL'
+       
+        Ivals = numpy.arange(100,210,20)
+        lam_vals = [1550.054, 1550.053, 1550.053, 1550.052, 1550.052, 1550.051]
+        Plotting.plot_single_linear_fit_curve(Ivals, lam_vals, args)
+        
+        Ivals_files = ["W0000.txt", "W0001.txt", "W0002.txt", "W0003.txt", "W0004.txt", "W0005.txt"]
+        Ivals_labels = ['$I_{set}$ = 100 mA', '$I_{set}$ = 120 mA', '$I_{set}$ = 140 mA', '$I_{set}$ = 160 mA', '$I_{set}$ = 180 mA', '$I_{set}$ = 200 mA']
+
+        SpctrmPlt.multiple_optical_spectrum_plot(DATA_DIR, Ivals_files, Ivals_labels, [1549, 1551, -50, 10], '$T_{set}$ = 25 C, $\lambda_{set}$ = 1550 nm', 'NKT_Current_Tuning')
+
+        lam_vals = [1549.7, 1549.8, 1549.9, 1550.0, 1550.1, 1550.2, 1550.3]
+        lam_vals_meas = [1549.750, 1549.849, 1549.948, 1550.048, 1550.147, 1550.247, 1550.348]
+
+        args.loud = True
+        args.x_label = '$\lambda_{set}$ nm'
+        args.y_label = '$\lambda_{meas}$ nm'
+        args.plt_range = [1549.7, 1550.4, 1549.7, 1550.4]
+        args.plt_title = '$T_{set}$ = 25 C, $I_{set}$ = 150 mA'
+        args.fig_name = 'NKT_Wavelength_Tuning_meas_WL'
+
+        Plotting.plot_single_linear_fit_curve(lam_vals, lam_vals_meas, args)
+
+        Ivals_files = ["W0006.txt", "W0007.txt", "W0008.txt", "W0009.txt", "W0010.txt", "W0011.txt", "W0012.txt"]
+        Ivals_labels = ['$\lambda_{set}$ = 1549.7 nm', '$\lambda_{set}$ = 1549.8 nm', '$\lambda_{set}$ = 1549.9 nm', '$\lambda_{set}$ = 1550.0 nm', '$\lambda_{set}$ = 1550.1 nm', '$\lambda_{set}$ = 1550.2 nm', '$\lambda_{set}$ = 1550.3 nm']
+
+        SpctrmPlt.multiple_optical_spectrum_plot(DATA_DIR, Ivals_files, Ivals_labels, [1549, 1551, -50, 10], '$T_{set}$ = 25 C, $I_{set}$ = 150 mA', 'NKT_Wavelength_Tuning')
+
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
 

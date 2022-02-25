@@ -978,7 +978,7 @@ def NKT_Spectral_Tune():
         print(ERR_STATEMENT)
         print(e)
 
-def sort_LCR_DSHI_filenames(filename_list):
+def sort_LCR_DSHI_filenames(filename_list, loud = False):
     # sort the filenames containing the LCR-DSHI data
     # LCR-DSHI filename of the form: Beat_Data_Nmeas_%(v1)d_I_%(v2)d_%(dd)d_%(mm)d_%(yyyy)d_%(hr)d_%(min)d.txt
     # want to return a sorted list of filenames sort according date, time because you want to group together all sequential measurements    
@@ -1005,44 +1005,33 @@ def sort_LCR_DSHI_filenames(filename_list):
             ngrp = 0
             grp_indx_lst = []
             for i in range(0,len(filename_list), 1):
-                print(i," , ",filename_list[i])
                 vals = Common.extract_values_from_string(filename_list[i])
                 if int(vals[0]) == 0:
                     ngrp = ngrp + 1 # count the groups
                     grp_indx_lst.append(i)# store the location of the start of each group
-            print('No. meas. groups: ',ngrp," , Group start list: ",grp_indx_lst)
-            print('')
+            if loud:
+                print('No. meas. groups: ',ngrp," , Group start list: ",grp_indx_lst)
+                print('')
 
+            # separate the measurement groups into distinct sets
+            j=0
             the_groups = []
-            #for j in range(0, ngrp, 1):
-            #    tmp_list = []
-            #    for i in range(0, len(filename_list), 1):
-            #        if j == 0 and i < grp_indx_lst[j+1]:
-            #            print(i , " , ", filename_list[i])
-            #            tmp_list.append(filename_list[i])
-            #        elif (j > 0 and j < ngrp-1) and (i>= grp_indx_lst[j] and i < grp_indx_lst[j+1]):
-            #            print(i , " , ", filename_list[i])
-            #            tmp_list.append(filename_list[i])
-            #        elif j == ngrp-1 and i>=grp_indx_lst[j]:
-            #            print(i , " , ", filename_list[i])
-            #            tmp_list.append(filename_list[i])
-            #        #else:
-            #        #    print(i , " , ", filename_list[i])
-            #        #    tmp_list.append(filename_list[i])
-            #    the_groups.append(tmp_list)
-            #    print(the_groups[j])
-            #    print('')
+            while j < ngrp:
+                i=0
+                sub_group = []
+                while i < len(filename_list):
+                    if j < ngrp - 1 and i >= grp_indx_lst[j] and i < grp_indx_lst[j+1]:
+                        sub_group.append(filename_list[i])
+                    elif j == ngrp-1 and i >= grp_indx_lst[j]:
+                        sub_group.append(filename_list[i])
+                    i = i + 1
+                the_groups.append(sub_group)
+                if loud:
+                    print(the_groups[j])
+                    print('')         
+                j = j + 1
 
-            
-            j=2
-            i=0
-            while i < len(filename_list):
-                if j < ngrp - 1 and i >= grp_indx_lst[j] and i < grp_indx_lst[j+1]:
-                    print(i, " , ", filename_list[i])
-                elif j == ngrp-1 and i >= grp_indx_lst[j]:
-                    print(i, " , ", filename_list[i])
-                i = i + 1
-
+            return the_groups
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nInput filename_list is empty'
             raise Exception
@@ -1071,16 +1060,44 @@ def LCR_DSHI_Initial_Plots():
             # obtain ordered list of file names
             filelst = glob.glob('Beat*.txt')
             
-            #filelst.sort(key=os.path.getmtime)
+            meas_grp_lst = sort_LCR_DSHI_filenames(filelst, False)
 
-            #print(filelst)
+            # measurement sets to be analysed
+            for i in range(0, len(meas_grp_lst), 1):
+                for j in range(0, len(meas_grp_lst[i]), 1):
+                    print(meas_grp_lst[i][j])
+                print('')
 
-            #lst_files = glob.glob("*.txt")
-            #lst_files.sort(key=os.path.getmtime)
+            # read in the data file using pandas
+            i = j = 1
+            data = pandas.read_csv(meas_grp_lst[i][j], delimiter = '\t', skiprows = [0, 2])
 
-            #filelstx = []
+            titles = list(data)
 
-            sort_LCR_DSHI_filenames(filelst)
+            print(titles)
+            pprint.pprint(data)
+            n = 10
+            
+            #print(data[titles[n]])
+
+            # make a basic plot
+            args = Plotting.plot_arg_single()
+
+            n = 0
+            m = 10
+
+            print(titles[n])
+            print(titles[m])
+
+            args.loud = True
+            #args.crv_lab_list = labels
+            #args.mrk_list = marks
+            args.x_label = titles[n]
+            args.y_label = titles[m]
+            #args.fig_name = 'NKT_LLM_DSHI'
+            #args.plt_range = [78, 82, -80, 0]
+
+            Plotting.plot_single_curve(data[titles[n]], data[titles[m]], args)
 
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate dir: ' + DATA_HOME

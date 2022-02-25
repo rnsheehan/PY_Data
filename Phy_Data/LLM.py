@@ -994,16 +994,54 @@ def sort_LCR_DSHI_filenames(filename_list):
         c10 = c1 and c2
 
         if c10:
-
             # Python is just the fucking best sometimes
             # sort a list of filenames according to the time at which they were modified
             # see here for details
             # https://stackoverflow.com/questions/168409/how-do-you-get-a-directory-listing-sorted-by-creation-date-in-python
             filename_list.sort(key=os.path.getmtime)
 
-            for f in filename_list:
-                vals = Common.extract_values_from_string(f)
-                print(f)
+            # count the numbers of groups of measurements
+            # find the position in the list where the group starts
+            ngrp = 0
+            grp_indx_lst = []
+            for i in range(0,len(filename_list), 1):
+                print(i," , ",filename_list[i])
+                vals = Common.extract_values_from_string(filename_list[i])
+                if int(vals[0]) == 0:
+                    ngrp = ngrp + 1 # count the groups
+                    grp_indx_lst.append(i)# store the location of the start of each group
+            print('No. meas. groups: ',ngrp," , Group start list: ",grp_indx_lst)
+            print('')
+
+            the_groups = []
+            #for j in range(0, ngrp, 1):
+            #    tmp_list = []
+            #    for i in range(0, len(filename_list), 1):
+            #        if j == 0 and i < grp_indx_lst[j+1]:
+            #            print(i , " , ", filename_list[i])
+            #            tmp_list.append(filename_list[i])
+            #        elif (j > 0 and j < ngrp-1) and (i>= grp_indx_lst[j] and i < grp_indx_lst[j+1]):
+            #            print(i , " , ", filename_list[i])
+            #            tmp_list.append(filename_list[i])
+            #        elif j == ngrp-1 and i>=grp_indx_lst[j]:
+            #            print(i , " , ", filename_list[i])
+            #            tmp_list.append(filename_list[i])
+            #        #else:
+            #        #    print(i , " , ", filename_list[i])
+            #        #    tmp_list.append(filename_list[i])
+            #    the_groups.append(tmp_list)
+            #    print(the_groups[j])
+            #    print('')
+
+            
+            j=2
+            i=0
+            while i < len(filename_list):
+                if j < ngrp - 1 and i >= grp_indx_lst[j] and i < grp_indx_lst[j+1]:
+                    print(i, " , ", filename_list[i])
+                elif j == ngrp-1 and i >= grp_indx_lst[j]:
+                    print(i, " , ", filename_list[i])
+                i = i + 1
 
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nInput filename_list is empty'

@@ -8,6 +8,9 @@ import scipy
 import numpy
 import matplotlib.pyplot as plt
 
+import pandas
+import pprint
+
 import Common
 import Plotting
 import SpctrmPlt
@@ -975,4 +978,76 @@ def NKT_Spectral_Tune():
         print(ERR_STATEMENT)
         print(e)
 
+def sort_LCR_DSHI_filenames(filename_list):
+    # sort the filenames containing the LCR-DSHI data
+    # LCR-DSHI filename of the form: Beat_Data_Nmeas_%(v1)d_I_%(v2)d_%(dd)d_%(mm)d_%(yyyy)d_%(hr)d_%(min)d.txt
+    # want to return a sorted list of filenames sort according date, time because you want to group together all sequential measurements    
+    # Also want to break the filenames up into distinct groups
+    # R. Sheehan 25 - 2 - 2022
+
+    FUNC_NAME = ".sort_LCR_DSHI_filenames()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        c1 = True if filename_list is not None else False
+        c2 = True if len(filename_list) > 0 else False
+        c10 = c1 and c2
+
+        if c10:
+
+            # Python is just the fucking best sometimes
+            # sort a list of filenames according to the time at which they were modified
+            # see here for details
+            # https://stackoverflow.com/questions/168409/how-do-you-get-a-directory-listing-sorted-by-creation-date-in-python
+            filename_list.sort(key=os.path.getmtime)
+
+            for f in filename_list:
+                vals = Common.extract_values_from_string(f)
+                print(f)
+
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nInput filename_list is empty'
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def LCR_DSHI_Initial_Plots():
+
+    # plot the data measured during LCR-DSHI beat note measurement
+    # ultimately you want a plot of measured linewidth versus beat note
+    # scan measures linewidth for each beat note - a data frame is generated for each scan
+    # multiple scans are performed - the idea then is to determine the average of all the data from each data frame
+    # R. Sheehan 25 - 2 - 2021
+
+    FUNC_NAME = ".LCR_DSHI_Initial_Plots()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_JDSU_DFB_T_20_D_10/'
+
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+
+            # obtain ordered list of file names
+            filelst = glob.glob('Beat*.txt')
+            
+            #filelst.sort(key=os.path.getmtime)
+
+            #print(filelst)
+
+            #lst_files = glob.glob("*.txt")
+            #lst_files.sort(key=os.path.getmtime)
+
+            #filelstx = []
+
+            sort_LCR_DSHI_filenames(filelst)
+
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate dir: ' + DATA_HOME
+            raise EnvironmentError
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
 

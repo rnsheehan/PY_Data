@@ -62,7 +62,9 @@ if __name__ == '__main__':
 
     #LLM.NKT_Spectral_Tune()
 
-    LLM.LCR_DSHI_Initial_Plots()
+    #LLM.LCR_DSHI_Initial_Plots()
 
     #General.PDA10CS_Calibration()
+
+    LLM.OEWaves_Analysis()
 

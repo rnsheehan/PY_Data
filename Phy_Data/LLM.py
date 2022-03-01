@@ -1106,3 +1106,77 @@ def LCR_DSHI_Initial_Plots():
         print(ERR_STATEMENT)
         print(e)
 
+def Parse_OEWaves_file(filename, loud = False):
+
+    # read the output file from the OEwaves system
+    # parse the contents for useful data
+    # looking for: 
+    # measurement type, measurement settings, comments, OEwaves settings, measurement data
+    # R. Sheehan 1 - 3 - 2022
+
+    FUNC_NAME = ".Parse_OEWaves_file()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        if(glob.glob(filename)):
+            n_preamble_rows = 12
+
+            # read the pre-amble data
+            preamble = Common.head(filename, n_preamble_rows)
+                        
+            meas_type = preamble[0].replace(' Measurement Data\n','') # extract meas. type from preamble
+            print('Measurement Type: ',meas_type)
+
+            if 'Phase' in meas_type:
+                vals = Common.extract_values_from_string(preamble[-1]) # extract measured LL from preample
+                instantaneous_ll = float(vals[5])/1000.0 # instantaneous LL in units of kHz
+                extended_ll_times = [float(vals[-1]), float(vals[-3]), float(vals[-5]), float(vals[-7])] # extended LL observation times in units of ms
+                extended_ll_vals = [float(vals[-2]), float(vals[-4]), float(vals[-6]), float(vals[-8])]
+
+                
+                print('Extended LL Obs. Times: ',extended_ll_times,' ms')
+                print('Extended LL: ',extended_ll_vals,' kHz')
+                print('Avg. Extended LL: ',numpy.mean(extended_ll_vals),' kHz')
+                print('Instantaneous LL: ',instantaneous_ll,' kHz')
+                print('')
+
+            #read the measured data
+            measured_data = numpy.loadtxt(filename, delimiter = '\t', skiprows = n_preamble_rows, unpack = True)
+
+            #measured_data = pandas.read_csv(filename)
+
+            if loud: print("(cols, rows) = ", data.shape)
+
+            return measured_data
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot find '
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def OEWaves_Analysis():
+
+    # Analyse data measured by the OEWaves OE4000
+    # R. Sheehan 1 - 3 - 2022
+
+    FUNC_NAME = ".OEWaves_Analysis()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/OE4000_Init/'
+
+        if(os.path.isdir(DATA_HOME)):
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+
+            filename = 'JDSU_DFB_T_20_I_50_PN_1.txt'
+            data = Parse_OEWaves_file(filename)
+
+            filename = 'JDSU_DFB_T_20_I_50_RIN_1.txt'
+            data = Parse_OEWaves_file(filename)
+            
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot find '
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)

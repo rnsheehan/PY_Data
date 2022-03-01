@@ -1074,8 +1074,9 @@ def LCR_DSHI_Initial_Plots():
 
             titles = list(data)
 
-            print(titles)
-            pprint.pprint(data)
+            print(titles, ", len(titles) = ", len(titles), ", len(data) = ", data.shape[1])
+            print('')
+            #pprint.pprint(data)
             n = 10
             
             #print(data[titles[n]])
@@ -1098,7 +1099,6 @@ def LCR_DSHI_Initial_Plots():
             #args.plt_range = [78, 82, -80, 0]
 
             Plotting.plot_single_curve(data[titles[n]], data[titles[m]], args)
-
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate dir: ' + DATA_HOME
             raise EnvironmentError

@@ -66,5 +66,5 @@ if __name__ == '__main__':
 
     #General.PDA10CS_Calibration()
 
-    LLM.OEWaves_Analysis_Single()
+    LLM.OEWaves_Analysis()
 

@@ -1134,39 +1134,261 @@ def Parse_OEWaves_file(filename, loud = False):
             meas_type = preamble[0].replace(' Measurement Data\n','') # extract meas. type from preamble
             print('Measurement Type: ',meas_type)
 
+            LL_data = []
+
             if 'Phase' in meas_type:
                 vals = Common.extract_values_from_string(preamble[-1]) # extract measured LL from preample
                 instantaneous_ll = float(vals[5])/1000.0 # instantaneous LL in units of kHz
-                extended_ll_times = [float(vals[-1]), float(vals[-3]), float(vals[-5]), float(vals[-7])] # extended LL observation times in units of ms
-                extended_ll_vals = [float(vals[-2]), float(vals[-4]), float(vals[-6]), float(vals[-8])]
+                if loud: print(vals)
+                if 'N/A' in preamble[-1]:
+                    extended_ll_times = [float(vals[-2]), float(vals[-4]), float(vals[-6])] # extended LL observation times in units of ms
+                    extended_ll_vals = [float(vals[-3]), float(vals[-5]), float(vals[-7])]
+                else:
+                    extended_ll_times = [float(vals[-1]), float(vals[-3]), float(vals[-5]), float(vals[-7])] # extended LL observation times in units of ms
+                    extended_ll_vals = [float(vals[-2]), float(vals[-4]), float(vals[-6]), float(vals[-8])]
 
+                LL_data.append(extended_ll_times)
+                LL_data.append(extended_ll_vals)
                 
-                print('Extended LL Obs. Times: ',extended_ll_times,' ms')
-                print('Extended LL: ',extended_ll_vals,' kHz')
-                print('Avg. Extended LL: ',numpy.mean(extended_ll_vals),' kHz')
-                print('Instantaneous LL: ',instantaneous_ll,' kHz')
-                print('')
+                if loud:
+                    print('Extended LL Obs. Times: ',extended_ll_times,' ms')
+                    print('Extended LL: ',extended_ll_vals,' kHz')
+                    print('Avg. Extended LL: ',numpy.mean(extended_ll_vals),' kHz')
+                    print('Instantaneous LL: ',instantaneous_ll,' kHz')
+                    print('')
 
             #read the measured data
             measured_data = numpy.loadtxt(filename, delimiter = '\t', skiprows = n_preamble_rows, unpack = True)
 
-            #measured_data = pandas.read_csv(filename)
+            if loud: print("Data dimensions (cols, rows) = ", measured_data.shape)
 
-            if loud: print("(cols, rows) = ", data.shape)
-
-            return measured_data
+            return [meas_type, measured_data, LL_data]
         else:
-            ERR_STATEMENT = ERR_STATEMENT + '\nCannot find '
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + filename
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
 
-def OEWaves_Analysis_Single():
+def OEWaves_Analysis_Single(filename, loud = False):
+
+    # Analyse data measured by the OEWaves OE4000
+    # plot the FNPSD, RIN and Extended LL measurement data for a single measurement
+    # R. Sheehan 3 - 3 - 2022
+
+    FUNC_NAME = ".OEWaves_Analysis_Single()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        if(glob.glob(filename)):
+            
+            ret_val = Parse_OEWaves_file(filename, loud)
+
+            if len(ret_val) > 0:
+                if 'Phase' in ret_val[0]: 
+                    # Make a plot of the measured instantaneous extended measured linewidth data
+                    args = Plotting.plot_arg_single()
+                    
+                    args.loud = loud
+                    args.marker = Plotting.labs_pts[3]
+                    args.x_label = 'Observation Time ( ms )'
+                    args.y_label = 'Linewidth ( kHz )'
+                    args.fig_name = filename.replace('.txt','_LL')
+                    args.log_x = True
+                    args.log_y = False            
+
+                    Plotting.plot_single_curve(ret_val[2][0], ret_val[2][1], args)
+
+                    # make a plot of the Phase Noise in units of Hz^{2} / Hz
+                    # include the beta-line in the plot
+
+                    #plt_indx = 1 # this is the indx of the column storing the Phase Noise data in units of dBc / Hz
+                    #plt_indx = 2 # this is the indx of the column storing the Spurious Noise data in units of dBc / Hz
+                    #plt_indx = 4 # this is the indx of the column storing the FNPSD data in units of Hz / Hz^{1/2}
+                    plt_indx = 3 # this is the indx of the column storing the FNPSD data in units of Hz^{2} / Hz
+
+                    hv_data = []; marks = []; labels = []
+
+                    # measured frequency noise
+                    hv_data.append([ret_val[1][0], ret_val[1][plt_indx]]); 
+                    marks.append(Plotting.labs_lins[0]); 
+                    labels.append('S(f)')
+                    
+                    # beta-line
+                    beta_slope = (8.0*math.log(2.0)) / (math.pi**2)
+                    hv_data.append([[ret_val[1][0][0], ret_val[1][0][-1]],[beta_slope*ret_val[1][0][0], beta_slope*ret_val[1][0][-1]]]); 
+                    marks.append(Plotting.labs_dashed[6]); 
+                    labels.append('c f')
+
+                    # make the plot including the beta-line
+                    args = Plotting.plot_arg_multiple()
+
+                    args.loud = loud
+                    args.crv_lab_list = labels
+                    args.mrk_list = marks
+                    args.x_label = 'Frequency ( Hz )'
+                    args.y_label = 'Frequency Noise ( Hz$^{2}$ / Hz )'
+                    args.fig_name = filename.replace('.txt','')
+                    args.log_x = True
+                    args.log_y = True                   
+
+                    Plotting.plot_multiple_curves(hv_data, args)
+                else:
+                    # make a plot of the RIN in units of dBc / Hz
+                    args = Plotting.plot_arg_single()
+                    plt_indx = 1
+                    args.loud = loud
+                    #args.curve_label = 'JDSU DFB Laser'
+                    #args.curve_label = 'NKT Fibre Laser'
+                    args.marker = Plotting.labs_lins[0]
+                    args.x_label = 'Frequency ( Hz )'
+                    args.y_label = 'RIN / dBc ( Hz )'
+                    args.fig_name = filename.replace('.txt','')
+                    args.log_x = True
+                    args.log_y = False            
+
+                    Plotting.plot_single_curve(ret_val[1][0], ret_val[1][plt_indx], args)
+            
+                del ret_val
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + filename
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def OEWaves_RIN_Multiple(filelst, laser_name, loud = False):
+    # Analyse data measured by the OEWaves OE4000
+    # plot the RIN data for multiple measurements
+    # R. Sheehan 3 - 3 - 2022
+
+    FUNC_NAME = ".OEWaves_RIN_Multiple()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        hv_data = []; marks = []; labels = []; 
+        count = 0
+        for f in filelst:
+            ret_val = Parse_OEWaves_file(f)
+            if 'RIN' in ret_val[0]:
+                hv_data.append(ret_val[1]); 
+                marks.append( Plotting.labs_lins[ count%len(Plotting.labs_lins) ] ); 
+                labels.append('M %(v1)d'%{"v1":count+1})
+                count = count + 1
+
+        # Plot the data sets on a single graph
+        args = Plotting.plot_arg_multiple()
+
+        args.loud = loud
+        args.crv_lab_list = labels
+        args.mrk_list = marks
+        args.x_label = 'Frequency ( Hz )'
+        args.y_label = 'RIN / dBc ( Hz )'
+        args.fig_name = laser_name + '_RIN'
+        args.log_x = True
+        args.log_y = False                  
+
+        Plotting.plot_multiple_curves(hv_data, args)
+
+        del hv_data; del marks; del labels; del ret_val; 
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def OEWaves_FNPSD_Multiple(filelst, laser_name, loud = False):
+    # Analyse data measured by the OEWaves OE4000
+    # plot the FNPSD data for multiple measurements
+    # R. Sheehan 3 - 3 - 2022
+
+    FUNC_NAME = ".OEWaves_FNPSD_Multiple()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        ll_data = []; hv_data = []; ll_marks = []; marks = []; labels = []; 
+        plt_indx = 3 # this is the indx of the column storing the FNPSD data
+        count = 0
+        for f in filelst:
+            ret_val = Parse_OEWaves_file(f)
+            if 'Phase' in ret_val[0]:
+                hv_data.append([ret_val[1][0], ret_val[1][plt_indx]]); 
+                ll_data.append(ret_val[2])
+                ll_marks.append( Plotting.labs_pts[ count%len(Plotting.labs_pts) ] ); 
+                marks.append( Plotting.labs_lins[ count%len(Plotting.labs_lins) ] ); 
+                labels.append('M %(v1)d'%{"v1":count+1})
+                count = count + 1
+
+        # determine the average of all the extended LL values
+        arr_tmp = []
+        for i in range(0, len(ll_data), 1):
+            arr_tmp.append(ll_data[i][1])
+
+        arr_tmp = Common.transpose_multi_col(arr_tmp)
+
+        avg_LL = []; err_LL = []; 
+        for i in range(0, len(arr_tmp), 1):
+            avg_LL.append(numpy.mean(arr_tmp[i]))
+            err_LL.append( 0.5*(numpy.max(arr_tmp[i]) - numpy.min(arr_tmp[i])) )
+
+        ll_data.append([ll_data[0][0], avg_LL]); ll_marks.append('kx--'); labels.append('Avg')
+
+        del arr_tmp; 
+
+        # Plt the extended LL with error bars
+        args = Plotting.plot_arg_single()
+        args.loud = loud
+        #args.curve_label = 'JDSU DFB Laser'
+        #args.curve_label = 'NKT Fibre Laser'
+        #args.marker = Plotting.labs_lins[0]
+        args.x_label = 'Observation Time ( ms )'
+        args.y_label = 'Linewidth ( kHz )'
+        args.fig_name = laser_name + '_FNPSD_extended_LL_err'
+        args.log_x = True
+        args.log_y = False            
+
+        Plotting.plot_single_curve_with_errors(ll_data[0][0], avg_LL, err_LL, args)
+
+        # Plot the data sets on a single graph
+        args = Plotting.plot_arg_multiple()
+                
+        # Extended LL Plot
+        args.loud = loud
+        args.crv_lab_list = labels
+        args.mrk_list = ll_marks
+        args.x_label = 'Observation Time ( ms )'
+        args.y_label = 'Linewidth ( kHz )'
+        args.fig_name = laser_name + '_FNPSD_extended_LL'
+        args.log_x = True
+        args.log_y = False                  
+
+        Plotting.plot_multiple_curves(ll_data, args) 
+                
+        # FNPSD Plot    
+        # beta-line
+        beta_slope = (8.0*math.log(2.0)) / (math.pi**2)
+        hv_data.append( [ [ret_val[1][0][0], ret_val[1][0][-1]], [beta_slope*ret_val[1][0][0], beta_slope*ret_val[1][0][-1]] ] ); 
+        marks.append(Plotting.labs_dashed[6]); 
+        labels.pop(); labels.append('c f')       
+
+        args.loud = loud
+        args.crv_lab_list = labels
+        args.mrk_list = marks
+        args.x_label = 'Frequency ( Hz )'
+        args.y_label = 'Frequency Noise ( Hz$^{2}$ / Hz )'
+        args.fig_name = laser_name + '_FNPSD'
+        args.log_x = True
+        args.log_y = True                  
+
+        Plotting.plot_multiple_curves(hv_data, args)
+
+        del hv_data; del marks; del labels; del ret_val; 
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def OEWaves_Analysis():
 
     # Analyse data measured by the OEWaves OE4000
     # R. Sheehan 1 - 3 - 2022
 
-    FUNC_NAME = ".OEWaves_Analysis_Single()" # use this in exception handling messages
+    FUNC_NAME = ".OEWaves_Analysis()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
@@ -1176,24 +1398,36 @@ def OEWaves_Analysis_Single():
             os.chdir(DATA_HOME)
             print(os.getcwd())
 
-            filename = 'JDSU_DFB_T_20_I_50_RIN_1.txt'
-            data = Parse_OEWaves_file(filename)
+            #filename = 'JDSU_DFB_T_20_I_50_PN_1.txt'
+            #filename = 'JDSU_DFB_T_20_I_50_RIN_2.txt'
+            #filename = 'NKT_T_25_I_110_FN_1.txt'
+            #filename = 'NKT_T_25_I_110_RIN_2.txt'
+            #OEWaves_Analysis_Single(filename, True)
 
-            # make a basic plot
-            args = Plotting.plot_arg_single()
+            #filenames = glob.glob("*.txt")
+            #for f in filenames: OEWaves_Analysis_Single(f)
 
-            args.loud = True
-            #args.crv_lab_list = labels
-            #args.mrk_list = marks
-            args.x_label = 'Frequency'
-            args.y_label = 'RIN'
-            #args.fig_name = 'NKT_LLM_DSHI'
-            #args.plt_range = [78, 82, -80, 0]
+            # JDSU DFB RIN
+            filelst = ['JDSU_DFB_T_20_I_50_RIN_1.txt', 'JDSU_DFB_T_20_I_50_RIN_2.txt']
+            laser_name = 'JDSU_DFB'
+            OEWaves_RIN_Multiple(filelst, laser_name, True)
 
-            Plotting.plot_single_curve(data[0], data[1], args)
-            
+            # NKT RIN
+            filelst = ['NKT_T_25_I_110_RIN_1.txt', 'NKT_T_25_I_110_RIN_2.txt']
+            laser_name = 'NKT'
+            OEWaves_RIN_Multiple(filelst, laser_name, True)
+
+            # JDSU DFB FNPSD
+            filelst = ['JDSU_DFB_T_20_I_50_PN_1.txt', 'JDSU_DFB_T_20_I_50_PN_2.txt', 'JDSU_DFB_T_20_I_50_PN_3.txt', 'JDSU_DFB_T_20_I_50_FN_1.txt', 'JDSU_DFB_T_20_I_50_FN_2.txt']
+            laser_name = 'JDSU_DFB'
+            OEWaves_FNPSD_Multiple(filelst, laser_name, True)
+
+            # NKT FNPSD
+            filelst = ['NKT_T_25_I_110_PN_1.txt', 'NKT_T_25_I_110_PN_2.txt', 'NKT_T_25_I_110_FN_1.txt', 'NKT_T_25_I_110_FN_2.txt', 'NKT_T_25_I_110_FN_3.txt']
+            laser_name = 'NKT'
+            OEWaves_FNPSD_Multiple(filelst, laser_name, True)
         else:
-            ERR_STATEMENT = ERR_STATEMENT + '\nCannot find '
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)

@@ -1378,7 +1378,74 @@ def OEWaves_FNPSD_Multiple(filelst, laser_name, loud = False):
 
         Plotting.plot_multiple_curves(hv_data, args)
 
-        del hv_data; del marks; del labels; del ret_val; 
+        del ll_data; del hv_data; del marks; del labels; del ret_val; 
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def OEWaves_FNPSD_Integration(filelst, loud = False):
+    # Analyse data measured by the OEWaves OE4000
+    # estimate LL from the FNPSD data from multiple measurements
+    # asume that LL can be approximated according to the technique presented in
+    # Domenico et al, ``Simple approach to the relation between laser frequency 
+    # noise and laser line shape'', Appl. Opt., 49 (25), 2010
+    # R. Sheehan 3 - 3 - 2022
+
+    FUNC_NAME = ".OEWaves_FNPSD_Integration()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        hv_data = []; 
+        plt_indx = 3 # this is the indx of the column storing the FNPSD data
+        for f in filelst:
+            ret_val = Parse_OEWaves_file(f)
+            if 'Phase' in ret_val[0]:
+                hv_data.append([ret_val[1][0], ret_val[1][plt_indx]]);  
+
+        del ret_val;
+        
+        # Approximate the integral of the FNPSD in the region where S > beta-slope * f
+        # see Domenico et al, Appl. Opt., 49 (25), 2010 for details
+        if len(hv_data)>0:
+            # proceed with integration
+            
+            # beta-line
+            beta_slope = (8.0*math.log(2.0)) / (math.pi**2)
+            #print('beta data = [ [',hv_data[0][0][0],', ',hv_data[0][0][-1],' ], [',hv_data[0][0][0]*beta_slope,', ',hv_data[0][0][-1]*beta_slope,' ] ]')
+            #print('')
+
+            appr_lst = []
+            for i in range(0, len(hv_data), 1):
+                integral = 0
+                for j in range(1, len(hv_data[i][0]), 1):
+                    # only compute the integral in the regions where S > beta-slope * f
+                    if hv_data[i][0][j] < 1e+5 and hv_data[i][1][j] > beta_slope * hv_data[i][0][j]:
+                        integral = integral + ( hv_data[i][0][j] - hv_data[i][0][j-1] ) * hv_data[i][1][j]
+                print('Integral ',i,': ',integral,', HWHM: ',0.5*math.sqrt(8.0*integral))
+                appr_lst.append( 0.5*math.sqrt(8.0*integral) )
+
+            #appr_lst = []
+            #for i in range(0, len(hv_data), 1):
+            #    integral = 0
+            #    for j in range(1, len(hv_data[i][0]), 1):
+            #        term = ( hv_data[i][0][j] - hv_data[i][0][j-1] ) * hv_data[i][1][j] if hv_data[i][1][j] > beta_slope * hv_data[i][0][j] else 0.0
+            #        integral = integral + term
+            #    print('Integral ',i,': ',integral,', HWHM: ',0.5*math.sqrt(8.0*integral))
+            #    appr_lst.append( 0.5*math.sqrt(8.0*integral) )
+
+            avg_integral = numpy.mean(appr_lst); 
+            delta_integral = 0.5*( numpy.max(appr_lst) - numpy.min(appr_lst) )
+            rel_error = delta_integral / avg_integral
+            print('HWHM: ',avg_integral,' +/-',delta_integral,' Hz')
+            print('HWHM: ',avg_integral/1e+6,' +/-',delta_integral/1e+6,' MHz')
+            print('HWHM: ',avg_integral/1e+3,' +/-',delta_integral/1e+3,' kHz')
+            print('Rel. Error: ',rel_error)
+            print('')
+
+            del hv_data;  
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nIntegration not possible\nNo data available'
+            raise Exception
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
@@ -1410,22 +1477,34 @@ def OEWaves_Analysis():
             # JDSU DFB RIN
             filelst = ['JDSU_DFB_T_20_I_50_RIN_1.txt', 'JDSU_DFB_T_20_I_50_RIN_2.txt']
             laser_name = 'JDSU_DFB'
-            OEWaves_RIN_Multiple(filelst, laser_name, True)
+            #OEWaves_RIN_Multiple(filelst, laser_name, True)
 
             # NKT RIN
             filelst = ['NKT_T_25_I_110_RIN_1.txt', 'NKT_T_25_I_110_RIN_2.txt']
             laser_name = 'NKT'
-            OEWaves_RIN_Multiple(filelst, laser_name, True)
+            #OEWaves_RIN_Multiple(filelst, laser_name, True)
+
+            # RIN Comparison
+            filelst = ['JDSU_DFB_T_20_I_50_RIN_1.txt', 'NKT_T_25_I_110_RIN_2.txt']
+            laser_name = 'DFB_NKT'
+            #OEWaves_RIN_Multiple(filelst, laser_name, True)
 
             # JDSU DFB FNPSD
             filelst = ['JDSU_DFB_T_20_I_50_PN_1.txt', 'JDSU_DFB_T_20_I_50_PN_2.txt', 'JDSU_DFB_T_20_I_50_PN_3.txt', 'JDSU_DFB_T_20_I_50_FN_1.txt', 'JDSU_DFB_T_20_I_50_FN_2.txt']
             laser_name = 'JDSU_DFB'
-            OEWaves_FNPSD_Multiple(filelst, laser_name, True)
+            #OEWaves_FNPSD_Multiple(filelst, laser_name, False)
+            OEWaves_FNPSD_Integration(filelst, True)
 
             # NKT FNPSD
             filelst = ['NKT_T_25_I_110_PN_1.txt', 'NKT_T_25_I_110_PN_2.txt', 'NKT_T_25_I_110_FN_1.txt', 'NKT_T_25_I_110_FN_2.txt', 'NKT_T_25_I_110_FN_3.txt']
             laser_name = 'NKT'
-            OEWaves_FNPSD_Multiple(filelst, laser_name, True)
+            #OEWaves_FNPSD_Multiple(filelst, laser_name, False)
+            OEWaves_FNPSD_Integration(filelst, True)
+
+            # JDSU DFB NKT FNPSD Comparison
+            filelst = ['JDSU_DFB_T_20_I_50_PN_3.txt', 'NKT_T_25_I_110_PN_1.txt']
+            laser_name = 'DFB_NKT'
+            #OEWaves_FNPSD_Multiple(filelst, laser_name, True)
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
     except Exception as e:

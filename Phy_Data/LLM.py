@@ -1114,6 +1114,13 @@ def Parse_OEWaves_file(filename, loud = False):
     # measurement type, measurement settings, comments, OEwaves settings, measurement data
     # R. Sheehan 1 - 3 - 2022
 
+    # Frequency units Hz
+    # RIN units dBc / Hz
+    # Phase Noise units dBc / Hz
+    # Spurious units dBc
+    # Frequency Noise units Hz^{2} / Hz
+    # Frequency Noise units Hz / Hz^{1/2}
+
     FUNC_NAME = ".Parse_OEWaves_file()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
@@ -1154,12 +1161,12 @@ def Parse_OEWaves_file(filename, loud = False):
         print(ERR_STATEMENT)
         print(e)
 
-def OEWaves_Analysis():
+def OEWaves_Analysis_Single():
 
     # Analyse data measured by the OEWaves OE4000
     # R. Sheehan 1 - 3 - 2022
 
-    FUNC_NAME = ".OEWaves_Analysis()" # use this in exception handling messages
+    FUNC_NAME = ".OEWaves_Analysis_Single()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
@@ -1169,11 +1176,21 @@ def OEWaves_Analysis():
             os.chdir(DATA_HOME)
             print(os.getcwd())
 
-            filename = 'JDSU_DFB_T_20_I_50_PN_1.txt'
-            data = Parse_OEWaves_file(filename)
-
             filename = 'JDSU_DFB_T_20_I_50_RIN_1.txt'
             data = Parse_OEWaves_file(filename)
+
+            # make a basic plot
+            args = Plotting.plot_arg_single()
+
+            args.loud = True
+            #args.crv_lab_list = labels
+            #args.mrk_list = marks
+            args.x_label = 'Frequency'
+            args.y_label = 'RIN'
+            #args.fig_name = 'NKT_LLM_DSHI'
+            #args.plt_range = [78, 82, -80, 0]
+
+            Plotting.plot_single_curve(data[0], data[1], args)
             
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot find '

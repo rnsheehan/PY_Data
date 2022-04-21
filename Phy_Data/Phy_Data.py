@@ -66,5 +66,7 @@ if __name__ == '__main__':
 
     #General.PDA10CS_Calibration()
 
-    LLM.OEWaves_Analysis()
+    #LLM.OEWaves_Analysis()
+
+    General.Diode_Fit_Calibration()
 

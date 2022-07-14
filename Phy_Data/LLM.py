@@ -1507,6 +1507,88 @@ def OEWaves_Analysis():
             #OEWaves_FNPSD_Multiple(filelst, laser_name, True)
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Combine_Multi_Spctrm():
+
+    # join together multiple multi-spectra plots into a single plot
+    # also take a look at the first plot as a function of Attenuation
+    # R. Sheehan 14 - 7 - 2022
+
+    FUNC_NAME = ".Combine_Multi_Spctrm()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/MultiSpctrm/'
+
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+
+            # import the data
+            filename = 'FullPltTest%(v1)d.txt'
+            
+            hv_data = []; marks = []; labels = []; 
+
+            for i in range(1,6,1):
+                the_file = filename%{"v1":i}
+                if glob.glob(the_file):
+                    the_data = numpy.loadtxt(the_file, unpack = True)
+                    hv_data.append(the_data)
+                    marks.append(Plotting.labs_lins[i])
+                    labels.append('Sweep %(v1)d'%{"v1":i})
+
+            # Plot the data sets on a single graph
+            args = Plotting.plot_arg_multiple()
+                
+            # Extended LL Plot
+            args.loud = False
+            args.crv_lab_list = labels
+            args.mrk_list = marks
+            args.x_label = 'Frequency ( MHz )'
+            args.y_label = 'Spectral Power ( dBm )'
+            args.fig_name = 'JDSU_LCR_DSHI'
+            
+            Plotting.plot_multiple_curves(hv_data, args)
+
+            #del hv_data; del the_data; 
+
+            # Plot the data obtained as a function of Attenuation
+            voltages = ['00', '25', '30', '35', '40', '45']
+            powers = [1.15, -0.8, -3.35, -7.8, -18.55, -26.5]
+
+            filename = 'FullPltTest1_Vb_%(v1)sV.txt'
+            
+            hv_data = []; marks = []; labels = []; 
+
+            for i in range(0,5,1):
+                the_file = filename%{"v1":voltages[i]}
+                if glob.glob(the_file):
+                    the_data = numpy.loadtxt(the_file, unpack = True)
+                    hv_data.append(the_data)
+                    marks.append(Plotting.labs_lins[i])
+                    labels.append('$P_{2}$ = %(v1)0.2f dBm'%{"v1":powers[i]})
+
+            # Plot the data sets on a single graph
+                
+            # Extended LL Plot
+            args.loud = True
+            args.crv_lab_list = labels
+            args.mrk_list = marks
+            args.x_label = 'Frequency ( MHz )'
+            args.y_label = 'Spectral Power ( dBm )'
+            args.fig_name = 'JDSU_LCR_DSHI_with_Attenuation'
+            
+            Plotting.plot_multiple_curves(hv_data, args)
+
+            del hv_data; del the_data; 
+
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
+            raise Exception
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)

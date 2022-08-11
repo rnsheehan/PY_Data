@@ -70,5 +70,7 @@ if __name__ == '__main__':
 
     #General.PDA10CS_Calibration()
 
-    LLM.Combine_Multi_Spctrm()
+    #LLM.Combine_Multi_Spctrm()
+
+    LLM.AOM_Temperature()
 

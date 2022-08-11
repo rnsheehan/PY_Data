@@ -1592,3 +1592,105 @@ def Combine_Multi_Spctrm():
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
+
+def AOM_Temperature():
+
+    FUNC_NAME = ".AOM_Temperature()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/AOM_Temp/'
+
+        if os.path.isdir(DATA_HOME):
+
+            os.chdir(DATA_HOME)
+
+            print(os.getcwd())
+
+            filename = 'AOM_Temp_Versus_Time_10_8_2022.txt'
+
+            if glob.glob(filename):
+                # read the data from the file
+                data = numpy.loadtxt(filename, unpack = True)
+                data[0] = data[0] / (60.0*60.0) # convert time from seconds to hours
+
+                # plot the data obtained
+                hv_data = []; mrk_list = []; labels = []; 
+                hv_data.append([data[0], data[1]]); mrk_list.append(Plotting.labs_pts[0]); labels.append('Air')
+                hv_data.append([data[0], data[2]]); mrk_list.append(Plotting.labs_pts[1]); labels.append('AOM')
+                hv_data.append([data[0], data[3]]); mrk_list.append(Plotting.labs_pts[2]); labels.append('AOM Driver')
+
+                args = Plotting.plot_arg_multiple()
+                
+                # Extended LL Plot
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = mrk_list
+                args.x_label = 'Time ( hrs )'
+                args.y_label = 'Temperature ( C )'
+                args.plt_range = [0, 8, 22, 36]
+                args.fig_name = filename.replace('.txt','')
+            
+                Plotting.plot_multiple_curves(hv_data, args)
+
+                del hv_data; 
+                
+                # Is there a correlation between AOM temperature and Air temperature
+
+                # get correlation between measured AOM Temperature and Air Temperature
+                # ideally this should be zero
+                AOMAIRrcoeff = numpy.corrcoef(data[1], data[2])
+
+                # get correlation between measured AOM Driver Temperature and Air Temperature
+                # ideally this should be zero
+                AOMDrvAIRrcoeff = numpy.corrcoef(data[1], data[3])
+
+                # get correlation between measured AOM Driver Temperature and AOM Temperature
+                # ideally this should be one
+                AOMDrvAOMrcoeff = numpy.corrcoef(data[2], data[3])
+
+                print("\nCorrelation Coefficients")
+                print('AOM Temperature vs Air Temperature Correlation Coefficient: ', AOMAIRrcoeff[1][0])
+                print('AOM Temperature vs Air Temperature Correlation Coefficient: ', AOMAIRrcoeff[0][1])
+                print('AOM Driver Temperature vs Air Temperature Correlation Coefficient: ', AOMDrvAIRrcoeff[1][0])
+                print('AOM Driver Temperature vs Air Temperature Correlation Coefficient: ', AOMDrvAIRrcoeff[0][1])
+                print('AOM Driver Temperature vs AOM Temperature Correlation Coefficient: ', AOMDrvAOMrcoeff[1][0])
+                print('AOM Driver Temperature vs AOM Temperature Correlation Coefficient: ', AOMDrvAOMrcoeff[0][1])
+
+                # make some plots
+                args = Plotting.plot_arg_single()
+                
+                args.loud = True
+                #args.curve_label = ''
+                #args.marker = Plotting.labs_pts[1]
+                args.x_label = 'T$_{Air}$ ( C )'
+                args.y_label = 'T$_{AOM}$ ( C )'
+                args.plt_title = 'T$_{AOM}$ vs T$_{Air}$ r = %(v1)0.3f'%{"v1":AOMAIRrcoeff[1][0]}
+                args.fig_name = 'T_AOM_vs_T_Air'                
+                                               
+                Plotting.plot_single_linear_fit_curve(data[1], data[2], args)
+
+                args.x_label = 'T$_{Air}$ ( C )'
+                args.y_label = 'T$_{AOM Drv}$ ( C )'
+                args.plt_title = 'T$_{AOM Drv}$ vs T$_{Air}$ r = %(v1)0.3f'%{"v1":AOMDrvAIRrcoeff[1][0]}
+                args.fig_name = 'T_AOM_Drv_vs_T_Air'                
+                
+                Plotting.plot_single_linear_fit_curve(data[1], data[3], args)
+
+                args.x_label = 'T$_{AOM}$ ( C )'
+                args.y_label = 'T$_{AOM Drv}$ ( C )'
+                args.plt_title = 'T$_{AOM Drv}$ vs T$_{AOM}$ r = %(v1)0.3f'%{"v1":AOMDrvAOMrcoeff[1][0]}
+                args.fig_name = 'T_AOM_Drv_vs_T_AOM'                
+                
+                Plotting.plot_single_linear_fit_curve(data[2], data[3], args)
+
+                del data; 
+            else:
+                ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + filename
+                raise Exception
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)

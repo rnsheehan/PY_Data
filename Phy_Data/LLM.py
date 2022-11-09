@@ -1607,7 +1607,8 @@ def AOM_Temperature():
 
             print(os.getcwd())
 
-            filename = 'AOM_Temp_Versus_Time_10_8_2022.txt'
+            #filename = 'AOM_Temp_Versus_Time_10_8_2022.txt'
+            filename = 'AOM_Temp_Versus_Time_17_10_2022.txt'
 
             if glob.glob(filename):
                 # read the data from the file
@@ -1628,7 +1629,8 @@ def AOM_Temperature():
                 args.mrk_list = mrk_list
                 args.x_label = 'Time ( hrs )'
                 args.y_label = 'Temperature ( C )'
-                args.plt_range = [0, 8, 22, 36]
+                #args.plt_range = [0, 8, 22, 36]
+                args.plt_range = [0, 8, 15, 30]
                 args.fig_name = filename.replace('.txt','')
             
                 Plotting.plot_multiple_curves(hv_data, args)
@@ -1691,6 +1693,63 @@ def AOM_Temperature():
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
             raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def ESA_Spctrm_Attn():
+
+    # Make some plots of the ESA spectrum for different attenuation levels
+    # R. Sheehan 9 - 11 - 2022
+
+    FUNC_NAME = ".ESA_Spctrm_Attn()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/ESA_Spectra_Versus_VOA_Bias/'
+
+        if os.path.isdir(DATA_HOME):
+
+            os.chdir(DATA_HOME)
+
+            print(os.getcwd())
+            
+            PLOT_SINGLE = False
+
+            Vvals = ['000','100','200','300','325','350','360','365','370','375','400']
+            Vvolts = [0.0, 1.0, 2.0, 3.0, 3.25, 3.5, 3.6, 3.65, 3.7, 3.75, 4.0]
+
+            filetmplt = 'JDSU_DFB_T_20_I_50_V_%(v1)s.txt' if PLOT_SINGLE else 'JDSU_DFB_T_20_I_50_V_%(v1)s_Full.txt'
+
+            # Import the data
+            hv_data = []
+            labels = []
+            marks = []
+            
+            for ss in range(3, len(Vvals)-3, 1): 
+                filename = filetmplt%{"v1":Vvals[ss]}
+                if glob.glob(filename):
+                    data = numpy.loadtxt(filename, unpack = True)
+                    hv_data.append(data)
+                    labels.append('V$_{VOA}$ = %(v1)0.2f V'%{"v1":Vvolts[ss]})
+                    marks.append(Plotting.labs_lins[ss%len(Plotting.labs_lins)])
+
+            # Plot the data
+            args = Plotting.plot_arg_multiple()
+                
+            # Extended LL Plot
+            args.loud = True
+            args.crv_lab_list = labels
+            args.mrk_list = marks
+            args.x_label = 'Frequency ( MHz )'
+            args.y_label = 'Spectral Power ( dBm )'
+            #args.plt_range = [0, 8, 22, 36]
+            #args.fig_name = filename.replace('.txt','')
+            
+            Plotting.plot_multiple_curves(hv_data, args)
+
+        else:
+            pass
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)

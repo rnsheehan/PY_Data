@@ -72,5 +72,7 @@ if __name__ == '__main__':
 
     #LLM.Combine_Multi_Spctrm()
 
-    LLM.AOM_Temperature()
+    #LLM.AOM_Temperature()
+
+    LLM.ESA_Spctrm_Attn()
 

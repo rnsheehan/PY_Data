@@ -1714,7 +1714,7 @@ def ESA_Spctrm_Attn():
 
             print(os.getcwd())
             
-            PLOT_SINGLE = False
+            PLOT_SINGLE = True
 
             Vvals = ['000','100','200','300','325','350','360','365','370','375','400']
             Vvolts = [0.0, 1.0, 2.0, 3.0, 3.25, 3.5, 3.6, 3.65, 3.7, 3.75, 4.0]
@@ -1726,7 +1726,7 @@ def ESA_Spctrm_Attn():
             labels = []
             marks = []
             
-            for ss in range(3, len(Vvals)-3, 1): 
+            for ss in range(3, len(Vvals)-1, 1): 
                 filename = filetmplt%{"v1":Vvals[ss]}
                 if glob.glob(filename):
                     data = numpy.loadtxt(filename, unpack = True)
@@ -1743,7 +1743,7 @@ def ESA_Spctrm_Attn():
             args.mrk_list = marks
             args.x_label = 'Frequency ( MHz )'
             args.y_label = 'Spectral Power ( dBm )'
-            #args.plt_range = [0, 8, 22, 36]
+            args.plt_range = [30, 130, -105, -70] if PLOT_SINGLE else [0, 3000, -90, -55]
             #args.fig_name = filename.replace('.txt','')
             
             Plotting.plot_multiple_curves(hv_data, args)

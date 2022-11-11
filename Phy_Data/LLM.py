@@ -1883,7 +1883,7 @@ def Estimate_SNR(frq, power, sig_range):
                     noise = noise + power[i]        
             signal  = signal * deltaf / 1000.0 # divide by 1000 just to scale
             noise = noise * deltaf / 1000.0 # divide by 1000 just to scale
-            SNR = -signal + noise if math.fabs(noise) > 0 else 0.0
+            SNR = signal - noise if math.fabs(noise) > 0 else 0.0
             return [signal, noise, SNR]
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nInput Arrays Incorrectly Sized'

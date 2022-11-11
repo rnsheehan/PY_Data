@@ -1700,6 +1700,7 @@ def AOM_Temperature():
 def ESA_Spctrm_Attn():
 
     # Make some plots of the ESA spectrum for different attenuation levels
+    # Analyse the data obtained
     # R. Sheehan 9 - 11 - 2022
 
     FUNC_NAME = ".ESA_Spctrm_Attn()" # use this in exception handling messages
@@ -1726,7 +1727,7 @@ def ESA_Spctrm_Attn():
             labels = []
             marks = []
             
-            for ss in range(3, len(Vvals)-1, 1): 
+            for ss in range(0, len(Vvals), 1): 
                 filename = filetmplt%{"v1":Vvals[ss]}
                 if glob.glob(filename):
                     data = numpy.loadtxt(filename, unpack = True)
@@ -1734,22 +1735,159 @@ def ESA_Spctrm_Attn():
                     labels.append('V$_{VOA}$ = %(v1)0.2f V'%{"v1":Vvolts[ss]})
                     marks.append(Plotting.labs_lins[ss%len(Plotting.labs_lins)])
 
-            # Plot the data
-            args = Plotting.plot_arg_multiple()
+            BASIC_PLOT = False
+
+            if BASIC_PLOT:
+                # Plot the data
+                args = Plotting.plot_arg_multiple()
                 
-            # Extended LL Plot
-            args.loud = True
-            args.crv_lab_list = labels
-            args.mrk_list = marks
-            args.x_label = 'Frequency ( MHz )'
-            args.y_label = 'Spectral Power ( dBm )'
-            args.plt_range = [30, 130, -105, -70] if PLOT_SINGLE else [0, 3000, -90, -55]
-            #args.fig_name = filename.replace('.txt','')
+                # Extended LL Plot
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = 'Frequency ( MHz )'
+                args.y_label = 'Spectral Power ( dBm )'
+                args.plt_range = [30, 130, -105, -70] if PLOT_SINGLE else [0, 3000, -90, -55]
+                args.fig_name = 'ESA_Single' if PLOT_SINGLE else 'ESA_Full'
             
-            Plotting.plot_multiple_curves(hv_data, args)
+                Plotting.plot_multiple_curves(hv_data, args)
+
+            FULL_ANALYSIS = True
+
+            if FULL_ANALYSIS and PLOT_SINGLE is False:
+                # Analyse the data from the full spectrum
+                # Step through each file for each bias value
+                # record the peak power value at each beat note
+                # plot the beat note power versus frequency for each bias
+                peak_data = []
+                for ii in range(0, len(hv_data), 1):
+                    peak_data.append( Extract_Peak_Data(hv_data[ii][0], hv_data[ii][1]) )
+
+                # Plot the data
+                args = Plotting.plot_arg_multiple()
+
+                # Extended LL Peaks Plot
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = 'Frequency ( MHz )'
+                args.y_label = 'Spectral Power ( dBm )'
+                args.plt_range = [0, 3000, -90, -55]
+                args.fig_name = 'ESA_Full_Peaks'
+            
+                Plotting.plot_multiple_curves(peak_data, args)
+
+                del peak_data; 
+
+            SINGLE_ANALYSIS = True
+
+            if SINGLE_ANALYSIS:
+                # Analyse the data from the single spectra
+                # Make an estimate of the signal / noise ratio based on the scheme given in the ESA Manual
+                
+                signal = []
+                noise = []
+                SNR = []
+                sig_range = [60, 100]
+                for ii in range(0, len(hv_data), 1):
+                    ret_val = Estimate_SNR(hv_data[ii][0], hv_data[ii][1], sig_range)
+                    signal.append(ret_val[0])
+                    noise.append(ret_val[1])
+                    SNR.append(ret_val[2])
+
+                SNR_data = []
+                SNR_data.append([Vvolts, signal])
+                SNR_data.append([Vvolts, noise])
+                SNR_data.append([Vvolts, SNR])
+
+                # Plot the data
+                args = Plotting.plot_arg_multiple()
+                
+                # Extended LL Plot
+                args.loud = True
+                args.crv_lab_list = ['Signal','Noise','SNR']
+                args.mrk_list = Plotting.labs[0:3]
+                args.x_label = 'VOA Bias ( V )'
+                args.y_label = 'SNR'
+                #args.plt_range = [30, 130, -105, -70] if PLOT_SINGLE else [0, 3000, -90, -55]
+                args.fig_name = 'SNR_Estimate'
+            
+                Plotting.plot_multiple_curves(SNR_data, args)
+
+                del SNR_data; del signal; del noise; del SNR; 
 
         else:
-            pass
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Extract_Peak_Data(frq, power):
+    # scan the frq, power data set and return the power values at each of the beat note frequencies
+
+    FUNC_NAME = ".Extract_Peak_Data()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        c1 = True if len(frq) > 0 else False
+        c2 = True if len(power) > 0 else False
+        c3 = True if len(frq) == len(power) else False
+        c10 = c1 and c2 and c3
+
+        if c10:
+            fzero = 80; 
+            deltaf = 80; 
+            fend = 3000; 
+            fbeats = numpy.array([]) # instantiate an empty numpy array
+            pbeats = numpy.array([]) # instantiate an empty numpy array
+            while fzero < fend:
+                indx, frq_val = Common.list_search(frq, fzero, 0, 1e-3)
+                fbeats = numpy.append(fbeats, frq_val) # append data to the numpy array
+                pbeats = numpy.append(pbeats, power[indx]) # append data to the numpy array
+                #print(indx,',',frq_val,',',power[indx])
+                fzero = fzero + deltaf
+            return [fbeats, pbeats]
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nInput Arrays Incorrectly Sized'
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Estimate_SNR(frq, power, sig_range):
+    # use the measured data to estimate the SNR
+    # signal = power within sig_range
+    # noise = power outside sig_range
+    # R. Sheehan 11 - 11 - 2022
+
+    FUNC_NAME = ".Estimate_SNR()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        c1 = True if len(frq) > 0 else False
+        c2 = True if len(power) > 0 else False
+        c3 = True if len(frq) == len(power) else False
+        c4 = True if sig_range[0] > frq[0] and sig_range[-1] < frq[-1] else False
+        c10 = c1 and c2 and c3 and c4
+
+        if c10:
+            signal = 0 # integrate over the sig_range 
+            noise = 0 # everything else is noise
+            deltaf = 0
+            for i in range(1, len(frq), 1):
+                deltaf = frq[i] - frq[i-1]
+                if frq[i] > sig_range[0] and frq[i] <= sig_range[1]:
+                    signal = signal + power[i]
+                else:
+                    noise = noise + power[i]        
+            signal  = signal * deltaf / 1000.0 # divide by 1000 just to scale
+            noise = noise * deltaf / 1000.0 # divide by 1000 just to scale
+            SNR = -signal + noise if math.fabs(noise) > 0 else 0.0
+            return [signal, noise, SNR]
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nInput Arrays Incorrectly Sized'
+            raise Exception
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)

@@ -743,15 +743,22 @@ def Lorentz_Voigt_Fit_Analysis():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/Sample_Data/'
+        #DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/Sample_Data/'
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/ESA_Spectra_Versus_VOA_Bias/'
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
 
+            Vvals = ['000','100','200','300','325','350','360','365','370','375','400']
+            Vvolts = [0.0, 1.0, 2.0, 3.0, 3.25, 3.5, 3.6, 3.65, 3.7, 3.75, 4.0]
+
+            filetmplt = 'JDSU_DFB_T_20_I_50_V_%(v1)s_fit_results.txt'
+
             nfiles = 12
-            for i in range(40, 66, 5):
+            for i in range(0, len(Vvals), 1):
                 #file_tmplt = 'Smpl_LLM_%(v1)d_fit_results.txt'%{"v1":i}
-                file_tmplt = 'LLM_Spctrm_I_%(v1)d_fit_results.txt'%{"v1":i}
+                #file_tmplt = 'LLM_Spctrm_I_%(v1)d_fit_results.txt'%{"v1":i}
+                file_tmplt = filetmplt%{"v1":Vvals[i]}
                 if glob.glob(file_tmplt):
                     hv_data = []; marks = []; labels = []
                     data = numpy.loadtxt(file_tmplt, delimiter = ',')
@@ -768,7 +775,7 @@ def Lorentz_Voigt_Fit_Analysis():
                     args.x_label = 'Frequency / MHz'
                     args.y_label = 'Spectral Power / uW'
                     args.fig_name = file_tmplt.replace('.txt','')
-                    #args.plt_range = [70, 90, 0, 4]
+                    args.plt_range = [60, 100, 0, 0.1]
 
                     Plotting.plot_multiple_curves(hv_data, args)
 
@@ -793,12 +800,18 @@ def Voigt_Fit_Analysis():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/Sample_Data/'
+        #DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/Sample_Data/'
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/ESA_Spectra_Versus_VOA_Bias/'
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
 
-            vals = numpy.arange(17)
+            Vvals = ['000','100','200','300','325','350','360','365','370','375','400']
+            Vvolts = [0.0, 1.0, 2.0, 3.0, 3.25, 3.5, 3.6, 3.65, 3.7, 3.75, 4.0]
+
+            #vals = numpy.arange(17)
+            #vals = numpy.arange(11)
+            vals = [0.0, 1.0, 2.0, 3.0, 3.25, 3.5, 3.6, 3.65, 3.7, 3.75, 4.0]
             
             file_tmplt = 'Fitted_Parameter_Values.txt'
             if glob.glob(file_tmplt):
@@ -810,17 +823,23 @@ def Voigt_Fit_Analysis():
                 #hv_data.append([vals, data[6]]); labels.append('Voigt Peak'); marks.append(Plotting.labs_pts[1])
                 #hv_data.append([vals, data[10]]); labels.append('Lorentz Peak'); marks.append(Plotting.labs_pts[2])
                 #f_ending = '_peaks'
+                #y_lab = 'PSD Peak Values / uW'
+                #x_lab = 'VOA Bias / V'
 
                 ## HWHM Vals
                 #hv_data.append([vals, data[5]]); labels.append('Voigt HWHM'); marks.append(Plotting.labs_pts[1])
                 #hv_data.append([vals, data[9]]); labels.append('Lorentz HWHM'); marks.append(Plotting.labs_pts[2])
                 #f_ending = '_HWHM'
+                #y_lab = 'Fitted HWHM / MHz'
+                #x_lab = 'VOA Bias / V'
 
                 # HWHM Vals
                 hv_data.append([vals, data[5]]); labels.append('Voigt HWHM'); marks.append(Plotting.labs_pts[1])
                 hv_data.append([vals, data[3]]); labels.append('Voigt $\gamma$'); marks.append(Plotting.labs_pts[2])
                 hv_data.append([vals, data[4]]); labels.append('Voigt $\sigma$'); marks.append(Plotting.labs_pts[3])
                 f_ending = '_Voigt_vals'
+                y_lab = 'Voigt Fit Parameters / MHz'
+                x_lab = 'VOA Bias / V'
 
                 ## HWHM Vals
                 #sub_data = []
@@ -832,7 +851,7 @@ def Voigt_Fit_Analysis():
                 ##hv_data.append([data[5], data[4]]); labels.append('Gauss $\sigma$'); marks.append(Plotting.labs_pts[2])
                 #hv_data.append([Common.get_col(sub_data,0), Common.get_col(sub_data,1)]); labels.append('Lorentz $\gamma$'); marks.append(Plotting.labs_pts[1])
                 #hv_data.append([Common.get_col(sub_data,0), Common.get_col(sub_data,2)]); labels.append('Gauss $\sigma$'); marks.append(Plotting.labs_pts[2])
-                #f_ending = '_Voigt_ctps'
+                #f_ending = '_Voigt_cpts'
 
                 ## Model Vals
                 ## Compare the computed values of Voigt HWHM with the model 
@@ -860,8 +879,8 @@ def Voigt_Fit_Analysis():
                 args.loud = True
                 args.crv_lab_list = labels
                 args.mrk_list = marks
-                #args.x_label = 'Frequency / MHz'
-                #args.y_label = 'Spectral Power / uW'
+                args.x_label = x_lab
+                args.y_label = y_lab
                 args.fig_name = file_tmplt.replace('.txt',f_ending)
                 #args.plt_range = [70, 90, 0, 4]
 

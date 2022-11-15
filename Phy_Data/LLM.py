@@ -1910,3 +1910,49 @@ def Estimate_SNR(frq, power, sig_range):
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
+
+def Plot_Measured_SNR():
+
+    # Make a plot of the measured SNR data obtained from ESA
+    # R. Sheehan 15 - 11 - 2022
+
+    FUNC_NAME = ".Estimate_SNR()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/ESA_Spectra_Versus_VOA_Bias/'
+
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+
+            Vvolts = [0.0, 1.0, 2.0, 3.0, 3.25, 3.5, 3.6, 3.65, 3.7, 3.75, 4.0]
+            CNR15 = [14.95, 14.95, 15.65, 19.36, 20.17, 20.38, 20.37, 20.29, 20.25, 20.18, 19.57]
+            deltaCNR15 = [0.7170, 0.7915, 0.9465, 0.9620, 1.1505, 0.9950, 0.9780, 0.9340, 0.7675, 0.9900, 0.9920]
+            CNR20 = [14.61, 14.64, 15.10, 20.12, 21.94, 22.69, 22.74, 22.78, 22.77, 22.61, 21.66]
+            deltaCNR20 = [0.8570, 0.8800, 0.8370, 0.9520, 1.2910, 1.0825, 1.1425, 0.8365, 1.0145, 1.2870, 0.8490]
+            
+            hv_data = []; labels = []; marks = []; 
+            hv_data.append([Vvolts, CNR15, deltaCNR15]); labels.append('$\Delta$ = 15 MHz'); marks.append(Plotting.labs_pts[0])
+            hv_data.append([Vvolts, CNR20, deltaCNR20]); labels.append('$\Delta$ = 20 MHz'); marks.append(Plotting.labs_pts[1])
+
+            # Plot the data
+            args = Plotting.plot_arg_multiple()
+                
+            # Extended LL Plot
+            args.loud = True
+            args.crv_lab_list = labels
+            args.mrk_list = marks
+            args.x_label = 'VOA Bias / V'
+            args.y_label = 'CNR / dBm / 20kHz'
+            args.plt_range = [-0.2, 4.2, 12, 25]
+            args.fig_name = 'Measured_CNR'
+
+            Plotting.plot_multiple_curves_with_errors(hv_data, args)
+
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate ' + DATA_HOME
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)

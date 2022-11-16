@@ -430,13 +430,14 @@ def Meas_Report():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/'
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_Setup_Test/'
 
-        method = 'DSHI'
-        laser = 'JDSU_DFB'
-        temperature = '20'
-        dlength = '10'
-
+        # Enter the values below
+        method = 'LCR_DSHI' # LLM Method
+        laser = 'JDSU_DFB' # laser name / type
+        temperature = '20' # laser temperature
+        dlength = '50' # fibre loop length
+        
         dir_name = '%(v1)s_%(v2)s_T_%(v3)s_D_%(v4)s/'%{"v1":method, "v2":laser, "v3":temperature, "v4":dlength}
 
         new_dir = DATA_HOME + dir_name
@@ -446,12 +447,13 @@ def Meas_Report():
 
             print(os.getcwd())
 
-            filename = glob.glob('LLM_Data_Nmeas_300*.txt')
+            filename = glob.glob('LLM_Data_Nmeas_100*.txt')
 
             LL_Vfit = 7; LL_Vfit_Rsqr = 15; 
             LL_Lfit = 8; LL_Lfit_Rsqr = 22; 
 
             for f in filename: Meas_Analysis(f, LL_Vfit, LL_Vfit_Rsqr)
+
             
         else:
             raise EnvironmentError
@@ -1931,10 +1933,14 @@ def Plot_Measured_SNR():
             deltaCNR15 = [0.7170, 0.7915, 0.9465, 0.9620, 1.1505, 0.9950, 0.9780, 0.9340, 0.7675, 0.9900, 0.9920]
             CNR20 = [14.61, 14.64, 15.10, 20.12, 21.94, 22.69, 22.74, 22.78, 22.77, 22.61, 21.66]
             deltaCNR20 = [0.8570, 0.8800, 0.8370, 0.9520, 1.2910, 1.0825, 1.1425, 0.8365, 1.0145, 1.2870, 0.8490]
+
+            filename = 'CNR_Bias_BW_5_Off_20_RBW_20k.txt'
+            data = numpy.loadtxt(filename, delimiter = '\t', unpack = True); 
             
             hv_data = []; labels = []; marks = []; 
             hv_data.append([Vvolts, CNR15, deltaCNR15]); labels.append('$\Delta$ = 15 MHz'); marks.append(Plotting.labs_pts[0])
             hv_data.append([Vvolts, CNR20, deltaCNR20]); labels.append('$\Delta$ = 20 MHz'); marks.append(Plotting.labs_pts[1])
+            hv_data.append(data); labels.append('Sweep $\Delta$ = 20 MHz'); marks.append(Plotting.labs_pts[2])
 
             # Plot the data
             args = Plotting.plot_arg_multiple()

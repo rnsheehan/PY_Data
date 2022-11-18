@@ -78,5 +78,5 @@ if __name__ == '__main__':
 
     #LLM.Lorentz_Voigt_Fit_Analysis()
 
-    LLM.Plot_Measured_SNR()
+    LLM.Plot_Spectra()
 

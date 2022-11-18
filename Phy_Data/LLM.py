@@ -1928,36 +1928,154 @@ def Plot_Measured_SNR():
             os.chdir(DATA_HOME)
             print(os.getcwd())
 
-            Vvolts = [0.0, 1.0, 2.0, 3.0, 3.25, 3.5, 3.6, 3.65, 3.7, 3.75, 4.0]
-            CNR15 = [14.95, 14.95, 15.65, 19.36, 20.17, 20.38, 20.37, 20.29, 20.25, 20.18, 19.57]
-            deltaCNR15 = [0.7170, 0.7915, 0.9465, 0.9620, 1.1505, 0.9950, 0.9780, 0.9340, 0.7675, 0.9900, 0.9920]
-            CNR20 = [14.61, 14.64, 15.10, 20.12, 21.94, 22.69, 22.74, 22.78, 22.77, 22.61, 21.66]
-            deltaCNR20 = [0.8570, 0.8800, 0.8370, 0.9520, 1.2910, 1.0825, 1.1425, 0.8365, 1.0145, 1.2870, 0.8490]
+            PLOT_CNR_VOA = False
 
-            filename = 'CNR_Bias_BW_5_Off_20_RBW_20k.txt'
-            data = numpy.loadtxt(filename, delimiter = '\t', unpack = True); 
+            if PLOT_CNR_VOA:            
+                Vvolts = [0.0, 1.0, 2.0, 3.0, 3.25, 3.5, 3.6, 3.65, 3.7, 3.75, 4.0]
+                CNR15 = [14.95, 14.95, 15.65, 19.36, 20.17, 20.38, 20.37, 20.29, 20.25, 20.18, 19.57]
+                deltaCNR15 = [0.7170, 0.7915, 0.9465, 0.9620, 1.1505, 0.9950, 0.9780, 0.9340, 0.7675, 0.9900, 0.9920]
+                CNR20 = [14.61, 14.64, 15.10, 20.12, 21.94, 22.69, 22.74, 22.78, 22.77, 22.61, 21.66]
+                deltaCNR20 = [0.8570, 0.8800, 0.8370, 0.9520, 1.2910, 1.0825, 1.1425, 0.8365, 1.0145, 1.2870, 0.8490]
+
+                filename = 'CNR_Bias_BW_5_Off_20_RBW_20k.txt'
+                data = numpy.loadtxt(filename, delimiter = '\t', unpack = True); 
             
-            hv_data = []; labels = []; marks = []; 
-            hv_data.append([Vvolts, CNR15, deltaCNR15]); labels.append('$\Delta$ = 15 MHz'); marks.append(Plotting.labs_pts[0])
-            hv_data.append([Vvolts, CNR20, deltaCNR20]); labels.append('$\Delta$ = 20 MHz'); marks.append(Plotting.labs_pts[1])
-            hv_data.append(data); labels.append('Sweep $\Delta$ = 20 MHz'); marks.append(Plotting.labs_pts[2])
+                hv_data = []; labels = []; marks = []; 
+                hv_data.append([Vvolts, CNR15, deltaCNR15]); labels.append('$\Delta$ = 15 MHz'); marks.append(Plotting.labs_pts[0])
+                hv_data.append([Vvolts, CNR20, deltaCNR20]); labels.append('$\Delta$ = 20 MHz'); marks.append(Plotting.labs_pts[1])
+                hv_data.append(data); labels.append('Sweep $\Delta$ = 20 MHz'); marks.append(Plotting.labs_pts[2])
 
-            # Plot the data
-            args = Plotting.plot_arg_multiple()
+                # Plot the data
+                args = Plotting.plot_arg_multiple()
                 
-            # Extended LL Plot
-            args.loud = True
-            args.crv_lab_list = labels
-            args.mrk_list = marks
-            args.x_label = 'VOA Bias / V'
-            args.y_label = 'CNR / dBm / 20kHz'
-            args.plt_range = [-0.2, 4.2, 12, 25]
-            args.fig_name = 'Measured_CNR'
+                # Extended LL Plot
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = 'VOA Bias / V'
+                args.y_label = 'CNR / dBm / 20kHz'
+                args.plt_range = [-0.2, 4.2, 12, 25]
+                args.fig_name = 'Measured_CNR'
 
-            Plotting.plot_multiple_curves_with_errors(hv_data, args)
+                Plotting.plot_multiple_curves_with_errors(hv_data, args)
+
+            Plot_CNR_Beats = True
+
+            if Plot_CNR_Beats:
+                filename = 'CNR_Beat_Frq_VOA_35.txt'
+                data = numpy.loadtxt(filename, delimiter = '\t', unpack = True);
+
+                D = 50; # length of fibre used in LCR-DSHI loop
+                distance = numpy.arange(D, 21*D, D)
+
+                print('len(data[0])',len(data[0]))
+                print('len(distance)',len(distance))
+                
+                # Plot the data
+                args = Plotting.plot_arg_single()
+
+                xdistance = True
+                
+                # Extended LL Plot
+                args.loud = True
+                args.curve_label = ''
+                args.marker = Plotting.labs_pts[1]
+                args.x_label = 'Beat Frequency / MHz' if xdistance is False else 'Effective Loop Length / km'
+                args.y_label = 'CNR / dBm / 20kHz'
+                #args.plt_range = [-0.2, 4.2, 12, 25]
+                args.fig_name = filename.replace('.txt','' if xdistance is False else '_Distance')
+
+                #Plotting.plot_single_curve_with_errors(data[0], data[1], data[2], args)
+                Plotting.plot_single_linear_fit_curve_with_errors(distance, data[1], data[2], args)
+                #Plotting.plot_single_linear_fit_curve(data[0], data[1], args)
 
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate ' + DATA_HOME
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Plot_Spectra():
+
+    # Need a generic method for plotting spectra
+    # Edit this when you want to plot spectra
+    # R. Sheehan 18 - 11 - 2022
+
+    FUNC_NAME = ".Plot_Spectra()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_Setup_Test/'
+
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+
+            print(os.getcwd())
+
+            BeatFrqs = [80, 160, 320, 640, 1280]
+
+            filetmplt = 'Spctrm_%(v1)d_VOA_35.txt'
+
+            # Import the data
+            hv_data = []
+            labels = []
+            marks = []
+            
+            SUBTRACT_OFFSET = True
+
+            SINGLE_PLOTS = False
+
+            for ss in range(0, len(BeatFrqs), 1): 
+                filename = filetmplt%{"v1":BeatFrqs[ss]}
+                if glob.glob(filename):
+                    data = numpy.loadtxt(filename, unpack = True)
+
+                    if SUBTRACT_OFFSET: data[0] = data[0] - BeatFrqs[ss]
+                    
+                    # Gather the data together for a combined plot
+                    hv_data.append(data)
+                    
+                    the_label = 'f$_{b}$ = %(v1)d MHz'%{"v1":BeatFrqs[ss]}
+
+                    labels.append(the_label)
+
+                    marks.append(Plotting.labs_lins[ss%len(Plotting.labs_lins)])
+
+                    # Plot the data as it comes in
+                    if SINGLE_PLOTS:
+                        args = Plotting.plot_arg_single()
+                
+                        args.loud = False
+                        args.curve_label = the_label
+                        args.marker = Plotting.labs_lins[0]
+                        args.x_label = 'Frequency ( MHz )'
+                        args.y_label = 'Spectral Power ( dBm / 20kHz )'
+                        #args.plt_range = [30, 130, -105, -70]
+                        args.fig_name = filename.replace('.txt','')
+            
+                        Plotting.plot_single_curve(data[0], data[1], args)
+
+            COMBINED_PLOT = True
+
+            if COMBINED_PLOT:
+                # Plot the data
+                args = Plotting.plot_arg_multiple()
+                
+                # Extended LL Plot
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = 'Frequency ( MHz )'
+                args.y_label = 'Spectral Power ( dBm / 20kHz )'
+                #args.plt_range = [30, 130, -105, -70]
+                args.fig_name = 'Spectrum_Beat_Frq_Offset' if SUBTRACT_OFFSET else  'Spectrum_Beat_Frq'
+            
+                Plotting.plot_multiple_curves(hv_data, args)
+
+            del hv_data; del labels; del marks; 
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
             raise Exception
     except Exception as e:
         print(ERR_STATEMENT)

@@ -2,6 +2,10 @@ import sys
 import os 
 import glob
 import re
+import ctypes # need this to access DLLs
+import ctypes.util
+
+sys.path.append('C:/Users/robertsheehan/Programming/C++/Fitting/Non_Lin_Fit/Release/')
 
 import math
 import scipy
@@ -2359,6 +2363,51 @@ def columnStatistics(dataFrame, titles, axisNo, loud = False):
                 if loud:print(resStr)
 
                 return resDict
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def DLL_Hacking():
+
+    # Attempt to call a DLL inside python
+    # It can be done, but it's very difficult and for what I want to achieve it's easier to use subprocess to call an executable
+    # The following can be used by someone with more patience to attempt the effort
+    # https://lonami.dev/blog/ctypes-and-windows/
+    # https://stackoverflow.com/questions/71374379/how-to-use-ctypes-with-windows
+    # https://stackoverflow.com/questions/69307713/oserror-winerror-193-1-is-not-a-valid-win32-application-when-using-ctypes
+    # https://stackoverflow.com/questions/252417/how-can-i-use-a-dll-file-from-python
+    # https://docs.python.org/3/library/ctypes.html
+    # https://stackoverflow.com/questions/59330863/cant-import-dll-module-in-python
+    # https://www.codementor.io/@spyoungtech/how-to-use-dlls-com-objects-from-python-or-how-to-send-a-fax-with-python-192lmtt5p5
+    # https://dev.to/petercour/call-dll-functions-from-python-jo4
+    # If you're using 64bit python then you must be calling a 64bit dll!
+    # R. Sheehan 21 - 11 - 2022
+
+    FUNC_NAME = ".DLL_Hacking()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DLL_Home = 'C:/Users/robertsheehan/Programming/C++/Fitting/Non_Lin_Fit/x64/Release/'
+        DLL_Name = 'Non_Lin_Fit.dll'
+        full_path = DLL_Home + DLL_Name
+
+        #os.add_dll_directory(DLL_Home)
+
+        #os.chdir(DLL_Home)
+        #print(os.getcwd())
+        #print(glob.glob("*.dll"))
+
+        #NLF = ctypes.WinDLL(full_path)
+        NLF = ctypes.CDLL(full_path)
+
+        #NLF.Testing()
+        #print(NLF.Testing())
+
+        print(NLF.Testing_Ret())
+        
+        #name = ctypes.util.find_library(DLL_Name)
+        #lib = ctypes.cdll.LoadLibrary(full_path)
+
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)

@@ -2080,3 +2080,202 @@ def Plot_Spectra():
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
+
+def Multi_LLM_Analysis():
+
+    # Generate all the plots from the Multi-LLM Measurements
+    # R. Sheehan 21 - 11 - 2022
+
+    FUNC_NAME = ".Multi_LLM_Analysis()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_Setup_Test/LCR_DSHI_JDSU_DFB_T_20_D_50/'
+
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+
+            # for now work on a single file, then make it more generic
+            thefile = 'LLM_Data_Nmeas_10_I_50_16_11_2022_12_53.txt'
+
+            data = pandas.read_csv(thefile, delimiter = '\t')
+
+            titles = list(data)
+
+            print(titles, ", len(titles) = ", len(titles), ", len(data) = ", data.shape[1])
+            print('')
+            #pprint.pprint(data)
+            n = 10
+            
+            Multi_LLM_Fit_Params_Report(data, titles)
+
+            #print(data[titles[n]])
+
+            # make a basic plot
+            args = Plotting.plot_arg_single()
+
+            n = 0
+            m = 6
+
+            print(titles[n])
+            print(titles[m])
+
+            args.loud = True
+            #args.crv_lab_list = labels
+            #args.mrk_list = marks
+            args.x_label = titles[n]
+            args.y_label = titles[m]
+            #args.fig_name = 'NKT_LLM_DSHI'
+            #args.plt_range = [78, 82, -80, 0]
+
+            Plotting.plot_single_curve(data[titles[n]], data[titles[m]], args)
+
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Multi_LLM_Correlation(dataFrame, titles, col_n, col_m, loud = False):
+
+    # Perform correlation analysis on two columns of the Multi-LLM data
+    # dataFrame contains the data from the Multi-LLM measurement
+    # titles contains the names of the columns of data that have been measured
+    # col_n is one parameter of the correlation
+    # col_m is the other parameter of the correlation, in some cases this will be a dependent variable
+    # R. Sheehan 21 - 11 - 2022
+
+    FUNC_NAME = ".Multi_LLM_Correlation()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        if dataFrame.empty:
+            ERR_STATEMENT = ERR_STATEMENT + '\ndataFrame is empty\n'
+            raise Exception
+        else:
+            if titles is None: titles = list(dataFrame)
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Multi_LLM_Extract_Fit_Params(dataFrame, titles, Voigt = True, loud = False):
+
+    # Extract the average of the fitted model parameters from the Multi-LLM data
+    # Make a plot showing the model with the average, max, min fitted parameters
+    # Use this to estimate LLM at both 3dB and 20dB levels
+    # dataFrame contains the data from the Multi-LLM measurement
+    # titles contains the names of the columns of data that have been measured
+    # Voigt = True => Plot Voigt model
+    # Voigt = False => Plot Lorentz Model
+    # Use C++ dll to compute model values
+    # LLest = 6, LLVfit = 7, LLLfit = 8
+    # Voigt params V_{h} = 9, f_{0} = 10, V_{g} = 11, V_{s} = 12
+    # Lorentz params L_{h} = 13, f_{0} = 14, L_{g} = 15
+    # R. Sheehan 21 - 11 - 2022
+
+    FUNC_NAME = ".Multi_LLM_Extract_Fit_Params()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        if dataFrame.empty:
+            ERR_STATEMENT = ERR_STATEMENT + '\ndataFrame is empty\n'
+            raise Exception
+        else:
+            if titles is None: titles = list(dataFrame)
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Multi_LLM_Fit_Params_Report(dataFrame, titles, loud = False):
+
+    # Extract the average of the fitted model parameters from the Multi-LLM data
+    # dataFrame contains the data from the Multi-LLM measurement
+    # titles contains the names of the columns of data that have been measured
+    # LLest = 6, LLVfit = 7, LLLfit = 8
+    # Voigt params V_{h} = 9, f_{0} = 10, V_{g} = 11, V_{s} = 12
+    # Lorentz params L_{h} = 13, f_{0} = 14, L_{g} = 15
+    # R. Sheehan 21 - 11 - 2022
+
+    FUNC_NAME = ".Multi_LLM_Fit_Params_Report()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        if dataFrame.empty:
+            ERR_STATEMENT = ERR_STATEMENT + '\ndataFrame is empty\n'
+            raise Exception
+        else:
+            if titles is None: titles = list(dataFrame)
+
+            Str, Dict = columnStatistics(dataFrame, titles, 6, True)
+            columnStatistics(dataFrame, titles, 7, True)
+            columnStatistics(dataFrame, titles, 8, True)
+            print("Voigt Fit Parameters")
+            columnStatistics(dataFrame, titles, 9, True)
+            columnStatistics(dataFrame, titles, 10, True)
+            columnStatistics(dataFrame, titles, 11, True)
+            columnStatistics(dataFrame, titles, 12, True)
+            print("Lorentz Fit Parameters")
+            columnStatistics(dataFrame, titles, 13, True)
+            columnStatistics(dataFrame, titles, 14, True)
+            columnStatistics(dataFrame, titles, 15, True)
+
+            print(Dict['Name'],':',Dict['Average'],'+/-',Dict['Err'])
+
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def columnStatistics(dataFrame, titles, axisNo, loud = False):
+
+    # extract the basic statistics from a given column / axis of data
+    # dataFrame is the dataset being analysed
+    # titles is the list of names of the items in the dataFrame
+    # axisNo is the index of the column of data being analysed
+    # return a dictionary containing the data and a formatted string
+    # R. Sheehan 21 - 11 - 2022
+
+    FUNC_NAME = ".columnStatistics()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        if dataFrame.empty:
+            ERR_STATEMENT = ERR_STATEMENT + '\ndataFrame is empty\n'
+            raise Exception
+        else:
+            if titles is None: titles = list(dataFrame)
+            if axisNo > len(titles):
+                ERR_STATEMENT = ERR_STATEMENT + '\nNo data in column:' + axisNo + '\n'
+                raise Exception
+            else:
+                # Compute the statistics
+                average = dataFrame[titles[axisNo]].mean()
+                stdev = math.sqrt( math.fabs( dataFrame[titles[axisNo]].var() ) )
+                maxval = dataFrame[titles[axisNo]].max()
+                minval = dataFrame[titles[axisNo]].min()
+                errorRange = 0.5*( math.fabs(maxval) - math.fabs(minval) )
+                relErr = 100*(errorRange/average)
+
+                # create the dictionary for storing the values
+                labels = []; values = []; 
+                labels.append('Name'); values.append(titles[axisNo]); 
+                labels.append('Average'); values.append(average); 
+                labels.append('StdDev'); values.append(stdev); 
+                labels.append('Max'); values.append(maxval); 
+                labels.append('Min'); values.append(minval); 
+                labels.append('Err'); values.append(errorRange); 
+                labels.append('Rel. Err.'); values.append(relErr); 
+                
+                resDict = dict( zip(labels, values) ) # make the dictionary
+
+                resStr = '%(v1)s, Ave: %(v2)0.5f, StdDev: %(v3)0.5f, Max: %(v4)0.5f, Min: %(v5)0.5f, Err: %(v6)0.5f, Rel-Err: %(v7)0.5f'
+                resStr = resStr%{"v1":titles[axisNo], "v2":average, "v3":stdev, "v4":maxval, "v5":minval, "v6":errorRange, "v7":relErr}
+                
+                if loud:print(resStr)
+
+                return [resStr, resDict]
+                
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)

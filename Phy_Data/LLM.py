@@ -2138,13 +2138,13 @@ def Multi_LLM_Analysis():
         print(ERR_STATEMENT)
         print(e)
 
-def Multi_LLM_Correlation(dataFrame, titles, col_n, col_m, loud = False):
+def Multi_LLM_Correlation(dataFrame, titles, axis_n, axis_m, loud = False):
 
     # Perform correlation analysis on two columns of the Multi-LLM data
     # dataFrame contains the data from the Multi-LLM measurement
     # titles contains the names of the columns of data that have been measured
-    # col_n is one parameter of the correlation
-    # col_m is the other parameter of the correlation, in some cases this will be a dependent variable
+    # axis_n is one parameter of the correlation
+    # axis_m is the other parameter of the correlation, in some cases this will be a dependent variable
     # R. Sheehan 21 - 11 - 2022
 
     FUNC_NAME = ".Multi_LLM_Correlation()" # use this in exception handling messages

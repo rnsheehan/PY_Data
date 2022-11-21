@@ -2097,40 +2097,60 @@ def Multi_LLM_Analysis():
             print(os.getcwd())
 
             # for now work on a single file, then make it more generic
-            thefile = 'LLM_Data_Nmeas_10_I_50_16_11_2022_12_53.txt'
+            #thefile = 'LLM_Data_Nmeas_10_I_50_16_11_2022_12_53.txt'
+            thefile = 'LLM_Data_Nmeas_100_I_50_16_11_2022_13_02.txt'
 
-            data = pandas.read_csv(thefile, delimiter = '\t')
+            if glob.glob(thefile):
 
-            titles = list(data)
+                print("Analysing: ",thefile)
 
-            print(titles, ", len(titles) = ", len(titles), ", len(data) = ", data.shape[1])
-            print('')
-            #pprint.pprint(data)
-            n = 10
-            
-            Multi_LLM_Fit_Params_Report(data, titles)
+                # read the data from the file
+                data = pandas.read_csv(thefile, delimiter = '\t')
+                titles = list(data)
 
-            #print(data[titles[n]])
+                #print(titles, ", len(titles) = ", len(titles), ", len(data) = ", data.shape[1])
+                #print('')
 
-            # make a basic plot
-            args = Plotting.plot_arg_single()
+                # Create a directory for storing the results
+                resDir = thefile.replace('.txt','_Results')
 
-            n = 0
-            m = 6
+                if not os.path.isdir(resDir):os.mkdir(resDir)
 
-            print(titles[n])
-            print(titles[m])
+                os.chdir(resDir)
 
-            args.loud = True
-            #args.crv_lab_list = labels
-            #args.mrk_list = marks
-            args.x_label = titles[n]
-            args.y_label = titles[m]
-            #args.fig_name = 'NKT_LLM_DSHI'
-            #args.plt_range = [78, 82, -80, 0]
+                # Start publilshing the results
+                if not glob.glob('ResultsSummary.txt'): Multi_LLM_Fit_Params_Report(data, titles, True)
 
-            Plotting.plot_single_curve(data[titles[n]], data[titles[m]], args)
+                # Perform Correlation calculations of the variables
 
+                # Correlations with Time
+                axis_n = 0; 
+                axes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 15]
+                for axis_m in axes:
+                    Multi_LLM_Correlation(data, titles, axis_n, axis_m, True, False)
+
+                # Correlations with Pmax
+                axis_n = 4
+                axes = [6, 7, 8, 9, 13]
+                for axis_m in axes:
+                    Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
+
+                # Correlations with AOM-Temperature
+                axis_n = 2
+                axes = [6, 7, 8, 9, 13]
+                for axis_m in axes:
+                    Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
+
+                # Correlations with LL-Est
+                axis_n = 6
+                axes = [7, 8]
+                for axis_m in axes:
+                    Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
+
+                # Correlation of LL-Vfit with LL=Lfit
+                axis_n = 7
+                axis_m = 8
+                Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
             raise Exception
@@ -2138,7 +2158,7 @@ def Multi_LLM_Analysis():
         print(ERR_STATEMENT)
         print(e)
 
-def Multi_LLM_Correlation(dataFrame, titles, axis_n, axis_m, loud = False):
+def Multi_LLM_Correlation(dataFrame, titles, axis_n, axis_m, include_hist = True, loud = False):
 
     # Perform correlation analysis on two columns of the Multi-LLM data
     # dataFrame contains the data from the Multi-LLM measurement
@@ -2156,11 +2176,40 @@ def Multi_LLM_Correlation(dataFrame, titles, axis_n, axis_m, loud = False):
             raise Exception
         else:
             if titles is None: titles = list(dataFrame)
+
+            # Do the correlation calculations
+            average = dataFrame[titles[axis_m]].mean()
+            stdev = dataFrame[titles[axis_m]].std()
+            maxval = dataFrame[titles[axis_m]].max()
+            minval = dataFrame[titles[axis_m]].min()
+            errorRange = 0.5*( math.fabs(maxval) - math.fabs(minval) )
+            KK = dataFrame[ titles[axis_m] ].kurt()
+            rcoeff = dataFrame[ titles[axis_m] ].corr(dataFrame[ titles[axis_n] ])
+            #LLrcoeff = numpy.corrcoef( numpy.asarray( dataFrame[ titles[axis_n] ] ), numpy.asarray( dataFrame[ titles[axis_m] ] ) ) # compute the correlation coefficient for the data pair                        
+
+            # make a basic linear fit plot
+            args = Plotting.plot_arg_single()
+
+            # Plot the Time Series of axis_m
+            args.loud = loud
+            args.x_label = titles[axis_n]
+            args.y_label = titles[axis_m]
+            args.plt_title = '%(v1)s %(v2)0.3f +/- %(v3)0.3f, r = %(v4)0.3f'%{"v1":titles[axis_m], "v2":average, "v3":errorRange, "v4":rcoeff}
+            args.fig_name = '%(v1)s_vs_%(v2)s'%{"v1":titles[axis_m].replace('/','_'), "v2":titles[axis_n].replace('/','_')}            
+            Plotting.plot_single_linear_fit_curve( dataFrame[ titles[axis_n] ], dataFrame[ titles[axis_m] ], args )
+
+            if include_hist:
+                # Plot the Histogram of axis_m
+                args.x_label = titles[axis_m]
+                args.y_label = 'Frequency'
+                args.plt_title = '%(v1)s %(v2)0.3f +/- %(v3)0.3f, K = %(v4)0.3f'%{"v1":titles[axis_m], "v2":average, "v3":errorRange, "v4":KK}
+                args.fig_name = 'Histogram_%(v1)s'%{"v1":titles[axis_m].replace('/','_')}
+                Plotting.plot_histogram(dataFrame[ titles[axis_m] ], args)
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
 
-def Multi_LLM_Extract_Fit_Params(dataFrame, titles, Voigt = True, loud = False):
+def Multi_LLM_Extract_Fit_Params(dataFrame, titles, loud = False):
 
     # Extract the average of the fitted model parameters from the Multi-LLM data
     # Make a plot showing the model with the average, max, min fitted parameters
@@ -2184,6 +2233,18 @@ def Multi_LLM_Extract_Fit_Params(dataFrame, titles, Voigt = True, loud = False):
             raise Exception
         else:
             if titles is None: titles = list(dataFrame)
+
+            # Averaged Voigt Model Fit Parameters
+            Vh = columnStatistics(dataFrame, titles, 9) # fitted height
+            Vf0 = columnStatistics(dataFrame, titles, 10) # centre frequency
+            Vgamma = columnStatistics(dataFrame, titles, 11) # Lorentzian HWHM
+            Vsigma = columnStatistics(dataFrame, titles, 12) # Gaussian std. dev.
+
+            # Averaged Lorentz Model Fit Parameters
+            Lh = columnStatistics(dataFrame, titles, 13) # fitted height
+            Lf0 = columnStatistics(dataFrame, titles, 14) # centre frequency
+            Lsigma = columnStatistics(dataFrame, titles, 15) # Lorentzian HWHM
+
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
@@ -2208,21 +2269,42 @@ def Multi_LLM_Fit_Params_Report(dataFrame, titles, loud = False):
         else:
             if titles is None: titles = list(dataFrame)
 
-            Str, Dict = columnStatistics(dataFrame, titles, 6, True)
-            columnStatistics(dataFrame, titles, 7, True)
-            columnStatistics(dataFrame, titles, 8, True)
-            print("Voigt Fit Parameters")
-            columnStatistics(dataFrame, titles, 9, True)
-            columnStatistics(dataFrame, titles, 10, True)
-            columnStatistics(dataFrame, titles, 11, True)
-            columnStatistics(dataFrame, titles, 12, True)
-            print("Lorentz Fit Parameters")
-            columnStatistics(dataFrame, titles, 13, True)
-            columnStatistics(dataFrame, titles, 14, True)
-            columnStatistics(dataFrame, titles, 15, True)
+            # Redirect the output to a file
+            old_target, sys.stdout = sys.stdout, open('ResultsSummary.txt', 'w')
 
-            print(Dict['Name'],':',Dict['Average'],'+/-',Dict['Err'])
+            Nmeas = dataFrame.shape[0]
+            totalTime = dataFrame[titles[0]][Nmeas-1]
+            singleTime = totalTime / (Nmeas-1)
 
+            print("Main Result")
+            print("No. Measurements: %(v1)d"%{"v1":Nmeas})
+            print("Total Time Taken / min: %(v1)0.2f"%{"v1":totalTime/60.0})
+            print("Average Time per Meas / sec: %(v1)0.2f\n"%{"v1":singleTime})
+            columnStatistics(dataFrame, titles, 4, loud) # Pmax
+            columnStatistics(dataFrame, titles, 6, loud) # LL estimate from data
+            columnStatistics(dataFrame, titles, 7, loud) # LL from Voigt Fit
+            columnStatistics(dataFrame, titles, 8, loud) # LL from Lorentz Fit
+            
+            print("\nVoigt Fit Parameters") # Averaged Voigt Model Fit Parameters
+            columnStatistics(dataFrame, titles, 9, loud) # fitted height
+            columnStatistics(dataFrame, titles, 10, loud) # centre frequency
+            columnStatistics(dataFrame, titles, 11, loud) # Lorentzian HWHM
+            columnStatistics(dataFrame, titles, 12, loud) # Gaussian std. dev.
+            
+            print("\nLorentz Fit Parameters") # Averaged Lorentz Model Fit Parameters
+            columnStatistics(dataFrame, titles, 13, loud) # fitted height
+            columnStatistics(dataFrame, titles, 14, loud) # centre frequency
+            columnStatistics(dataFrame, titles, 15, loud) # Lorentzian HWHM
+            
+            print("\nAOM Temperature Statistics") # AOM Temperature Statistics
+            columnStatistics(dataFrame, titles, 1, loud) # Air Temperature
+            columnStatistics(dataFrame, titles, 2, loud) # AOM Temperature
+            columnStatistics(dataFrame, titles, 3, loud) # AOM Driver Temperature
+
+            sys.stdout = old_target # return to the usual stdout
+
+            #Dict = columnStatistics(dataFrame, titles, 6, True)
+            #print(Dict['Name'],':',Dict['Average'],'+/-',Dict['Err'])
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
@@ -2251,7 +2333,8 @@ def columnStatistics(dataFrame, titles, axisNo, loud = False):
             else:
                 # Compute the statistics
                 average = dataFrame[titles[axisNo]].mean()
-                stdev = math.sqrt( math.fabs( dataFrame[titles[axisNo]].var() ) )
+                #stdev = math.sqrt( math.fabs( dataFrame[titles[axisNo]].var() ) )
+                stdev = dataFrame[titles[axisNo]].std()
                 maxval = dataFrame[titles[axisNo]].max()
                 minval = dataFrame[titles[axisNo]].min()
                 errorRange = 0.5*( math.fabs(maxval) - math.fabs(minval) )
@@ -2267,15 +2350,15 @@ def columnStatistics(dataFrame, titles, axisNo, loud = False):
                 labels.append('Err'); values.append(errorRange); 
                 labels.append('Rel. Err.'); values.append(relErr); 
                 
-                resDict = dict( zip(labels, values) ) # make the dictionary
+                resDict = dict( zip( labels, values ) ) # make the dictionary
 
-                resStr = '%(v1)s, Ave: %(v2)0.5f, StdDev: %(v3)0.5f, Max: %(v4)0.5f, Min: %(v5)0.5f, Err: %(v6)0.5f, Rel-Err: %(v7)0.5f'
+                # form the string for printing the results
+                resStr = '%(v1)s\tAve: %(v2)0.5f\tStdDev: %(v3)0.5f\tMax: %(v4)0.5f\tMin: %(v5)0.5f\tErr: %(v6)0.5f\tRel-Err: %(v7)0.5f'
                 resStr = resStr%{"v1":titles[axisNo], "v2":average, "v3":stdev, "v4":maxval, "v5":minval, "v6":errorRange, "v7":relErr}
                 
                 if loud:print(resStr)
 
-                return [resStr, resDict]
-                
+                return resDict
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)

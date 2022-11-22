@@ -2252,21 +2252,82 @@ def Multi_LLM_Extract_Fit_Params(dataFrame, titles, loud = False):
             Vsigma = columnStatistics(dataFrame, titles, 12) # Gaussian std. dev.
 
             # generate the arg-val strings
-            #Vave = str(Vh['Average']) + ' ' + str(Vf0['Average']) + ' ' + str(Vgamma['Average'])+ ' ' + str(Vsigma['Average'])
-            Vave = '%(v1)0.5f %(v2)0.5f %(v3)0.5f %(v4)0.5f'%{"v1":Vh['Average'], "v2":Vf0['Average'], "v3":Vgamma['Average'], "v4":Vsigma['Average']}
+            Vave = '%(v1)0.5f %(v2)0.5f %(v3)0.5f %(v4)0.5f'%{"v1":Vh['Average'], "v2":Vf0['Average'], 
+                                                              "v3":Vgamma['Average'], "v4":Vsigma['Average']}
             Vavefile = 'Voigt_Average.txt'
+            Vaveargs = Vave + ' ' + plt_rng + ' ' + Vavefile
 
-            print(Vave + ' ' + plt_rng + ' ' + Vavefile)
+            Vmax = '%(v1)0.5f %(v2)0.5f %(v3)0.5f %(v4)0.5f'%{"v1":Vh['Max'], "v2":Vf0['Average'], 
+                                                              "v3":Vgamma['Max'], "v4":Vsigma['Max']}
+            Vmaxfile = 'Voigt_Max.txt'
+            Vmaxargs = Vmax + ' ' + plt_rng + ' ' + Vmaxfile
+
+            Vmin = '%(v1)0.5f %(v2)0.5f %(v3)0.5f %(v4)0.5f'%{"v1":Vh['Min'], "v2":Vf0['Average'], 
+                                                              "v3":Vgamma['Min'], "v4":Vsigma['Min']}
+            Vminfile = 'Voigt_Min.txt'
+            Vminargs = Vmin + ' ' + plt_rng + ' ' + Vminfile
 
             # Averaged Lorentz Model Fit Parameters
             Lh = columnStatistics(dataFrame, titles, 13) # fitted height
             Lf0 = columnStatistics(dataFrame, titles, 14) # centre frequency
-            Lsigma = columnStatistics(dataFrame, titles, 15) # Lorentzian HWHM
+            Lgamma = columnStatistics(dataFrame, titles, 15) # Lorentzian HWHM
 
-            # Call the executable with ave, max, min params to generate data
+            # generate the arg-val strings
+            Lave = '%(v1)0.5f %(v2)0.5f %(v3)0.5f'%{"v1":Lh['Average'], "v2":Lf0['Average'], "v3":Lgamma['Average']}
+            Lavefile = 'Lorentz_Average.txt'
+            Laveargs = Lave + ' ' + plt_rng + ' ' + Lavefile
 
+            Lmax = '%(v1)0.5f %(v2)0.5f %(v3)0.5f'%{"v1":Lh['Max'], "v2":Lf0['Average'], "v3":Lgamma['Max']}
+            Lmaxfile = 'Lorentz_Max.txt'
+            Lmaxargs = Lmax + ' ' + plt_rng + ' ' + Lmaxfile
 
+            Lmin = '%(v1)0.5f %(v2)0.5f %(v3)0.5f'%{"v1":Lh['Min'], "v2":Lf0['Average'], "v3":Lgamma['Min']}
+            Lminfile = 'Lorentz_Min.txt'
+            Lminargs = Lmin + ' ' + plt_rng + ' ' + Lminfile
+
+            # Call the executable with ave, max, min params to generate data            
             # Import the data and make the plot
+            hv_data = []; labels = []; marks = [];
+
+            Compute_Spectrum(True, Vaveargs)
+            spctr_data = numpy.loadtxt(Vavefile, delimiter = ',', unpack = True)
+            hv_data.append(spctr_data); labels.append('V$_{ave}$'); marks.append(Plotting.labs_lins[0])
+
+            Compute_Spectrum(True, Vmaxargs)
+            spctr_data = numpy.loadtxt(Vmaxfile, delimiter = ',', unpack = True)
+            hv_data.append(spctr_data); labels.append('V$_{max}$'); marks.append(Plotting.labs_dotdash[0])
+
+            Compute_Spectrum(True, Vminargs)
+            spctr_data = numpy.loadtxt(Vminfile, delimiter = ',', unpack = True)
+            hv_data.append(spctr_data); labels.append('V$_{min}$'); marks.append(Plotting.labs_dotted[0])
+
+            Compute_Spectrum(False, Laveargs)
+            spctr_data = numpy.loadtxt(Lavefile, delimiter = ',', unpack = True)
+            hv_data.append(spctr_data); labels.append('L$_{ave}$'); marks.append(Plotting.labs_lins[1])
+
+            Compute_Spectrum(False, Lmaxargs)
+            spctr_data = numpy.loadtxt(Lmaxfile, delimiter = ',', unpack = True)
+            hv_data.append(spctr_data); labels.append('L$_{max}$'); marks.append(Plotting.labs_dotdash[1])
+
+            Compute_Spectrum(False, Lminargs)
+            spctr_data = numpy.loadtxt(Lminfile, delimiter = ',', unpack = True)
+            hv_data.append(spctr_data); labels.append('L$_{min}$'); marks.append(Plotting.labs_dotted[1])
+
+            # Plot the data
+            args = Plotting.plot_arg_multiple()
+                
+            # Extended LL Plot
+            args.loud = True
+            args.crv_lab_list = labels
+            args.mrk_list = marks
+            args.x_label = 'Frequency ( MHz )'
+            args.y_label = 'Spectral Power ( dBm / 20kHz )'
+            #args.plt_range = [30, 130, -105, -70]
+            #args.fig_name = 'Voigt_Spectrum'
+            #args.fig_name = 'Lorentz_Spectrum'
+            args.fig_name = 'Fitted_Spectrum'
+
+            Plotting.plot_multiple_curves(hv_data, args)
 
     except Exception as e:
         print(ERR_STATEMENT)
@@ -2438,10 +2499,10 @@ def Compute_Spectrum(spctr_choice, arg_vals):
 
     try:
         V_dir = 'C:/Users/robertsheehan/Programming/C++/Fitting/Voigt/x64/Release/'
-        V_exe = 'Voigt.exe'
+        V_exe = 'Voigt.exe '
 
         L_dir = 'C:/Users/robertsheehan/Programming/C++/Fitting/Lorentz/x64/Release/'
-        L_exe = 'Lorentz.exe'
+        L_exe = 'Lorentz.exe '
 
         DIR = V_dir if spctr_choice else L_dir
         EXE = V_exe if spctr_choice else L_exe
@@ -2449,6 +2510,7 @@ def Compute_Spectrum(spctr_choice, arg_vals):
         args = DIR + EXE + arg_vals
 
         output = subprocess.call(args, stdin=None, stdout=None, stderr=None, shell=False)
+
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)

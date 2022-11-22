@@ -2,10 +2,9 @@ import sys
 import os 
 import glob
 import re
-import ctypes # need this to access DLLs
-import ctypes.util
-
-sys.path.append('C:/Users/robertsheehan/Programming/C++/Fitting/Non_Lin_Fit/Release/')
+#import ctypes # need this to access DLLs
+#import ctypes.util
+import subprocess
 
 import math
 import scipy
@@ -2126,35 +2125,40 @@ def Multi_LLM_Analysis():
                 if not glob.glob('ResultsSummary.txt'): Multi_LLM_Fit_Params_Report(data, titles, True)
 
                 # Perform Correlation calculations of the variables
+                RUN_CORRELATIONS = False
 
-                # Correlations with Time
-                axis_n = 0; 
-                axes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 15]
-                for axis_m in axes:
-                    Multi_LLM_Correlation(data, titles, axis_n, axis_m, True, False)
+                if RUN_CORRELATIONS:
+                    # Correlations with Time
+                    axis_n = 0; 
+                    axes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 15]
+                    for axis_m in axes:
+                        Multi_LLM_Correlation(data, titles, axis_n, axis_m, True, False)
 
-                # Correlations with Pmax
-                axis_n = 4
-                axes = [6, 7, 8, 9, 13]
-                for axis_m in axes:
+                    # Correlations with Pmax
+                    axis_n = 4
+                    axes = [6, 7, 8, 9, 13]
+                    for axis_m in axes:
+                        Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
+
+                    # Correlations with AOM-Temperature
+                    axis_n = 2
+                    axes = [6, 7, 8, 9, 13]
+                    for axis_m in axes:
+                        Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
+
+                    # Correlations with LL-Est
+                    axis_n = 6
+                    axes = [7, 8]
+                    for axis_m in axes:
+                        Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
+
+                    # Correlation of LL-Vfit with LL=Lfit
+                    axis_n = 7
+                    axis_m = 8
                     Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
 
-                # Correlations with AOM-Temperature
-                axis_n = 2
-                axes = [6, 7, 8, 9, 13]
-                for axis_m in axes:
-                    Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
-
-                # Correlations with LL-Est
-                axis_n = 6
-                axes = [7, 8]
-                for axis_m in axes:
-                    Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
-
-                # Correlation of LL-Vfit with LL=Lfit
-                axis_n = 7
-                axis_m = 8
-                Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
+                # Make a plot of the spectra with max/min fitted params
+                Multi_LLM_Extract_Fit_Params(data, titles, True)
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
             raise Exception
@@ -2238,16 +2242,31 @@ def Multi_LLM_Extract_Fit_Params(dataFrame, titles, loud = False):
         else:
             if titles is None: titles = list(dataFrame)
 
+            flow = 50; fhigh = 110; Nsteps = 500; 
+            plt_rng = '%(v1)d %(v2)d %(v3)d'%{"v1":flow, "v2":fhigh, "v3":Nsteps}
+
             # Averaged Voigt Model Fit Parameters
             Vh = columnStatistics(dataFrame, titles, 9) # fitted height
             Vf0 = columnStatistics(dataFrame, titles, 10) # centre frequency
             Vgamma = columnStatistics(dataFrame, titles, 11) # Lorentzian HWHM
             Vsigma = columnStatistics(dataFrame, titles, 12) # Gaussian std. dev.
 
+            # generate the arg-val strings
+            #Vave = str(Vh['Average']) + ' ' + str(Vf0['Average']) + ' ' + str(Vgamma['Average'])+ ' ' + str(Vsigma['Average'])
+            Vave = '%(v1)0.5f %(v2)0.5f %(v3)0.5f %(v4)0.5f'%{"v1":Vh['Average'], "v2":Vf0['Average'], "v3":Vgamma['Average'], "v4":Vsigma['Average']}
+            Vavefile = 'Voigt_Average.txt'
+
+            print(Vave + ' ' + plt_rng + ' ' + Vavefile)
+
             # Averaged Lorentz Model Fit Parameters
             Lh = columnStatistics(dataFrame, titles, 13) # fitted height
             Lf0 = columnStatistics(dataFrame, titles, 14) # centre frequency
             Lsigma = columnStatistics(dataFrame, titles, 15) # Lorentzian HWHM
+
+            # Call the executable with ave, max, min params to generate data
+
+
+            # Import the data and make the plot
 
     except Exception as e:
         print(ERR_STATEMENT)
@@ -2408,6 +2427,28 @@ def DLL_Hacking():
         #name = ctypes.util.find_library(DLL_Name)
         #lib = ctypes.cdll.LoadLibrary(full_path)
 
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Compute_Spectrum(spctr_choice, arg_vals):
+
+    FUNC_NAME = ".Compute_Spectrum()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        V_dir = 'C:/Users/robertsheehan/Programming/C++/Fitting/Voigt/x64/Release/'
+        V_exe = 'Voigt.exe'
+
+        L_dir = 'C:/Users/robertsheehan/Programming/C++/Fitting/Lorentz/x64/Release/'
+        L_exe = 'Lorentz.exe'
+
+        DIR = V_dir if spctr_choice else L_dir
+        EXE = V_exe if spctr_choice else L_exe
+
+        args = DIR + EXE + arg_vals
+
+        output = subprocess.call(args, stdin=None, stdout=None, stderr=None, shell=False)
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)

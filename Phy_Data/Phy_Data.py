@@ -80,7 +80,7 @@ if __name__ == '__main__':
 
     #LLM.Plot_Spectra()
 
-    #LLM.Multi_LLM_Analysis()
+    LLM.Multi_LLM_Analysis()
 
-    LLM.DLL_Hacking()
+    #LLM.DLL_Hacking()
 

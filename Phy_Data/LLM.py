@@ -2100,8 +2100,8 @@ def Multi_LLM_Analysis():
             print(os.getcwd())
 
             # for now work on a single file, then make it more generic
-            #thefile = 'LLM_Data_Nmeas_10_I_50_16_11_2022_12_53.txt'
-            thefile = 'LLM_Data_Nmeas_100_I_50_16_11_2022_13_02.txt'
+            thefile = 'LLM_Data_Nmeas_10_I_50_16_11_2022_12_53.txt'
+            #thefile = 'LLM_Data_Nmeas_100_I_50_16_11_2022_13_02.txt'
 
             if glob.glob(thefile):
 
@@ -2125,7 +2125,7 @@ def Multi_LLM_Analysis():
                 if not glob.glob('ResultsSummary.txt'): Multi_LLM_Fit_Params_Report(data, titles, True)
 
                 # Perform Correlation calculations of the variables
-                RUN_CORRELATIONS = False
+                RUN_CORRELATIONS = True
 
                 if RUN_CORRELATIONS:
                     # Correlations with Time

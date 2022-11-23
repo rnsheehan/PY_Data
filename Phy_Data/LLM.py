@@ -2285,32 +2285,52 @@ def Multi_LLM_Extract_Fit_Params(dataFrame, titles, loud = False):
             Lminfile = 'Lorentz_Min.txt'
             Lminargs = Lmin + ' ' + plt_rng + ' ' + Lminfile
 
+            PLOT_IN_DBM = True
+
             # Call the executable with ave, max, min params to generate data            
             # Import the data and make the plot
             hv_data = []; labels = []; marks = [];
 
             Compute_Spectrum(True, Vaveargs)
             spctr_data = numpy.loadtxt(Vavefile, delimiter = ',', unpack = True)
+            if PLOT_IN_DBM:
+                spctr_data[1] = spctr_data[1] / 1e+6 # convert uW -> mW
+                spctr_data[1] = Common.list_convert_mW_dBm(spctr_data[1]) # convert mW -> dBm
             hv_data.append(spctr_data); labels.append('V$_{ave}$'); marks.append(Plotting.labs_lins[0])
 
             Compute_Spectrum(True, Vmaxargs)
-            spctr_data = numpy.loadtxt(Vmaxfile, delimiter = ',', unpack = True)
+            spctr_data = numpy.loadtxt(Vmaxfile, delimiter = ',', unpack = True)            
+            if PLOT_IN_DBM:
+                spctr_data[1] = spctr_data[1] / 1e+6 # convert uW -> mW
+                spctr_data[1] = Common.list_convert_mW_dBm(spctr_data[1]) # convert mW -> dBm
             hv_data.append(spctr_data); labels.append('V$_{max}$'); marks.append(Plotting.labs_dotdash[0])
 
             Compute_Spectrum(True, Vminargs)
-            spctr_data = numpy.loadtxt(Vminfile, delimiter = ',', unpack = True)
+            spctr_data = numpy.loadtxt(Vminfile, delimiter = ',', unpack = True)            
+            if PLOT_IN_DBM:
+                spctr_data[1] = spctr_data[1] / 1e+6 # convert uW -> mW
+                spctr_data[1] = Common.list_convert_mW_dBm(spctr_data[1]) # convert mW -> dBm
             hv_data.append(spctr_data); labels.append('V$_{min}$'); marks.append(Plotting.labs_dotted[0])
 
             Compute_Spectrum(False, Laveargs)
-            spctr_data = numpy.loadtxt(Lavefile, delimiter = ',', unpack = True)
+            spctr_data = numpy.loadtxt(Lavefile, delimiter = ',', unpack = True)            
+            if PLOT_IN_DBM:
+                spctr_data[1] = spctr_data[1] / 1e+6 # convert uW -> mW
+                spctr_data[1] = Common.list_convert_mW_dBm(spctr_data[1]) # convert mW -> dBm
             hv_data.append(spctr_data); labels.append('L$_{ave}$'); marks.append(Plotting.labs_lins[1])
 
             Compute_Spectrum(False, Lmaxargs)
-            spctr_data = numpy.loadtxt(Lmaxfile, delimiter = ',', unpack = True)
+            spctr_data = numpy.loadtxt(Lmaxfile, delimiter = ',', unpack = True)            
+            if PLOT_IN_DBM:
+                spctr_data[1] = spctr_data[1] / 1e+6 # convert uW -> mW
+                spctr_data[1] = Common.list_convert_mW_dBm(spctr_data[1]) # convert mW -> dBm
             hv_data.append(spctr_data); labels.append('L$_{max}$'); marks.append(Plotting.labs_dotdash[1])
 
             Compute_Spectrum(False, Lminargs)
-            spctr_data = numpy.loadtxt(Lminfile, delimiter = ',', unpack = True)
+            spctr_data = numpy.loadtxt(Lminfile, delimiter = ',', unpack = True)            
+            if PLOT_IN_DBM:
+                spctr_data[1] = spctr_data[1] / 1e+6 # convert uW -> mW
+                spctr_data[1] = Common.list_convert_mW_dBm(spctr_data[1]) # convert mW -> dBm
             hv_data.append(spctr_data); labels.append('L$_{min}$'); marks.append(Plotting.labs_dotted[1])
 
             # Plot the data
@@ -2321,13 +2341,39 @@ def Multi_LLM_Extract_Fit_Params(dataFrame, titles, loud = False):
             args.crv_lab_list = labels
             args.mrk_list = marks
             args.x_label = 'Frequency ( MHz )'
-            args.y_label = 'Spectral Power ( dBm / 20kHz )'
+            args.y_label = 'Spectral Power ( dBm / 20kHz )' if PLOT_IN_DBM else 'Spectral Power ( nW / 20kHz )'
             #args.plt_range = [30, 130, -105, -70]
             #args.fig_name = 'Voigt_Spectrum'
             #args.fig_name = 'Lorentz_Spectrum'
-            args.fig_name = 'Fitted_Spectrum'
+            args.fig_name = 'Fitted_Spectrum_dBm' if PLOT_IN_DBM else 'Fitted_Spectrum_nW'
 
             Plotting.plot_multiple_curves(hv_data, args)
+
+            # Extended LL Plot
+            args.loud = True
+            args.crv_lab_list = labels[0:3]
+            args.mrk_list = marks[0:3]
+            args.x_label = 'Frequency ( MHz )'
+            args.y_label = 'Spectral Power ( dBm / 20kHz )' if PLOT_IN_DBM else 'Spectral Power ( nW / 20kHz )'
+            #args.plt_range = [30, 130, -105, -70]
+            #args.fig_name = 'Voigt_Spectrum'
+            #args.fig_name = 'Lorentz_Spectrum'
+            args.fig_name = 'Fitted_Voigt_Spectrum_dBm' if PLOT_IN_DBM else 'Fitted_Voigt_Spectrum_nW'
+
+            Plotting.plot_multiple_curves(hv_data[0:3], args)
+
+            # Extended LL Plot
+            args.loud = True
+            args.crv_lab_list = labels[3:6]
+            args.mrk_list = marks[3:6]
+            args.x_label = 'Frequency ( MHz )'
+            args.y_label = 'Spectral Power ( dBm / 20kHz )' if PLOT_IN_DBM else 'Spectral Power ( nW / 20kHz )'
+            #args.plt_range = [30, 130, -105, -70]
+            #args.fig_name = 'Voigt_Spectrum'
+            #args.fig_name = 'Lorentz_Spectrum'
+            args.fig_name = 'Fitted_Lorentz_Spectrum_dBm' if PLOT_IN_DBM else 'Fitted_Lorentz_Spectrum_nW'
+
+            Plotting.plot_multiple_curves(hv_data[3:6], args)
 
     except Exception as e:
         print(ERR_STATEMENT)

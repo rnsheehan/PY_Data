@@ -759,6 +759,8 @@ def Lorentz_Voigt_Fit_Analysis():
 
             filetmplt = 'JDSU_DFB_T_20_I_50_V_%(v1)s_fit_results.txt'
 
+            CONVERT_TO_dBm = True
+
             nfiles = 12
             for i in range(0, len(Vvals), 1):
                 #file_tmplt = 'Smpl_LLM_%(v1)d_fit_results.txt'%{"v1":i}
@@ -767,6 +769,10 @@ def Lorentz_Voigt_Fit_Analysis():
                 if glob.glob(file_tmplt):
                     hv_data = []; marks = []; labels = []
                     data = numpy.loadtxt(file_tmplt, delimiter = ',')
+                    if CONVERT_TO_dBm:
+                        data[1] = Common.list_convert_mW_dBm(data[1] / 1.0e+6)
+                        data[2] = Common.list_convert_mW_dBm(data[2] / 1.0e+6)
+                        data[4] = Common.list_convert_mW_dBm(data[4] / 1.0e+6)
                     hv_data.append([data[0], data[1]]); labels.append('Raw PSD'); marks.append(Plotting.labs_lins[0])
                     hv_data.append([data[0], data[2]]); labels.append('Voigt'); marks.append(Plotting.labs_lins[1])
                     hv_data.append([data[0], data[4]]); labels.append('Lorentz'); marks.append(Plotting.labs_lins[2])
@@ -778,9 +784,9 @@ def Lorentz_Voigt_Fit_Analysis():
                     args.crv_lab_list = labels
                     args.mrk_list = marks
                     args.x_label = 'Frequency / MHz'
-                    args.y_label = 'Spectral Power / uW'
+                    args.y_label = 'Spectral Power / dBm / 20kHz' if CONVERT_TO_dBm else 'Spectral Power / nW / 20kHz'
                     args.fig_name = file_tmplt.replace('.txt','')
-                    args.plt_range = [60, 100, 0, 0.1]
+                    args.plt_range = [60, 100, -100, -70] if CONVERT_TO_dBm else [60, 100, 0, 0.1]
 
                     Plotting.plot_multiple_curves(hv_data, args)
 
@@ -823,13 +829,16 @@ def Voigt_Fit_Analysis():
                 hv_data = []; marks = []; labels = []
                 data = numpy.loadtxt(file_tmplt, delimiter = ',', skiprows = 1, unpack = True, usecols = list(range(1, 12)))
 
-                ## Peak Vals
-                #hv_data.append([vals, data[0]]); labels.append('Raw PSD Peak'); marks.append(Plotting.labs_pts[0])
-                #hv_data.append([vals, data[6]]); labels.append('Voigt Peak'); marks.append(Plotting.labs_pts[1])
-                #hv_data.append([vals, data[10]]); labels.append('Lorentz Peak'); marks.append(Plotting.labs_pts[2])
-                #f_ending = '_peaks'
-                #y_lab = 'PSD Peak Values / uW'
-                #x_lab = 'VOA Bias / V'
+                # Peak Vals
+                data[0] = Common.list_convert_mW_dBm(data[0]/1e+6)
+                data[6] = Common.list_convert_mW_dBm(data[6]/1e+6)
+                data[10] = Common.list_convert_mW_dBm(data[10]/1e+6)
+                hv_data.append([vals, data[0]]); labels.append('Raw PSD Peak'); marks.append(Plotting.labs_pts[0])
+                hv_data.append([vals, data[6]]); labels.append('Voigt Peak'); marks.append(Plotting.labs_pts[1])
+                hv_data.append([vals, data[10]]); labels.append('Lorentz Peak'); marks.append(Plotting.labs_pts[2])
+                f_ending = '_peaks'
+                y_lab = 'PSD Peak Values / dBm / 20kHz'
+                x_lab = 'VOA Bias / V'
 
                 ## HWHM Vals
                 #hv_data.append([vals, data[5]]); labels.append('Voigt HWHM'); marks.append(Plotting.labs_pts[1])
@@ -838,13 +847,13 @@ def Voigt_Fit_Analysis():
                 #y_lab = 'Fitted HWHM / MHz'
                 #x_lab = 'VOA Bias / V'
 
-                # HWHM Vals
-                hv_data.append([vals, data[5]]); labels.append('Voigt HWHM'); marks.append(Plotting.labs_pts[1])
-                hv_data.append([vals, data[3]]); labels.append('Voigt $\gamma$'); marks.append(Plotting.labs_pts[2])
-                hv_data.append([vals, data[4]]); labels.append('Voigt $\sigma$'); marks.append(Plotting.labs_pts[3])
-                f_ending = '_Voigt_vals'
-                y_lab = 'Voigt Fit Parameters / MHz'
-                x_lab = 'VOA Bias / V'
+                ## Voigt Fit Parameters Vals
+                #hv_data.append([vals, data[5]]); labels.append('Voigt HWHM'); marks.append(Plotting.labs_pts[1])
+                #hv_data.append([vals, data[3]]); labels.append('Voigt $\gamma$'); marks.append(Plotting.labs_pts[2])
+                #hv_data.append([vals, data[4]]); labels.append('Voigt $\sigma$'); marks.append(Plotting.labs_pts[3])
+                #f_ending = '_Voigt_vals'
+                #y_lab = 'Voigt Fit Parameters / MHz'
+                #x_lab = 'VOA Bias / V'
 
                 ## HWHM Vals
                 #sub_data = []
@@ -1739,7 +1748,7 @@ def ESA_Spctrm_Attn():
 
             print(os.getcwd())
             
-            PLOT_SINGLE = True
+            PLOT_SINGLE = False
 
             Vvals = ['000','100','200','300','325','350','360','365','370','375','400']
             Vvolts = [0.0, 1.0, 2.0, 3.0, 3.25, 3.5, 3.6, 3.65, 3.7, 3.75, 4.0]
@@ -1751,13 +1760,32 @@ def ESA_Spctrm_Attn():
             labels = []
             marks = []
             
+            PLOT_SINGLY = False
+
             for ss in range(0, len(Vvals), 1): 
                 filename = filetmplt%{"v1":Vvals[ss]}
                 if glob.glob(filename):
                     data = numpy.loadtxt(filename, unpack = True)
                     hv_data.append(data)
-                    labels.append('V$_{VOA}$ = %(v1)0.2f V'%{"v1":Vvolts[ss]})
-                    marks.append(Plotting.labs_lins[ss%len(Plotting.labs_lins)])
+                    the_label = 'V$_{VOA}$ = %(v1)0.2f V'%{"v1":Vvolts[ss]}
+                    labels.append(the_label)
+                    the_mark = Plotting.labs_lins[ss%len(Plotting.labs_lins)]
+                    marks.append(the_mark)
+                    if PLOT_SINGLY:
+                        # plot each dataset as it comes in
+                        # Plot the data
+                        args = Plotting.plot_arg_single()
+                
+                        # Extended LL Plot
+                        args.loud = False
+                        args.curve_label = the_label
+                        args.marker = the_mark
+                        args.x_label = 'Beat Frequency ( MHz )'
+                        args.y_label = 'Spectral Power ( dBm / 20kHz )' if PLOT_SINGLE else 'Spectral Power ( dBm / 500kHz )'
+                        args.plt_range = [30, 130, -105, -70] if PLOT_SINGLE else [0, 3000, -90, -55]
+                        args.fig_name = filename.replace('.txt','')
+            
+                        Plotting.plot_single_curve(data[0], data[1], args)
 
             BASIC_PLOT = False
 
@@ -1769,8 +1797,8 @@ def ESA_Spctrm_Attn():
                 args.loud = True
                 args.crv_lab_list = labels
                 args.mrk_list = marks
-                args.x_label = 'Frequency ( MHz )'
-                args.y_label = 'Spectral Power ( dBm )'
+                args.x_label = 'Beat Frequency ( MHz )'
+                args.y_label = 'Spectral Power ( dBm / 20kHz )' if PLOT_SINGLE else 'Spectral Power ( dBm / 500kHz )'
                 args.plt_range = [30, 130, -105, -70] if PLOT_SINGLE else [0, 3000, -90, -55]
                 args.fig_name = 'ESA_Single' if PLOT_SINGLE else 'ESA_Full'
             
@@ -1784,26 +1812,43 @@ def ESA_Spctrm_Attn():
                 # record the peak power value at each beat note
                 # plot the beat note power versus frequency for each bias
                 peak_data = []
+                no_peaks = []
+                CNR_min = 5
                 for ii in range(0, len(hv_data), 1):
-                    peak_data.append( Extract_Peak_Data(hv_data[ii][0], hv_data[ii][1]) )
+                    Noise_level = hv_data[ii][1][-1] if ii > 2 else -80.0
+                    fbeats, pbeats = Extract_Peak_Data(hv_data[ii][0], hv_data[ii][1])
+                    peak_data.append( [fbeats, pbeats] )
+                    no_peaks.append(Estimate_No_Viable_Peaks(pbeats, CNR_min, Noise_level))
 
                 # Plot the data
                 args = Plotting.plot_arg_multiple()
 
                 # Extended LL Peaks Plot
-                args.loud = True
+                args.loud = False
                 args.crv_lab_list = labels
                 args.mrk_list = marks
                 args.x_label = 'Frequency ( MHz )'
-                args.y_label = 'Spectral Power ( dBm )'
+                args.y_label = 'Spectral Power ( dBm / 500kHz )'
                 args.plt_range = [0, 3000, -90, -55]
                 args.fig_name = 'ESA_Full_Peaks'
             
-                Plotting.plot_multiple_curves(peak_data, args)
+                #Plotting.plot_multiple_curves(peak_data, args)
+
+                # Plot the data
+                args = Plotting.plot_arg_single()
+
+                # Extended LL Peaks Plot
+                args.loud = True
+                args.x_label = 'VOA Bias ( V )'
+                args.y_label = 'No. Beat Signal'
+                #args.plt_range = [0, 3000, -90, -55]
+                args.fig_name = 'No_Peaks_VOA_Bias'
+            
+                Plotting.plot_single_curve(Vvolts, no_peaks, args)
 
                 del peak_data; 
 
-            SINGLE_ANALYSIS = True
+            SINGLE_ANALYSIS = False
 
             if SINGLE_ANALYSIS:
                 # Analyse the data from the single spectra
@@ -1874,6 +1919,34 @@ def Extract_Peak_Data(frq, power):
             return [fbeats, pbeats]
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nInput Arrays Incorrectly Sized'
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Estimate_No_Viable_Peaks(pbeats, CNR_min, Noise_level):
+
+    # Estime the no. of real peaks in a given trace
+    # from the power at each beat signal
+    # If pbeat - pmin > CNR_min then the peak is considered real
+    # R. Sheehan 25 - 11 - 2022
+
+    FUNC_NAME = ".Estimate_No_Viable_Peaks()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        c1 = True if math.fabs(Noise_level) > 0 else False
+        c2 = True if len(pbeats) > 0 else False
+        c3 = True if CNR_min > 0 else False
+        c10 = c1 and c2 and c3
+
+        if c10:
+            count = 0
+            for i in range(0, len(pbeats), 1):
+                if pbeats[i] - Noise_level > CNR_min: count = count + 1
+            return count
+        else:
+            ERR_STATEMENT = ERR_STAMENT + "Incorrect input arguments\n"
             raise Exception
     except Exception as e:
         print(ERR_STATEMENT)
@@ -1990,7 +2063,7 @@ def Plot_Measured_SNR():
 
                 #Plotting.plot_single_curve_with_errors(data[0], data[1], data[2], args)
                 Plotting.plot_single_linear_fit_curve_with_errors(distance, data[1], data[2], args)
-                #Plotting.plot_single_linear_fit_curve(data[0], data[1], args)
+                #Plotting.plot_single_linear_fit_curve(data[0], data[1], args)f
 
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate ' + DATA_HOME

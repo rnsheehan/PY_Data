@@ -56,7 +56,7 @@ if __name__ == '__main__':
 
     #LLM.LL_Result()
 
-    #LLM.Voigt_Fit_Analysis()
+    LLM.Voigt_Fit_Analysis()
 
     #LLM.LL_Result_Voigt()
 
@@ -74,7 +74,7 @@ if __name__ == '__main__':
 
     #LLM.AOM_Temperature()
 
-    LLM.ESA_Spctrm_Attn()
+    #LLM.ESA_Spctrm_Attn()
 
     #LLM.Lorentz_Voigt_Fit_Analysis()
 

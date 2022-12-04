@@ -824,36 +824,65 @@ def Voigt_Fit_Analysis():
             #vals = numpy.arange(11)
             vals = [0.0, 1.0, 2.0, 3.0, 3.25, 3.5, 3.6, 3.65, 3.7, 3.75, 4.0]
             
-            file_tmplt = 'Fitted_Parameter_Values.txt'
+            VALUES = False
+
+            file_tmplt = 'Fitted_Parameter_Values.txt' if VALUES else 'Fitted_Parameter_GOF.txt'
             if glob.glob(file_tmplt):
                 hv_data = []; marks = []; labels = []
-                data = numpy.loadtxt(file_tmplt, delimiter = ',', skiprows = 1, unpack = True, usecols = list(range(1, 12)))
+                if VALUES:
+                    data = numpy.loadtxt(file_tmplt, delimiter = ',', skiprows = 1, unpack = True, usecols = list(range(1, 12)))
+                else:
+                    data = numpy.loadtxt(file_tmplt, delimiter = ',', skiprows = 1, unpack = True, usecols = list(range(1, 10)))
 
                 # Peak Vals
-                data[0] = Common.list_convert_mW_dBm(data[0]/1e+6)
-                data[6] = Common.list_convert_mW_dBm(data[6]/1e+6)
-                data[10] = Common.list_convert_mW_dBm(data[10]/1e+6)
-                hv_data.append([vals, data[0]]); labels.append('Raw PSD Peak'); marks.append(Plotting.labs_pts[0])
-                hv_data.append([vals, data[6]]); labels.append('Voigt Peak'); marks.append(Plotting.labs_pts[1])
-                hv_data.append([vals, data[10]]); labels.append('Lorentz Peak'); marks.append(Plotting.labs_pts[2])
-                f_ending = '_peaks'
-                y_lab = 'PSD Peak Values / dBm / 20kHz'
-                x_lab = 'VOA Bias / V'
+                PEAK_VALS = False
+                if PEAK_VALS and VALUES:
+                    data[0] = Common.list_convert_mW_dBm(data[0]/1e+6)
+                    data[6] = Common.list_convert_mW_dBm(data[6]/1e+6)
+                    data[10] = Common.list_convert_mW_dBm(data[10]/1e+6)
+                    hv_data.append([vals, data[0]]); labels.append('Raw PSD Peak'); marks.append(Plotting.labs_pts[0])
+                    hv_data.append([vals, data[6]]); labels.append('Voigt Peak'); marks.append(Plotting.labs_pts[1])
+                    hv_data.append([vals, data[10]]); labels.append('Lorentz Peak'); marks.append(Plotting.labs_pts[2])
+                    f_ending = '_peaks'
+                    y_lab = 'PSD Peak Values / dBm / 20kHz'
+                    x_lab = 'VOA Bias / V'
 
                 ## HWHM Vals
-                #hv_data.append([vals, data[5]]); labels.append('Voigt HWHM'); marks.append(Plotting.labs_pts[1])
-                #hv_data.append([vals, data[9]]); labels.append('Lorentz HWHM'); marks.append(Plotting.labs_pts[2])
-                #f_ending = '_HWHM'
-                #y_lab = 'Fitted HWHM / MHz'
-                #x_lab = 'VOA Bias / V'
+                HWHM_VALS = False
+                if HWHM_VALS and VALUES:
+                    hv_data.append([vals, data[5]]); labels.append('Voigt HWHM'); marks.append(Plotting.labs_pts[1])
+                    hv_data.append([vals, data[9]]); labels.append('Lorentz HWHM'); marks.append(Plotting.labs_pts[2])
+                    f_ending = '_HWHM'
+                    y_lab = 'Fitted HWHM / MHz'
+                    x_lab = 'VOA Bias / V'
 
                 ## Voigt Fit Parameters Vals
-                #hv_data.append([vals, data[5]]); labels.append('Voigt HWHM'); marks.append(Plotting.labs_pts[1])
-                #hv_data.append([vals, data[3]]); labels.append('Voigt $\gamma$'); marks.append(Plotting.labs_pts[2])
-                #hv_data.append([vals, data[4]]); labels.append('Voigt $\sigma$'); marks.append(Plotting.labs_pts[3])
-                #f_ending = '_Voigt_vals'
-                #y_lab = 'Voigt Fit Parameters / MHz'
-                #x_lab = 'VOA Bias / V'
+                VOIGT_FIT_VALS = False
+                if VOIGT_FIT_VALS and VALUES:
+                    hv_data.append([vals, data[5]]); labels.append('Voigt HWHM'); marks.append(Plotting.labs_pts[1])
+                    hv_data.append([vals, data[3]]); labels.append('Voigt $\gamma$'); marks.append(Plotting.labs_pts[2])
+                    hv_data.append([vals, data[4]]); labels.append('Voigt $\sigma$'); marks.append(Plotting.labs_pts[3])
+                    f_ending = '_Voigt_vals'
+                    y_lab = 'Voigt Fit Parameters / MHz'
+                    x_lab = 'VOA Bias / V'
+
+                ## GOF chisq values
+                CHISQ = True
+                if CHISQ and not VALUES:
+                    hv_data.append([vals, data[0]]); labels.append('Voigt'); marks.append(Plotting.labs_pts[1])
+                    hv_data.append([vals, data[4]]); labels.append('Lorentz'); marks.append(Plotting.labs_pts[2])
+                    f_ending = '_Fit_Chisq'
+                    y_lab = 'Model Fit $\chi^{2}$'
+                    x_lab = 'VOA Bias / V'
+
+                 ## GOF chisq values
+                RED_CHISQ = False
+                if RED_CHISQ and not VALUES:
+                    hv_data.append([vals, data[2]]); labels.append('Voigt'); marks.append(Plotting.labs_pts[1])
+                    hv_data.append([vals, data[6]]); labels.append('Lorentz'); marks.append(Plotting.labs_pts[2])
+                    f_ending = '_Fit_Red_Chisq'
+                    y_lab = 'Model Fit Reduced $\chi^{2}$'
+                    x_lab = 'VOA Bias / V'
 
                 ## HWHM Vals
                 #sub_data = []
@@ -896,7 +925,7 @@ def Voigt_Fit_Analysis():
                 args.x_label = x_lab
                 args.y_label = y_lab
                 args.fig_name = file_tmplt.replace('.txt',f_ending)
-                #args.plt_range = [70, 90, 0, 4]
+                args.log_y = CHISQ
 
                 Plotting.plot_multiple_curves(hv_data, args)
 

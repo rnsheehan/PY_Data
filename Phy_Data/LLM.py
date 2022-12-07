@@ -2027,7 +2027,8 @@ def Plot_Measured_SNR():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/ESA_Spectra_Versus_VOA_Bias/'
+        #DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/ESA_Spectra_Versus_VOA_Bias/'
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_1310/'
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
@@ -2064,7 +2065,27 @@ def Plot_Measured_SNR():
 
                 Plotting.plot_multiple_curves_with_errors(hv_data, args)
 
-            Plot_CNR_Beats = True
+            PLOT_CNR_SINGLE = True
+
+            if PLOT_CNR_SINGLE:
+                filename = 'LD5_591_CNR_VOA_Bias.txt'
+                data = numpy.loadtxt(filename, delimiter = '\t', unpack = True); 
+
+                # Plot the data
+                args = Plotting.plot_arg_single()
+                
+                # Extended LL Plot
+                args.loud = True
+                #args.curve_label = labels
+                #args.mrk_list = marks
+                args.x_label = 'VOA Bias / V'
+                args.y_label = 'CNR / dBm / 20kHz'
+                #args.plt_range = [-0.2, 4.2, 12, 25]
+                args.fig_name = 'Measured_CNR'
+
+                Plotting.plot_single_curve_with_errors(data[0], data[1], data[2], args)
+
+            Plot_CNR_Beats = False
 
             if Plot_CNR_Beats:
                 filename = 'CNR_Beat_Frq_VOA_35.txt'
@@ -2111,28 +2132,39 @@ def Plot_Spectra():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_Setup_Test/'
+        #DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_Setup_Test/'
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_1310/'
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
 
             print(os.getcwd())
 
-            BeatFrqs = [80, 160, 320, 640, 1280]
+            #BeatFrqs = [80, 160, 320, 640, 1280]
+            BeatFrqs = numpy.arange(80, 700, 80)
 
-            filetmplt = 'Spctrm_%(v1)d_VOA_35.txt'
+            Voltsstr = [250, 300, 350, 400, 450]
+            Volts = numpy.arange(2.5, 4.7, 0.5)
+
+            #filetmplt = 'Spctrm_%(v1)d_VOA_35.txt'
+            #filetmplt = 'LD5_591_Spctrm_350_f_%(v1)d.txt'
+            filetmplt = 'LD5_591_Spctrm_%(v1)s_f_80.txt'
 
             # Import the data
             hv_data = []
             labels = []
             marks = []
             
-            SUBTRACT_OFFSET = True
+            SUBTRACT_OFFSET = False
 
             SINGLE_PLOTS = False
 
-            for ss in range(0, len(BeatFrqs), 1): 
-                filename = filetmplt%{"v1":BeatFrqs[ss]}
+            PLOT_VOA = True
+
+            val_lst = BeatFrqs if PLOT_VOA is False else Voltsstr
+
+            for ss in range(0, len(val_lst), 1): 
+                filename = filetmplt%{"v1":val_lst[ss]}
                 if glob.glob(filename):
                     data = numpy.loadtxt(filename, unpack = True)
 
@@ -2141,7 +2173,7 @@ def Plot_Spectra():
                     # Gather the data together for a combined plot
                     hv_data.append(data)
                     
-                    the_label = 'f$_{b}$ = %(v1)d MHz'%{"v1":BeatFrqs[ss]}
+                    the_label = 'f$_{b}$ = %(v1)d MHz'%{"v1":val_lst[ss]} if PLOT_VOA is False else 'V$_{VOA}$ = %(v1)0.1f V'%{"v1":Volts[ss]}
 
                     labels.append(the_label)
 
@@ -2156,7 +2188,7 @@ def Plot_Spectra():
                         args.marker = Plotting.labs_lins[0]
                         args.x_label = 'Frequency ( MHz )'
                         args.y_label = 'Spectral Power ( dBm / 20kHz )'
-                        #args.plt_range = [30, 130, -105, -70]
+                        args.plt_range = [30, 130, -95, -50]
                         args.fig_name = filename.replace('.txt','')
             
                         Plotting.plot_single_curve(data[0], data[1], args)
@@ -2173,8 +2205,9 @@ def Plot_Spectra():
                 args.mrk_list = marks
                 args.x_label = 'Frequency ( MHz )'
                 args.y_label = 'Spectral Power ( dBm / 20kHz )'
-                #args.plt_range = [30, 130, -105, -70]
-                args.fig_name = 'Spectrum_Beat_Frq_Offset' if SUBTRACT_OFFSET else  'Spectrum_Beat_Frq'
+                args.plt_range = [30, 130, -95, -50]
+                #args.fig_name = 'Spectrum_Beat_Frq_Offset' if SUBTRACT_OFFSET else  'Spectrum_Beat_Frq'
+                args.fig_name = 'Spectrum_VOA_Bias'
             
                 Plotting.plot_multiple_curves(hv_data, args)
 
@@ -2195,15 +2228,17 @@ def Multi_LLM_Analysis():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_Setup_Test/LCR_DSHI_JDSU_DFB_T_20_D_50/'
+        #DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_Setup_Test/LCR_DSHI_JDSU_DFB_T_20_D_50/'
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_1310/LCR_DSHI_LD5_591_T_25_D_10/'
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
             print(os.getcwd())
 
             # for now work on a single file, then make it more generic
-            thefile = 'LLM_Data_Nmeas_10_I_50_16_11_2022_12_53.txt'
+            #thefile = 'LLM_Data_Nmeas_10_I_50_16_11_2022_12_53.txt'
             #thefile = 'LLM_Data_Nmeas_100_I_50_16_11_2022_13_02.txt'
+            thefile = 'LLM_Data_Nmeas_50_I_25_07_12_2022_15_01.txt'
 
             if glob.glob(thefile):
 

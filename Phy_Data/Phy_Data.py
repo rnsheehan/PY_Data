@@ -56,7 +56,7 @@ if __name__ == '__main__':
 
     #LLM.LL_Result()
 
-    LLM.Voigt_Fit_Analysis()
+    #LLM.Voigt_Fit_Analysis()
 
     #LLM.LL_Result_Voigt()
 
@@ -78,9 +78,11 @@ if __name__ == '__main__':
 
     #LLM.Lorentz_Voigt_Fit_Analysis()
 
-    #LLM.Plot_Spectra()
+    LLM.Plot_Spectra()
 
     #LLM.Multi_LLM_Analysis()
 
     #LLM.DLL_Hacking()
+
+    #LLM.Plot_Measured_SNR()
 

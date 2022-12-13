@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 import pandas
 import pprint
 
+import copy
+
 import Common
 import Plotting
 import SpctrmPlt
@@ -2718,14 +2720,18 @@ def Beat_Analysis():
             os.chdir(DATA_HOME)
             print(os.getcwd())
 
-            fAOM = 80
+            f_AOM = 80
             loop_length = 50
+            f_cutoff = 720; 
 
             beatfiles = glob.glob('Beat_Data_Nmeas_*_I_*.txt')
 
             Nbeats, Titles, averaged_data, max_data, min_data = Average_Data_From_Beat_Files(beatfiles)
             
-            Plot_Beat_Data(Nbeats, fAOM, loop_length, Titles, averaged_data, None, True)
+            Full = False
+            Cutoff = True
+            Loud = True
+            Plot_Beat_Data(Nbeats, f_AOM, loop_length, f_cutoff, Titles, averaged_data, max_data, min_data, Full, Cutoff, Loud)
             
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
@@ -2779,6 +2785,9 @@ def Average_Data_From_Beat_Files(beatfiles):
     # return the data as single array
     # R. Sheehan 13 - 12 - 2022
 
+    # Some notes on copy
+    # https://stackoverflow.com/questions/2612802/how-do-i-clone-a-list-so-that-it-doesnt-change-unexpectedly-after-assignment
+
     FUNC_NAME = ".Average_Data_From_Beat_Files()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
@@ -2786,50 +2795,50 @@ def Average_Data_From_Beat_Files(beatfiles):
 
         if beatfiles is not None:
             # sum the data from each file
-            ave_data = []
-            max_data = []
-            min_data = []
-            sub_titles = []
-            Nbeats_max = -1000
+            ave_data = []; max_data = []; min_data = [];
+            sub_titles = []; Nbeats_max = -1000; Nfiles = float(len(beatfiles)); 
             for i in range(0, len(beatfiles), 1):
-                Nbeats, sub_titles, data = Extract_Data_From_Beat_File(beatfiles[i], True)
-                
-                if Nbeats > Nbeats_max:
-                    Nbeats_max = Nbeats
+                Nbeats, sub_titles, data = Extract_Data_From_Beat_File(beatfiles[i], False)                
+                if Nbeats > Nbeats_max:Nbeats_max = Nbeats
 
                 if i == 0:
-                    ave_data = data
-                    max_data = data
-                    min_data = data
+                    # must use the copy method otherwise python assumes all the arrays are the same
+                    # without copy, any manipulations performed on one list is performed on them all
+                    ave_data = copy.deepcopy(data); 
+                    max_data = copy.deepcopy(data); 
+                    min_data = copy.deepcopy(data); 
                 else:
                     # add the data from subsequent files to the data from the first file
                     # must account for the fact that different numbers of beats might be measured in each file
                     for j in range(0, len(ave_data), 1):
-                        size_diff = len(ave_data[j]) - len(data[j])
+                        size_diff = len(ave_data[j]) - len(data[j])                        
                         if size_diff > 0:
-                            data[j] = numpy.append(data[j], numpy.zeros( [ size_diff ] ) )
+                            data[j] = numpy.append(data[j], numpy.zeros( size_diff ) )
                         elif size_diff < 0:
-                            ave_data[j] = numpy.append(ave_data[j], numpy.zeros( [ abs(size_diff) ] ) )
-                            #max_data[j] = numpy.append(max_data[j], numpy.repeat( [-1000, abs(size_diff) ] ) )
-                            #min_data[j] = numpy.append(min_data[j], numpy.repeat( [+1000, abs(size_diff) ] ) )
+                            ave_data[j] = numpy.append(ave_data[j], numpy.zeros( abs(size_diff) ) )
+                            max_data[j] = numpy.append(max_data[j], numpy.repeat( -1000, abs(size_diff)  ) )
+                            min_data[j] = numpy.append(min_data[j], numpy.repeat( +1000, abs(size_diff)  ) )
                         else:
                             pass
-                        ave_data[j] = ave_data[j] + data[j]
 
                         # determine the max/min values
-                        #for k in range(0, len(max_data[j]), 1):
-                        #    if data[j][k] > max_data[j][k]:
-                        #        max_data[j][k] = data[j][k]
+                        for k in range(0, len(data[j]), 1):
+                            if data[j][k] > max_data[j][k]: max_data[j][k] = data[j][k]
+                            if data[j][k] < min_data[j][k]: min_data[j][k] = data[j][k]
 
-                        #    if data[j][k] < min_data[j][k]:
-                        #        min_data[j][k] = data[j][k]
+                        # compute the average sum
+                        ave_data[j] = ave_data[j] + data[j]
+
+                #print(data[5][0], ',', ave_data[5][0], ',', max_data[5][0], ',', min_data[5][0])
 
             # Average the data obtained from all the files
             # Divde the sum over all the data by the number of Files
             for k in range(0, len(ave_data), 1):
-                ave_data[k] = ave_data[k] / float(len(beatfiles))
+                ave_data[k] = ave_data[k] / Nfiles
 
-            return [Nbeats_max, sub_titles, ave_data, max_data, min_data ] 
+            #print(data[5][0], ',', ave_data[5][0], ',', max_data[5][0], ',', min_data[5][0])
+
+            return [Nbeats_max, sub_titles, ave_data, max_data, min_data] 
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
             raise Exception
@@ -2837,7 +2846,7 @@ def Average_Data_From_Beat_Files(beatfiles):
         print(ERR_STATEMENT)
         print(e)
 
-def Plot_Beat_Data(Nbeats, F_AOM, Loop_Length, Titles, Average, Error, loud = False):
+def Plot_Beat_Data(Nbeats, F_AOM, Loop_Length, F_CUTOFF, Titles, Average, Max, Min, Full_Plots, Cutoff_Plots, loud = False):
 
     # plot the averaged data with error bars
     # R. Sheehan 13 - 12 - 2022
@@ -2853,16 +2862,58 @@ def Plot_Beat_Data(Nbeats, F_AOM, Loop_Length, Titles, Average, Error, loud = Fa
         if c1 and c2:
             fbeats = numpy.arange(F_AOM, Nbeats*F_AOM + 1, F_AOM)
             distance = numpy.arange(Loop_Length, Nbeats*Loop_Length + 1, Loop_Length )
+            fend_indx = 1 + numpy.where(fbeats == F_CUTOFF)[0][0]
 
-            for i in range(0, len(Average), 1):
-                args = Plotting.plot_arg_single()
+            if Full_Plots:
+                PLOT_WITH_BEATS = True
 
-                args.loud = loud
-                #args.x_label = 'Beat Frequency / MHz'
-                args.x_label = 'Loop Length / km'
-                args.y_label = Titles[i]
+                xvals = fbeats if PLOT_WITH_BEATS else distance
+                xlabel = 'Beat Frequency / MHz' if PLOT_WITH_BEATS else 'Loop Length / km'
+
+                labels = ['Max', 'Avg', 'Min']
+                marks = [Plotting.labs_dotdash[0], Plotting.labs_lins[0], Plotting.labs_dotted[0]]
+
+                for i in range(0, len(Average), 1):
+                    hv_data = []
+                    hv_data.append([xvals, Max[i]]); 
+                    hv_data.append([xvals, Average[i]]); 
+                    hv_data.append([xvals, Min[i]]); 
+
+                    args = Plotting.plot_arg_multiple()                
+
+                    args.loud = loud
+                    args.x_label = xlabel
+                    args.y_label = Titles[i]
+                    args.crv_lab_list = labels
+                    args.mrk_list = marks
+                    args.fig_name = Titles[i].replace('/','_')
                 
-                Plotting.plot_single_curve(distance, Average[i], args)
+                    Plotting.plot_multiple_curves(hv_data, args)
+
+                    del hv_data
+
+            if Cutoff_Plots:
+                PLOT_WITH_BEATS = True
+
+                xvals = fbeats if PLOT_WITH_BEATS else distance
+                xlabel = 'Beat Frequency / MHz' if PLOT_WITH_BEATS else 'Loop Length / km'
+
+                labels = ['Max', 'Avg', 'Min']
+                marks = [Plotting.labs_dotdash[0], Plotting.labs_lins[0], Plotting.labs_dotted[0]]
+
+                for i in range(0, len(Average), 1):
+                    Error = 0.5*(Max[i] - Min[i])
+
+                    args = Plotting.plot_arg_single()                
+
+                    args.loud = loud
+                    args.x_label = xlabel
+                    args.y_label = Titles[i]
+                    #args.crv_lab_list = labels
+                    #args.mrk_list = marks
+                    args.fig_name = Titles[i].replace('/','_') + '_Err'
+                
+                    Plotting.plot_single_linear_fit_curve_with_errors(xvals[0:fend_indx], Average[i][0:fend_indx], Error[0:fend_indx], args)
 
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME

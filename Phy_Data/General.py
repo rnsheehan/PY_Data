@@ -130,3 +130,9 @@ def Diode_Fit_Calibration():
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
+
+def Sandbox():
+
+    size_diff = -3
+    print(numpy.zeros( abs(size_diff)  ))
+    print(numpy.repeat( -1000, abs(size_diff)  ))

@@ -2697,3 +2697,176 @@ def Compute_Spectrum(spctr_choice, arg_vals):
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
+
+def Beat_Analysis():
+
+    # Analyse the data obtained from a series of beat note scans
+    # R. Sheehan 13 - 12 - 2022
+
+    # The beat note measurement looks at the lineshape at each beat note
+    # The CNR is estimated by examining the PSD peak and its location relative to the beat freq
+    # If the lineshape is valid then a fit is attempted and the data are saved
+    # The beat note scan is then repeated multiple times in order to build up some statistics
+
+    FUNC_NAME = ".Beat_Analysis()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_Setup_Test/LCR_DSHI_JDSU_DFB_T_20_D_50/Beat_1/'
+
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+
+            fAOM = 80
+            loop_length = 50
+
+            beatfiles = glob.glob('Beat_Data_Nmeas_*_I_*.txt')
+
+            Nbeats, Titles, averaged_data, max_data, min_data = Average_Data_From_Beat_Files(beatfiles)
+            
+            Plot_Beat_Data(Nbeats, fAOM, loop_length, Titles, averaged_data, None, True)
+            
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Extract_Data_From_Beat_File(beatfile, loud = False):
+
+    # Extract the data from a single beat measurement file
+    # return a list with data stored as elements of the list
+    # R. Sheehan 13 - 12 - 2022
+
+    FUNC_NAME = ".Extract_Data_From_Beat_File()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        if glob.glob(beatfile):
+            # read the data from the file
+            df = pandas.read_csv(beatfile, delimiter = '\t')
+            titles = list(df)
+            Nbeats = df.shape[0]
+
+            dfaxes = numpy.arange(4, 19, 1)
+            dfaxes = numpy.delete(dfaxes, [9, 13]) # not interested in Voigt fc (axis 9) or Lorentz fc (axis 13)
+
+            data = [] # empty list for storing the data from the file
+            sub_titles = [] # obtain the list of axes being analysed
+
+            if loud:
+                print('Extracting data from ',beatfile, ':', Nbeats,' beats measured')
+
+            for i in range(0, len(dfaxes), 1):
+                data.append( df[ titles[ dfaxes[i] ] ].to_numpy() )
+                sub_titles.append(titles[ dfaxes[i] ])
+
+            return [Nbeats, sub_titles, data]
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCould not find file: ' + beatfile + '\n'
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Average_Data_From_Beat_Files(beatfiles):
+
+    # look into multiple beat files
+    # extract the data from each file
+    # average the data obtained from each file
+    # return the data as single array
+    # R. Sheehan 13 - 12 - 2022
+
+    FUNC_NAME = ".Average_Data_From_Beat_Files()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+
+        if beatfiles is not None:
+            # sum the data from each file
+            ave_data = []
+            max_data = []
+            min_data = []
+            sub_titles = []
+            Nbeats_max = -1000
+            for i in range(0, len(beatfiles), 1):
+                Nbeats, sub_titles, data = Extract_Data_From_Beat_File(beatfiles[i], True)
+                
+                if Nbeats > Nbeats_max:
+                    Nbeats_max = Nbeats
+
+                if i == 0:
+                    ave_data = data
+                    max_data = data
+                    min_data = data
+                else:
+                    # add the data from subsequent files to the data from the first file
+                    # must account for the fact that different numbers of beats might be measured in each file
+                    for j in range(0, len(ave_data), 1):
+                        size_diff = len(ave_data[j]) - len(data[j])
+                        if size_diff > 0:
+                            data[j] = numpy.append(data[j], numpy.zeros( [ size_diff ] ) )
+                        elif size_diff < 0:
+                            ave_data[j] = numpy.append(ave_data[j], numpy.zeros( [ abs(size_diff) ] ) )
+                            #max_data[j] = numpy.append(max_data[j], numpy.repeat( [-1000, abs(size_diff) ] ) )
+                            #min_data[j] = numpy.append(min_data[j], numpy.repeat( [+1000, abs(size_diff) ] ) )
+                        else:
+                            pass
+                        ave_data[j] = ave_data[j] + data[j]
+
+                        # determine the max/min values
+                        #for k in range(0, len(max_data[j]), 1):
+                        #    if data[j][k] > max_data[j][k]:
+                        #        max_data[j][k] = data[j][k]
+
+                        #    if data[j][k] < min_data[j][k]:
+                        #        min_data[j][k] = data[j][k]
+
+            # Average the data obtained from all the files
+            # Divde the sum over all the data by the number of Files
+            for k in range(0, len(ave_data), 1):
+                ave_data[k] = ave_data[k] / float(len(beatfiles))
+
+            return [Nbeats_max, sub_titles, ave_data, max_data, min_data ] 
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Plot_Beat_Data(Nbeats, F_AOM, Loop_Length, Titles, Average, Error, loud = False):
+
+    # plot the averaged data with error bars
+    # R. Sheehan 13 - 12 - 2022
+
+    FUNC_NAME = ".Plot_Beat_Data()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        c1 = True if Nbeats > 0 else False
+        c2 = True if len(Average) > 0 else False
+        #c3 = True if len(Error) > 0 else False
+
+        if c1 and c2:
+            fbeats = numpy.arange(F_AOM, Nbeats*F_AOM + 1, F_AOM)
+            distance = numpy.arange(Loop_Length, Nbeats*Loop_Length + 1, Loop_Length )
+
+            for i in range(0, len(Average), 1):
+                args = Plotting.plot_arg_single()
+
+                args.loud = loud
+                #args.x_label = 'Beat Frequency / MHz'
+                args.x_label = 'Loop Length / km'
+                args.y_label = Titles[i]
+                
+                Plotting.plot_single_curve(distance, Average[i], args)
+
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)

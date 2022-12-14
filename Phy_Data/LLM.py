@@ -2732,6 +2732,9 @@ def Beat_Analysis():
             Cutoff = True
             Loud = True
             Plot_Beat_Data(Nbeats, f_AOM, loop_length, f_cutoff, Titles, averaged_data, max_data, min_data, Full, Cutoff, Loud)
+
+            # Add the average values, as the plot title, to each plot that's made
+            # Write a method to generate a report on the average values
             
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME

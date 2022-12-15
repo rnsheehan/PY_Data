@@ -2714,7 +2714,7 @@ def Beat_Analysis():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_Setup_Test/LCR_DSHI_JDSU_DFB_T_20_D_50/Beat_1/'
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_Setup_Test/LCR_DSHI_JDSU_DFB_T_20_D_50/Beat_3/'
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
@@ -2728,14 +2728,12 @@ def Beat_Analysis():
 
             Nbeats, Titles, averaged_data, max_data, min_data = Average_Data_From_Beat_Files(beatfiles)
             
+            Beat_Data_Report(Nbeats, f_AOM, loop_length, f_cutoff, Titles, averaged_data, max_data, min_data)
+
             Full = False
             Cutoff = True
-            Loud = True
-            Plot_Beat_Data(Nbeats, f_AOM, loop_length, f_cutoff, Titles, averaged_data, max_data, min_data, Full, Cutoff, Loud)
-
-            # Add the average values, as the plot title, to each plot that's made
-            # Write a method to generate a report on the average values
-            
+            Loud = False
+            Plot_Beat_Data(Nbeats, f_AOM, loop_length, f_cutoff, Titles, averaged_data, max_data, min_data, Full, Cutoff, Loud)                        
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
             raise Exception
@@ -2861,6 +2859,7 @@ def Plot_Beat_Data(Nbeats, F_AOM, Loop_Length, F_CUTOFF, Titles, Average, Max, M
         c1 = True if Nbeats > 0 else False
         c2 = True if len(Average) > 0 else False
         #c3 = True if len(Error) > 0 else False
+        # must add more conditions here
 
         if c1 and c2:
             fbeats = numpy.arange(F_AOM, Nbeats*F_AOM + 1, F_AOM)
@@ -2906,6 +2905,8 @@ def Plot_Beat_Data(Nbeats, F_AOM, Loop_Length, F_CUTOFF, Titles, Average, Max, M
 
                 for i in range(0, len(Average), 1):
                     Error = 0.5*(Max[i] - Min[i])
+                    avg_val = numpy.mean(Average[i][0:fend_indx])
+                    avg_error = numpy.mean(Error[0:fend_indx])
 
                     args = Plotting.plot_arg_single()                
 
@@ -2915,11 +2916,58 @@ def Plot_Beat_Data(Nbeats, F_AOM, Loop_Length, F_CUTOFF, Titles, Average, Max, M
                     #args.crv_lab_list = labels
                     #args.mrk_list = marks
                     args.fig_name = Titles[i].replace('/','_') + '_Err'
+                    args.plt_title = "Avg = %(v1)0.3f +/- %(v2)0.3f"%{"v1":avg_val, "v2":avg_error}
                 
                     Plotting.plot_single_linear_fit_curve_with_errors(xvals[0:fend_indx], Average[i][0:fend_indx], Error[0:fend_indx], args)
 
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Beat_Data_Report(Nbeats, F_AOM, Loop_Length, F_CUTOFF, Titles, Average, Max, Min):
+
+    # Print a report on the averaged beat data values
+    # R. Sheehan 15 - 12 - 2022
+
+    FUNC_NAME = ".Beat_Data_Report()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        c1 = True if Nbeats > 0 else False
+        c2 = True if len(Average) > 0 else False
+        #c3 = True if len(Error) > 0 else False
+        # must add more conditions here
+
+        if c1 and c2:
+
+            fbeats = numpy.arange(F_AOM, Nbeats*F_AOM + 1, F_AOM)
+            fend_indx = 1 + numpy.where(fbeats == F_CUTOFF)[0][0]
+
+            # Redirect the output to a file
+            old_target, sys.stdout = sys.stdout, open('ResultsSummary.txt', 'w')
+
+            print("System Settings")
+            print("Loop length:",Loop_Length,"km")
+            print("f_{AOM}:",F_AOM,"MHz")
+            print("Nbeats Sampled:",Nbeats)
+            print("Nbeats Useful:",fend_indx)
+            print("f_{cuttoff}:",F_CUTOFF,"MHz")
+            print("Effective Loop Length:",fend_indx*Loop_Length,"km")            
+
+            print("\nResults")
+            for i in range(0, len(Average), 1):
+                Error = 0.5*(Max[i] - Min[i])
+                avg_val = numpy.mean(Average[i][0:fend_indx])
+                avg_error = numpy.mean(Error[0:fend_indx])
+                #print(Titles[i],":",avg_val,"+/-",avg_error)                
+                print("%(v1)s: %(v2)0.3f +/- %(v3)0.3f"%{"v1":Titles[i], "v2":avg_val, "v3":avg_error})
+
+            sys.stdout = old_target # return to the usual stdout
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nError with input values'
             raise Exception
     except Exception as e:
         print(ERR_STATEMENT)

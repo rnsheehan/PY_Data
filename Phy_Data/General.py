@@ -136,3 +136,133 @@ def Sandbox():
     size_diff = -3
     print(numpy.zeros( abs(size_diff)  ))
     print(numpy.repeat( -1000, abs(size_diff)  ))
+
+def Superlum_Amplification():
+
+    # plots relating to measurement of Superlum SLD amplification
+    # R. Sheehan 30 - 1 - 2023
+
+    FUNC_NAME = ".Superlum_Amplification()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Data/Superlum_Amplification/'
+
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+
+            # Declarate your lists
+            hv_data = []; labels = []; marks = [];
+
+            # EDFA_Files
+            READ_EDFA = False
+            EDFA_file = glob.glob("EDFA*.txt")
+
+            # Make a plot of the data             
+            if READ_EDFA:
+                labels.append('Res 1 nm')
+                labels.append('Res 0.05 nm')
+                for i in range(0, len(EDFA_file), 2):
+                    data = numpy.loadtxt(EDFA_file[i], delimiter = '\t', unpack = True)
+                    hv_data.append(data)
+                    marks.append( Plotting.labs_lins[i] )    
+
+            # Superlum SLD
+            READ_SLD = True
+            READ_SLD_AMP = False
+            PLOT_POW = False
+            PLOT_FULL = False
+            SLD_file = glob.glob("SLD*2023.txt")
+            SLD_file_Amp = glob.glob("SLD*2023_Amp.txt")
+            SLD_file_full = glob.glob("SLD*Full*.txt")
+            SLD_curr = [300, 350, 400]
+            SLD_pow = [6.82, 8.24, 9.23]
+            SLD_pow_amp = [11.51, 11.74, 11.93]
+
+            if READ_SLD:           
+                for i in range(0, len(SLD_file), 1):
+                    data = numpy.loadtxt(SLD_file[i], delimiter = '\t', unpack = True)
+                    hv_data.append(data)
+                    marks.append( Plotting.labs_lins[i] )    
+                    #labels.append('%(v1)s'%{"v1":SLD_file[i]})
+                    labels.append('I = %(v1)d mA'%{"v1":SLD_curr[i]})
+
+
+            if READ_SLD_AMP:           
+                for i in range(0, len(SLD_file_Amp), 1):
+                    data = numpy.loadtxt(SLD_file_Amp[i], delimiter = '\t', unpack = True)
+                    hv_data.append(data)
+                    marks.append( Plotting.labs_lins[i] )    
+                    #labels.append('%(v1)s'%{"v1":SLD_file[i]})
+                    labels.append('I = %(v1)d mA'%{"v1":SLD_curr[i]})
+
+                for i in range(0, len(SLD_file), 1):
+                    data = numpy.loadtxt(SLD_file[i], delimiter = '\t', unpack = True)
+                    hv_data.append(data)
+                    marks.append( Plotting.labs_dotdash[i] )    
+                    #labels.append('%(v1)s'%{"v1":SLD_file[i]})
+                    labels.append('I = %(v1)d mA'%{"v1":SLD_curr[i]})
+
+                data = numpy.loadtxt(EDFA_file[-1], delimiter = '\t', unpack = True)
+                hv_data.append(data)
+                marks.append( Plotting.labs_line_only[0] ) 
+                labels.append('EDFA')
+
+            if PLOT_POW:
+                hv_data.append([SLD_curr, SLD_pow]); marks.append(Plotting.labs[0]); labels.append('Not Amp')
+                hv_data.append([SLD_curr, SLD_pow_amp]); marks.append(Plotting.labs[1]); labels.append('Amp')
+
+            if PLOT_FULL:
+                for i in range(0, len(SLD_file_full), 1):
+                    data = numpy.loadtxt(SLD_file_full[i], delimiter = '\t', unpack = True)
+                    hv_data.append(data)
+                    marks.append( Plotting.labs_lins[i] )    
+                    #labels.append('%(v1)s'%{"v1":SLD_file[i]})
+                    #labels.append('I = %(v1)d mA'%{"v1":SLD_curr[i]})
+                labels.append('Not Amp')
+                labels.append('Amp')
+
+                data = numpy.loadtxt(EDFA_file[-1], delimiter = '\t', unpack = True)
+                hv_data.append(data)
+                marks.append( Plotting.labs_line_only[0] ) 
+                labels.append('EDFA')
+
+            # Generate the plot
+            args = Plotting.plot_arg_multiple()
+
+            args.loud = True
+            args.crv_lab_list = labels
+            args.mrk_list = marks
+            if READ_EDFA: 
+                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.y_label = 'Power (dBm)'
+                args.fig_name = 'EDFA_Spectrum'
+            if READ_SLD: 
+                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.y_label = 'Power (dBm / 0.1 nm)'
+                #args.plt_range = [1530, 1560, -65, -15]
+                args.fig_name = 'SLD_Spectrum'
+            if READ_SLD_AMP: 
+                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.y_label = 'Power (dBm / 0.05 nm)'
+                args.plt_range = [1530, 1560, -65, -15]
+                args.fig_name = 'SLD_Spectrum_Amp_Unamp_EDFA'
+            if PLOT_POW:
+                args.x_label = 'SLD Current (mA)'
+                args.y_label = 'SLD Power (dBm)'
+                args.fig_name = 'SLD_Power'
+            if PLOT_FULL:
+                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.y_label = 'Power (dBm / 0.1 nm)'
+                #args.plt_range = [1530, 1560, -65, -15]
+                args.fig_name = 'SLD_Full_Spectrum_Amp_Unamp'
+
+            Plotting.plot_multiple_curves(hv_data, args)
+
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot find: ' + DATA_HOME + '\n'
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)

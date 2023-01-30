@@ -86,5 +86,7 @@ if __name__ == '__main__':
 
     #LLM.Plot_Measured_SNR()
 
-    LLM.Beat_Analysis()
+    #LLM.Beat_Analysis()
+
+    General.Superlum_Amplification()
 

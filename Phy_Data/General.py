@@ -169,7 +169,7 @@ def Superlum_Amplification():
                     marks.append( Plotting.labs_lins[i] )    
 
             # Superlum SLD
-            READ_SLD = True
+            READ_SLD = False
             READ_SLD_AMP = False
             PLOT_POW = False
             PLOT_FULL = False
@@ -187,7 +187,6 @@ def Superlum_Amplification():
                     marks.append( Plotting.labs_lins[i] )    
                     #labels.append('%(v1)s'%{"v1":SLD_file[i]})
                     labels.append('I = %(v1)d mA'%{"v1":SLD_curr[i]})
-
 
             if READ_SLD_AMP:           
                 for i in range(0, len(SLD_file_Amp), 1):
@@ -228,6 +227,46 @@ def Superlum_Amplification():
                 marks.append( Plotting.labs_line_only[0] ) 
                 labels.append('EDFA')
 
+            # Read the files for the FBG Laser
+            PLOT_FBG = False
+            fbg_file = glob.glob("FBG*2023.txt")
+            PLOT_FBG_Zoom = True
+            fbg_file = glob.glob("FBG*2023_Zoom*.txt")
+            fbg_curr = [50, 60, 70, 80, 90, 100]
+            fbg_pow = [2.87, 6.19, 8.39, 9.87, 10.98, 11.52]
+
+            # plot the FBG power
+            args = Plotting.plot_arg_single()
+
+            args.loud = True
+            args.curve_label = 'T = 25 C'
+            args.marker = Plotting.labs[0]
+            args.x_label = 'Current (mA)'
+            args.y_label = 'Power (dBm)'
+            args.fig_name = 'FBG_Power'
+
+            Plotting.plot_single_curve(fbg_curr, fbg_pow, args)
+
+            if PLOT_FBG:
+                for i in range(0, len(fbg_file), 1):
+                    data = numpy.loadtxt(fbg_file[i], delimiter = '\t', unpack = True)
+                    hv_data.append(data)
+                    marks.append( Plotting.labs_lins[i] )    
+                    #labels.append('%(v1)s'%{"v1":fbg_file[i]})
+                    #labels.append('I = %(v1)d mA'%{"v1":SLD_curr[i]})
+                labels.append('I = 50 mA')
+                labels.append('I = 100 mA')
+
+            if PLOT_FBG_Zoom:
+                for i in range(0, len(fbg_file), 1):
+                    data = numpy.loadtxt(fbg_file[i], delimiter = '\t', unpack = True)
+                    hv_data.append(data)
+                    marks.append( Plotting.labs_lins[i] )    
+                    #labels.append('%(v1)s'%{"v1":fbg_file[i]})
+                    #labels.append('I = %(v1)d mA'%{"v1":SLD_curr[i]})
+                labels.append('Meas. 1')
+                labels.append('Meas. 2')
+                
             # Generate the plot
             args = Plotting.plot_arg_multiple()
 
@@ -257,6 +296,16 @@ def Superlum_Amplification():
                 args.y_label = 'Power (dBm / 0.1 nm)'
                 #args.plt_range = [1530, 1560, -65, -15]
                 args.fig_name = 'SLD_Full_Spectrum_Amp_Unamp'
+            if PLOT_FBG:
+                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.y_label = 'Power (dBm / 0.5 nm)'
+                #args.plt_range = [1530, 1560, -65, -15]
+                args.fig_name = 'FBG_Full_Spectrum'
+            if PLOT_FBG_Zoom:
+                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.y_label = 'Power (dBm / 0.05 nm)'
+                args.plt_range = [970, 980, -50, 12]
+                args.fig_name = 'FBG_Full_Spectrum_Zoom'
 
             Plotting.plot_multiple_curves(hv_data, args)
 

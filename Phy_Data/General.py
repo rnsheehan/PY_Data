@@ -179,7 +179,9 @@ def Superlum_Amplification():
             SLD_file_full = glob.glob("SLD*Full*.txt")
             #SLD_file_filt = glob.glob("SLD*_1_13*.txt")
             SLD_file_filt = ['SLD_T_125_I_400_Filtered_Santec_1_13_2_2023.txt','SLD_T_125_I_300_Filtered_Santec_1_13_2_2023.txt','SLD_T_125_I_400_UnFiltered_1_13_2_2023.txt','SLD_T_125_I_300_UnFiltered_1_13_2_2023.txt']
-            #SLD_file_filt = ['SLD_T_125_I_400_Filtered_Santec_1_13_2_2023.txt','SLD_T_125_I_400_UnFiltered_1_13_2_2023.txt']
+            #SLD_file_filt = ['SLD_T_125_I_400_Filtered_Santec_FP_Amp_1_13_2_2023.txt',
+            #                 'SLD_T_125_I_400_Filtered_Santec_1_13_2_2023.txt',
+            #                 'SLD_T_125_I_400_UnFiltered_1_13_2_2023.txt']
             SLD_curr = [300, 350, 400]
             SLD_pow = [6.82, 8.24, 9.23]
             SLD_pow_amp = [11.51, 11.74, 11.93]
@@ -245,9 +247,11 @@ def Superlum_Amplification():
                     #labels.append('%(v1)s'%{"v1":SLD_file_filt[i]})
                     #labels.append('I = %(v1)d mA'%{"v1":SLD_curr[i]})
                 marks.append(Plotting.labs_lins[0])
+                #marks.append(Plotting.labs_dashed[0])
                 marks.append(Plotting.labs_lins[1])
                 marks.append(Plotting.labs_dashed[0])
                 marks.append(Plotting.labs_dashed[1])
+                #labels.append('SLD-761 + OTF-320 + EDFA')
                 labels.append('SLD-761 + OTF-320')
                 labels.append('SLD-761 + OTF-320')
                 labels.append('SLD-761 I = 400 mA')
@@ -352,6 +356,7 @@ def Superlum_Amplification():
                 args.y_label = 'Power (dBm / 0.05 nm)'
                 #args.plt_range = [1530, 1560, -65, -15]
                 args.fig_name = 'SLD_Filtered_Spectrum_Unamp'
+                #args.fig_name = 'SLD_Filtered_Spectrum_Amp_1'
             if PLOT_FBG:
                 args.x_label = 'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.5 nm)'

@@ -173,12 +173,20 @@ def Superlum_Amplification():
             READ_SLD_AMP = False
             PLOT_POW = False
             PLOT_FULL = False
+            PLOT_FILT = True
             SLD_file = glob.glob("SLD*2023.txt")
             SLD_file_Amp = glob.glob("SLD*2023_Amp.txt")
             SLD_file_full = glob.glob("SLD*Full*.txt")
+            #SLD_file_filt = glob.glob("SLD*_1_13*.txt")
+            SLD_file_filt = ['SLD_T_125_I_400_Filtered_Santec_1_13_2_2023.txt','SLD_T_125_I_300_Filtered_Santec_1_13_2_2023.txt','SLD_T_125_I_400_UnFiltered_1_13_2_2023.txt','SLD_T_125_I_300_UnFiltered_1_13_2_2023.txt']
+            #SLD_file_filt = ['SLD_T_125_I_400_Filtered_Santec_1_13_2_2023.txt','SLD_T_125_I_400_UnFiltered_1_13_2_2023.txt']
             SLD_curr = [300, 350, 400]
             SLD_pow = [6.82, 8.24, 9.23]
             SLD_pow_amp = [11.51, 11.74, 11.93]
+
+            SLD_curr = [300, 310, 320, 330, 340, 350, 360, 370, 380, 390, 400]
+            SLD_pow = [6.83, 7.15, 7.45, 7.74, 8.00, 8.25, 8.48, 8.70, 8.90, 9.09, 9.28]
+            SLD_pow_filt = [-16.60, -16.23, -15.90, -15.58, -15.30, -15.03, -14.78, -14.56, -14.35, -14.14, -13.95]
 
             if READ_SLD:           
                 for i in range(0, len(SLD_file), 1):
@@ -209,8 +217,10 @@ def Superlum_Amplification():
                 labels.append('EDFA')
 
             if PLOT_POW:
-                hv_data.append([SLD_curr, SLD_pow]); marks.append(Plotting.labs[0]); labels.append('Not Amp')
-                hv_data.append([SLD_curr, SLD_pow_amp]); marks.append(Plotting.labs[1]); labels.append('Amp')
+                #hv_data.append([SLD_curr, SLD_pow]); marks.append(Plotting.labs[0]); labels.append('Not Amp')
+                #hv_data.append([SLD_curr, SLD_pow_amp]); marks.append(Plotting.labs[1]); labels.append('Amp')
+                hv_data.append([SLD_curr, SLD_pow]); marks.append(Plotting.labs[0]); labels.append('Unfiltered')
+                hv_data.append([SLD_curr, SLD_pow_filt]); marks.append(Plotting.labs[1]); labels.append('Filtered')
 
             if PLOT_FULL:
                 for i in range(0, len(SLD_file_full), 1):
@@ -227,25 +237,42 @@ def Superlum_Amplification():
                 marks.append( Plotting.labs_line_only[0] ) 
                 labels.append('EDFA')
 
+            if PLOT_FILT: 
+                for i in range(0, len(SLD_file_filt), 1):
+                    data = numpy.loadtxt(SLD_file_filt[i], delimiter = '\t', unpack = True)
+                    hv_data.append(data)
+                    #marks.append( Plotting.labs_lins[i] )    
+                    #labels.append('%(v1)s'%{"v1":SLD_file_filt[i]})
+                    #labels.append('I = %(v1)d mA'%{"v1":SLD_curr[i]})
+                marks.append(Plotting.labs_lins[0])
+                marks.append(Plotting.labs_lins[1])
+                marks.append(Plotting.labs_dashed[0])
+                marks.append(Plotting.labs_dashed[1])
+                labels.append('SLD-761 + OTF-320')
+                labels.append('SLD-761 + OTF-320')
+                labels.append('SLD-761 I = 400 mA')
+                labels.append('SLD-761 I = 300 mA')
+
             # Read the files for the FBG Laser
             PLOT_FBG = False
             fbg_file = glob.glob("FBG*2023.txt")
-            PLOT_FBG_Zoom = True
+            PLOT_FBG_Zoom = False
             fbg_file = glob.glob("FBG*2023_Zoom*.txt")
             fbg_curr = [50, 60, 70, 80, 90, 100]
             fbg_pow = [2.87, 6.19, 8.39, 9.87, 10.98, 11.52]
 
-            # plot the FBG power
-            args = Plotting.plot_arg_single()
+            if PLOT_FBG:
+                # plot the FBG power
+                args = Plotting.plot_arg_single()
 
-            args.loud = True
-            args.curve_label = 'T = 25 C'
-            args.marker = Plotting.labs[0]
-            args.x_label = 'Current (mA)'
-            args.y_label = 'Power (dBm)'
-            args.fig_name = 'FBG_Power'
+                args.loud = True
+                args.curve_label = 'T = 25 C'
+                args.marker = Plotting.labs[0]
+                args.x_label = 'Current (mA)'
+                args.y_label = 'Power (dBm)'
+                args.fig_name = 'FBG_Power'
 
-            Plotting.plot_single_curve(fbg_curr, fbg_pow, args)
+                Plotting.plot_single_curve(fbg_curr, fbg_pow, args)
 
             if PLOT_FBG:
                 for i in range(0, len(fbg_file), 1):
@@ -266,7 +293,31 @@ def Superlum_Amplification():
                     #labels.append('I = %(v1)d mA'%{"v1":SLD_curr[i]})
                 labels.append('Meas. 1')
                 labels.append('Meas. 2')
-                
+
+            # Make a plot to compare the PM readings from the different PM
+            PM_COMPARE = False
+            pm_file = glob.glob("FBG_Pump_LIV*.txt")
+            print(pm_file)
+
+            if PM_COMPARE:
+                for i in range(0, len(pm_file), 1):
+                    data = numpy.loadtxt(pm_file[i], delimiter = '\t', unpack = True)
+                    hv_data.append([data[0], data[2]])
+                    marks.append( Plotting.labs_lins[i] )
+                    labels.append(pm_file[i])
+
+                # Plot the data obtained from the S144C PM
+                args = Plotting.plot_arg_single()
+
+                args.loud = True
+                args.curve_label = 'T = 25 C'
+                args.marker = Plotting.labs[0]
+                args.x_label = 'Current (mA)'
+                args.y_label = 'Power (mW)'
+                args.fig_name = 'FBG_Power_Full'
+
+                Plotting.plot_single_curve(hv_data[3][0], hv_data[3][1], args)
+
             # Generate the plot
             args = Plotting.plot_arg_multiple()
 
@@ -296,6 +347,11 @@ def Superlum_Amplification():
                 args.y_label = 'Power (dBm / 0.1 nm)'
                 #args.plt_range = [1530, 1560, -65, -15]
                 args.fig_name = 'SLD_Full_Spectrum_Amp_Unamp'
+            if PLOT_FILT:
+                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.y_label = 'Power (dBm / 0.05 nm)'
+                #args.plt_range = [1530, 1560, -65, -15]
+                args.fig_name = 'SLD_Filtered_Spectrum_Unamp'
             if PLOT_FBG:
                 args.x_label = 'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.5 nm)'
@@ -306,6 +362,10 @@ def Superlum_Amplification():
                 args.y_label = 'Power (dBm / 0.05 nm)'
                 args.plt_range = [970, 980, -50, 12]
                 args.fig_name = 'FBG_Full_Spectrum_Zoom'
+            if PM_COMPARE:
+                args.x_label = 'Current (mA)'
+                args.y_label = 'Power (mW)'
+                args.fig_name = 'PM_Comparison'
 
             Plotting.plot_multiple_curves(hv_data, args)
 

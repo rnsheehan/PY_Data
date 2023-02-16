@@ -172,13 +172,17 @@ def Superlum_Amplification():
             READ_SLD = False
             READ_SLD_AMP = False
             PLOT_POW = False
+            PLOT_POW_SINGLE = False
             PLOT_FULL = False
-            PLOT_FILT = True
+            PLOT_FILT = False
             SLD_file = glob.glob("SLD*2023.txt")
             SLD_file_Amp = glob.glob("SLD*2023_Amp.txt")
             SLD_file_full = glob.glob("SLD*Full*.txt")
             #SLD_file_filt = glob.glob("SLD*_1_13*.txt")
-            SLD_file_filt = ['SLD_T_125_I_400_Filtered_Santec_1_13_2_2023.txt','SLD_T_125_I_300_Filtered_Santec_1_13_2_2023.txt','SLD_T_125_I_400_UnFiltered_1_13_2_2023.txt','SLD_T_125_I_300_UnFiltered_1_13_2_2023.txt']
+            SLD_file_filt = ['SLD_T_125_I_400_Filtered_Santec_1_13_2_2023.txt',
+                             'SLD_T_125_I_300_Filtered_Santec_1_13_2_2023.txt',
+                             'SLD_T_125_I_400_UnFiltered_1_13_2_2023.txt',
+                             'SLD_T_125_I_300_UnFiltered_1_13_2_2023.txt']
             #SLD_file_filt = ['SLD_T_125_I_400_Filtered_Santec_FP_Amp_1_13_2_2023.txt',
             #                 'SLD_T_125_I_400_Filtered_Santec_1_13_2_2023.txt',
             #                 'SLD_T_125_I_400_UnFiltered_1_13_2_2023.txt']
@@ -189,6 +193,19 @@ def Superlum_Amplification():
             SLD_curr = [300, 310, 320, 330, 340, 350, 360, 370, 380, 390, 400]
             SLD_pow = [6.83, 7.15, 7.45, 7.74, 8.00, 8.25, 8.48, 8.70, 8.90, 9.09, 9.28]
             SLD_pow_filt = [-16.60, -16.23, -15.90, -15.58, -15.30, -15.03, -14.78, -14.56, -14.35, -14.14, -13.95]
+
+            if PLOT_POW_SINGLE:
+                # plot the SLD power
+                args = Plotting.plot_arg_single()
+
+                args.loud = True
+                args.curve_label = 'T = 20 C'
+                args.marker = Plotting.labs[0]
+                args.x_label = 'Current (mA)'
+                args.y_label = 'Power (dBm)'
+                args.fig_name = 'SLD_Only_Power'
+
+                Plotting.plot_single_curve(SLD_curr, SLD_pow, args)
 
             if READ_SLD:           
                 for i in range(0, len(SLD_file), 1):
@@ -322,6 +339,174 @@ def Superlum_Amplification():
 
                 Plotting.plot_single_curve(hv_data[3][0], hv_data[3][1], args)
 
+            # EDFA Pump Output
+            PLOT_Pump = False
+            PLOT_Cbnd_Pow = False
+            pump_files = ['FBG_Pump_LIV_S144C_3.txt', 'CBand_EDFA_Pump_Output_No_Input_WL_980.txt']
+            cbnd_pow_files = ['FBG_Pump_LIV_S144C_3.txt','CBand_EDFA_Pump_Output_No_Input_WL_1550.txt','CBand_EDFA_Amp_Output_SLD_Input_WL_1550_1.txt','CBand_EDFA_Amp_Output_SLD_Input_WL_1550_2.txt']
+
+            if PLOT_Pump:
+                for i in range(0, len(pump_files), 1):
+                    data = numpy.loadtxt(pump_files[i], delimiter = '\t', unpack = True)
+                    hv_data.append([data[0], data[3]])
+                    marks.append( Plotting.labs_lins[i] )
+                    #labels.append(pump_files[i])
+
+                labels.append('FBG Pump')
+                labels.append('C-bnd No input')
+                #labels.append('C-bnd 1550 nm No input')
+                #labels.append('C-bnd 1550 nm SLD input')
+
+            if PLOT_Cbnd_Pow:
+                for i in range(0, len(cbnd_pow_files)-1, 1):
+                    data = numpy.loadtxt(cbnd_pow_files[i], delimiter = '\t', unpack = True)
+                    hv_data.append([data[0], data[2]])
+                    marks.append( Plotting.labs_lins[i] )
+                    #labels.append(cbnd_pow_files[i])
+
+                #labels.append('FBG Pump')
+                #labels.append('C-bnd No input')
+                labels.append('FBG Pump')
+                labels.append('C-bnd No input')
+                labels.append('C-bnd SLD input')
+
+            # EDFA Gain Spectra
+            PLOT_Cbnd_Gain = False
+            PLOT_Lbnd_Gain = False
+            PLOT_Gain_Compar = False
+            PLOT_Gain_Compar_Short = False
+            Ipump = numpy.arange(100, 401, 100)
+            #Ipump = [100, 200, 300, 400]
+            Cbnd_gain_files = glob.glob('Fibre_CBand_EDFA_Gain_Pump_*_15_2_2025.txt')
+            Lbnd_gain_files = glob.glob('Fibre_LBand_EDFA_Gain_Pump_*_15_2_2025.txt')
+            FP_file = 'EDFA_3_26_1_2023.txt'
+            Full_gain_files = ['Fibre_CBand_EDFA_Gain_Pump_400_Full_15_2_2025.txt', 'Fibre_LBand_EDFA_Gain_Pump_400_Full_15_2_2025.txt','EDFA_1_26_1_2023.txt']
+
+            if PLOT_Cbnd_Gain:
+                for i in range(0, len(Cbnd_gain_files)-1, 1):
+                    data = numpy.loadtxt(Cbnd_gain_files[i], delimiter = '\t', unpack = True)
+                    hv_data.append([data[0], data[1]])
+                    marks.append( Plotting.labs_lins[i] )
+                    labels.append('I$_{pump}$ = %(v1)d (mA)'%{ "v1":Ipump[i] } )
+                
+                data = numpy.loadtxt(FP_file, delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[1]])
+                marks.append( Plotting.labs_line_only[1] )
+                labels.append('EDFA-C-26G-S')
+
+            if PLOT_Lbnd_Gain:
+                for i in range(0, len(Lbnd_gain_files)-1, 1):
+                    data = numpy.loadtxt(Lbnd_gain_files[i], delimiter = '\t', unpack = True)
+                    hv_data.append([data[0], data[1]])
+                    marks.append( Plotting.labs_lins[i] )
+                    labels.append('I$_{pump}$ = %(v1)d (mA)'%{ "v1":Ipump[i] } )
+
+                data = numpy.loadtxt(FP_file, delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[1]])
+                marks.append( Plotting.labs_line_only[1] )
+                labels.append('EDFA-C-26G-S')
+
+            if PLOT_Gain_Compar:
+                for i in range(0, len(Full_gain_files), 1):
+                    data = numpy.loadtxt(Full_gain_files[i], delimiter = '\t', unpack = True)
+                    hv_data.append([data[0], data[1]])
+                    marks.append( Plotting.labs_lins[i] )
+
+                labels.append('C-Band')
+                labels.append('L-Band')
+                labels.append('EDFA-C-26G-S')
+
+            if PLOT_Gain_Compar_Short:
+                data = numpy.loadtxt(Cbnd_gain_files[-2], delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[1]])
+                marks.append( Plotting.labs_lins[0] )
+                labels.append('C-Band')
+
+                data = numpy.loadtxt(Lbnd_gain_files[-2], delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[1]])
+                marks.append( Plotting.labs_lins[1] )
+                labels.append('L-Band')
+
+                data = numpy.loadtxt(FP_file, delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[1]])
+                marks.append( Plotting.labs_line_only[1] )
+                labels.append('EDFA-C-26G-S')
+
+            # Amplified Spectra
+            PLOT_Config1 = False
+            PLOT_Config_Combo = False
+            PLOT_Config_Res = True
+            Config1_files = glob.glob('SLD_T_125_I_400_Filtered_Santec_Cbnd_Amp_Pump_*_15_2_2023.txt'); CN = 1; # config-1
+            Config2_files = glob.glob('SLD_T_125_I_400_Filtered_Santec_Lbnd_Amp_Pump_*_15_2_2023.txt'); CN = 2; #config-2
+            Config3_files = glob.glob('SLD_T_125_I_400_Lbnd_Amp_Pump_*_Filtered_Santec_15_2_2023.txt'); CN = 3; #config-3
+            Config4_files = glob.glob('SLD_T_125_I_400_Filtered_Santec_Lbnd_FP_Amp_Pump_*_15_2_2023.txt'); CN = 4; #config-4
+            Config5_files = glob.glob('SLD_T_125_I_400_Filtered_Santec_FP_Lbnd_Amp_Pump_*_15_2_2023.txt'); CN = 5; #config-5
+            unamp_file = 'SLD_T_125_I_400_UnFiltered_1_15_2_2023.txt'
+            unfilt_file = 'SLD_T_125_I_400_UnFiltered_1_13_2_2023.txt'
+            amp_file = 'SLD_T_125_I_400_Filtered_Santec_FP_Amp_15_2_2023.txt'
+            final_configs = [Config1_files[-1], Config2_files[-1], Config3_files[-1], Config4_files[-1], Config5_files[-1]]
+            print(Config1_files)
+
+            if PLOT_Config1:
+                for i in range(0, len(Config1_files), 1):
+                    data = numpy.loadtxt(Config1_files[i], delimiter = '\t', unpack = True)
+                    hv_data.append([data[0], data[1]])
+                    marks.append( Plotting.labs_lins[i] )
+                    labels.append('I$_{pump}$ = %(v1)d (mA)'%{ "v1":Ipump[i] } )
+
+                if CN == 5:
+                    data = numpy.loadtxt(amp_file, delimiter = '\t', unpack = True)
+                    hv_data.append([data[0], data[1]])
+                    marks.append( Plotting.labs_line_only[2] )
+                    labels.append('SLD + OTF-320 + FP')
+
+                data = numpy.loadtxt(unamp_file, delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[1]])
+                marks.append( Plotting.labs_line_only[1] )
+                labels.append('SLD + OTF-320')
+
+            if PLOT_Config_Combo:
+
+                for i in range(0, len(final_configs), 1):
+                    data = numpy.loadtxt(final_configs[i], delimiter = '\t', unpack = True)
+                    hv_data.append([data[0], data[1]])
+                    marks.append( Plotting.labs_lins[i] )
+                    labels.append('Config. = %(v1)d'%{ "v1":i+1 } )                
+
+                data = numpy.loadtxt(unamp_file, delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[1]])
+                marks.append( Plotting.labs_line_only[1] )
+                labels.append('SLD + OTF-320')
+
+            if PLOT_Config_Res:
+
+                data = numpy.loadtxt(final_configs[-1], delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[1]])
+                #marks.append( Plotting.labs_line_only[0] )
+                marks.append( Plotting.labs_lins[3] )
+                #labels.append('SLD + OTF-320 + FP + L-bnd')
+                labels.append('SLD + F + A1 + A2')
+
+                data = numpy.loadtxt(amp_file, delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[1]])
+                #marks.append( Plotting.labs_line_only[2] )
+                marks.append( Plotting.labs_lins[2] )
+                #labels.append('SLD + OTF-320 + FP')
+                labels.append('SLD + F + A1')
+
+                data = numpy.loadtxt(unamp_file, delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[1]])
+                #marks.append( Plotting.labs_line_only[1] )
+                marks.append( Plotting.labs_lins[1] )
+                #labels.append('SLD + OTF-320')
+                labels.append('SLD + F')
+
+                data = numpy.loadtxt(unfilt_file, delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[1]])
+                #marks.append( Plotting.labs_line_only[1] )
+                marks.append( Plotting.labs_lins[0] )
+                labels.append('SLD')
+
             # Generate the plot
             args = Plotting.plot_arg_multiple()
 
@@ -371,6 +556,50 @@ def Superlum_Amplification():
                 args.x_label = 'Current (mA)'
                 args.y_label = 'Power (mW)'
                 args.fig_name = 'PM_Comparison'
+            if PLOT_Pump:
+                args.x_label = 'Current (mA)'
+                args.y_label = 'Power (dBm)'
+                args.fig_name = 'Pump_Power'
+            if PLOT_Cbnd_Pow:
+                args.x_label = 'Current (mA)'
+                args.y_label = 'Power (mW)'
+                args.plt_range = [0, 300, 0, 15]
+                args.fig_name = 'Cbnd_Power_mW'
+            if PLOT_Cbnd_Gain:
+                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.y_label = 'Power (dBm / 0.05 nm)'
+                args.plt_range = [1530, 1560, -65, -15]
+                args.fig_name = 'Cbnd_EDFA_Spectra'
+            if PLOT_Lbnd_Gain:
+                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.y_label = 'Power (dBm / 0.05 nm)'
+                args.plt_range = [1530, 1560, -65, -15]
+                args.fig_name = 'Lbnd_EDFA_Spectra'
+            if PLOT_Gain_Compar:
+                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.y_label = 'Power (dBm / 0.1 nm)'
+                args.plt_range = [1500, 1620, -65, -15]
+                args.fig_name = 'EDFA_Gain_Spectra'
+            if PLOT_Gain_Compar_Short:
+                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.y_label = 'Power (dBm / 0.05 nm)'
+                args.plt_range = [1530, 1560, -65, -15]
+                args.fig_name = 'Gain_Spectra_Compar'
+            if PLOT_Config1:
+                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.y_label = 'Power (dBm / 0.05 nm)'
+                args.plt_range = [1545, 1555, -60, 10]
+                args.fig_name = 'Spectrum_Config_%(v1)d'%{"v1":CN}
+            if PLOT_Config_Combo:
+                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.y_label = 'Power (dBm / 0.05 nm)'
+                args.plt_range = [1545, 1555, -60, 10]
+                args.fig_name = 'Combined_Config'
+            if PLOT_Config_Res:
+                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.y_label = 'Power (dBm / 0.05 nm)'
+                args.plt_range = [1545, 1555, -60, 10]
+                args.fig_name = 'SLD_Amp_Result'
 
             Plotting.plot_multiple_curves(hv_data, args)
 

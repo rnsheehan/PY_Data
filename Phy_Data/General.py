@@ -375,11 +375,14 @@ def Superlum_Amplification():
             PLOT_Lbnd_Gain = False
             PLOT_Gain_Compar = False
             PLOT_Gain_Compar_Short = False
+            PLOT_Gain_Filt = False
             Ipump = numpy.arange(100, 401, 100)
             #Ipump = [100, 200, 300, 400]
             Cbnd_gain_files = glob.glob('Fibre_CBand_EDFA_Gain_Pump_*_15_2_2025.txt')
             Lbnd_gain_files = glob.glob('Fibre_LBand_EDFA_Gain_Pump_*_15_2_2025.txt')
             FP_file = 'EDFA_3_26_1_2023.txt'
+            amp_file = 'SLD_T_125_I_400_Filtered_Santec_FP_Amp_15_2_2023.txt'
+            unamp_file = 'SLD_T_125_I_400_UnFiltered_1_15_2_2023.txt'
             Full_gain_files = ['Fibre_CBand_EDFA_Gain_Pump_400_Full_15_2_2025.txt', 'Fibre_LBand_EDFA_Gain_Pump_400_Full_15_2_2025.txt','EDFA_1_26_1_2023.txt']
 
             if PLOT_Cbnd_Gain:
@@ -432,10 +435,36 @@ def Superlum_Amplification():
                 marks.append( Plotting.labs_line_only[1] )
                 labels.append('EDFA-C-26G-S')
 
+            if PLOT_Gain_Filt:
+                data = numpy.loadtxt(Cbnd_gain_files[-2], delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[1]])
+                marks.append( Plotting.labs_lins[0] )
+                labels.append('C-Band')
+
+                data = numpy.loadtxt(Lbnd_gain_files[-2], delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[1]])
+                marks.append( Plotting.labs_lins[1] )
+                labels.append('L-Band')
+
+                data = numpy.loadtxt(FP_file, delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[1]])
+                marks.append( Plotting.labs_line_only[1] )
+                labels.append('EDFA-C-26G-S')
+
+                data = numpy.loadtxt(amp_file, delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[1]])
+                marks.append( Plotting.labs_lins[2] )
+                labels.append('A1 Output')
+
+                data = numpy.loadtxt(unamp_file, delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[1]])
+                marks.append( Plotting.labs_dashed[2] )
+                labels.append('Filter Output')
+
             # Amplified Spectra
             PLOT_Config1 = False
             PLOT_Config_Combo = False
-            PLOT_Config_Res = True
+            PLOT_Config_Res = False
             Config1_files = glob.glob('SLD_T_125_I_400_Filtered_Santec_Cbnd_Amp_Pump_*_15_2_2023.txt'); CN = 1; # config-1
             Config2_files = glob.glob('SLD_T_125_I_400_Filtered_Santec_Lbnd_Amp_Pump_*_15_2_2023.txt'); CN = 2; #config-2
             Config3_files = glob.glob('SLD_T_125_I_400_Lbnd_Amp_Pump_*_Filtered_Santec_15_2_2023.txt'); CN = 3; #config-3
@@ -506,6 +535,20 @@ def Superlum_Amplification():
                 #marks.append( Plotting.labs_line_only[1] )
                 marks.append( Plotting.labs_lins[0] )
                 labels.append('SLD')
+
+            # Plot the tuned spectra
+            PLOT_Tuning = True
+            Band = 'C'
+            WL = numpy.arange(1540, 1556, 5)
+            tuned_files = glob.glob('SLD_T_125_I_400_Filtered_Santec_FP_%(v1)sbnd_Amp_Pump_400_17_2_2023_l_*.txt'%{"v1":Band})
+
+            if PLOT_Tuning:
+
+                for i in range(0, len(tuned_files), 1):
+                    data = numpy.loadtxt(tuned_files[i], delimiter = '\t', unpack = True)
+                    hv_data.append([data[0], data[1]])
+                    marks.append( Plotting.labs_lins[i] )
+                    labels.append('%(v1)d (nm)'%{ "v1":WL[i] } )
 
             # Generate the plot
             args = Plotting.plot_arg_multiple()
@@ -600,6 +643,16 @@ def Superlum_Amplification():
                 args.y_label = 'Power (dBm / 0.05 nm)'
                 args.plt_range = [1545, 1555, -60, 10]
                 args.fig_name = 'SLD_Amp_Result'
+            if PLOT_Tuning:
+                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.y_label = 'Power (dBm / 0.05 nm)'
+                args.plt_range = [1535, 1560, -30, 5]
+                args.fig_name = 'SLD_Amp_Tuning_%(v1)sBand'%{"v1":Band}
+            if PLOT_Gain_Filt: 
+                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.y_label = 'Power (dBm / 0.05 nm)'
+                args.plt_range = [1540, 1560, -60, 0]
+                args.fig_name = 'Gain_Spectra_Compar_Filt'
 
             Plotting.plot_multiple_curves(hv_data, args)
 

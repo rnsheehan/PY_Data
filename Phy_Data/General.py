@@ -384,6 +384,7 @@ def Superlum_Amplification():
             amp_file = 'SLD_T_125_I_400_Filtered_Santec_FP_Amp_15_2_2023.txt'
             unamp_file = 'SLD_T_125_I_400_UnFiltered_1_15_2_2023.txt'
             Full_gain_files = ['Fibre_CBand_EDFA_Gain_Pump_400_Full_15_2_2025.txt', 'Fibre_LBand_EDFA_Gain_Pump_400_Full_15_2_2025.txt','EDFA_1_26_1_2023.txt']
+            JDSU_Short_gain = 'JDSU_OEM_A_I_400_ASE_20_2_2023.txt'
 
             if PLOT_Cbnd_Gain:
                 for i in range(0, len(Cbnd_gain_files)-1, 1):
@@ -420,6 +421,11 @@ def Superlum_Amplification():
                 labels.append('EDFA-C-26G-S')
 
             if PLOT_Gain_Compar_Short:
+                data = numpy.loadtxt(JDSU_Short_gain, delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[1]])
+                marks.append( Plotting.labs_lins[3] )
+                labels.append('JDSU OAM A')
+                
                 data = numpy.loadtxt(Cbnd_gain_files[-2], delimiter = '\t', unpack = True)
                 hv_data.append([data[0], data[1]])
                 marks.append( Plotting.labs_lins[0] )
@@ -436,6 +442,11 @@ def Superlum_Amplification():
                 labels.append('EDFA-C-26G-S')
 
             if PLOT_Gain_Filt:
+                data = numpy.loadtxt(JDSU_Short_gain, delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[1]])
+                marks.append( Plotting.labs_lins[3] )
+                labels.append('JDSU OAM A')
+
                 data = numpy.loadtxt(Cbnd_gain_files[-2], delimiter = '\t', unpack = True)
                 hv_data.append([data[0], data[1]])
                 marks.append( Plotting.labs_lins[0] )
@@ -537,7 +548,7 @@ def Superlum_Amplification():
                 labels.append('SLD')
 
             # Plot the tuned spectra
-            PLOT_Tuning = True
+            PLOT_Tuning = False
             Band = 'C'
             WL = numpy.arange(1540, 1556, 5)
             tuned_files = glob.glob('SLD_T_125_I_400_Filtered_Santec_FP_%(v1)sbnd_Amp_Pump_400_17_2_2023_l_*.txt'%{"v1":Band})
@@ -549,6 +560,90 @@ def Superlum_Amplification():
                     hv_data.append([data[0], data[1]])
                     marks.append( Plotting.labs_lins[i] )
                     labels.append('%(v1)d (nm)'%{ "v1":WL[i] } )
+
+            # Plot the data related to the JDSU OAM
+            PLOT_OAM_Spctr_Full = False
+            PLOT_OAM_Spctr_Short = False
+            PLOT_OAM_IV = True
+            PLOT_OAM_AMP = False
+            OAM = 'A'
+            full_spctr = glob.glob('JDSU_OEM_%(v1)s_I_*_ASE_20_2_2023.txt'%{"v1":OAM})
+            short_spctr = glob.glob('JDSU_OEM_%(v1)s_I_*_ASE_Short_20_2_2023.txt'%{"v1":OAM})
+            OAM_IV = glob.glob('JDSU_OEM_*_IV.txt')
+            OAM_AMP_files = ['SLD_T_125_I_400_Filtered_Santec_20_2_2023.txt',
+                             'SLD_T_125_I_400_Filtered_Santec_FP_Amp_20_2_2023.txt',
+                             'SLD_T_125_I_400_Filtered_Santec_FP_Cbnd_Amp_Pump_400_20_2_2023.txt',
+                             'SLD_T_125_I_400_Filtered_Santec_JDSU_A_Amp_20_2_2023.txt',
+                             'SLD_T_125_I_400_Filtered_Santec_JDSU_A_Cbnd_Amp_Pump_400_20_2_2023.txt',
+                             'SLD_T_125_I_400_Filtered_Santec_Cbnd_Amp_Pump_400_20_2_2023.txt',
+                             'SLD_T_125_I_400_Filtered_Santec_Cbnd_Amp_Pump_400_JDSU_A_20_2_2023.txt']
+            STEP = 0
+            Ipump = numpy.arange(100, 501, 100)
+
+            if PLOT_OAM_Spctr_Full:
+                for i in range(0, len(full_spctr), 1):
+                    data = numpy.loadtxt(full_spctr[i], delimiter = '\t', unpack = True)
+                    hv_data.append([data[0], data[1]])
+                    marks.append( Plotting.labs_lins[i] )
+                    labels.append('I$_{drv}$ = %(v1)d (mA)'%{ "v1":Ipump[i] } )
+
+            if PLOT_OAM_Spctr_Short:
+                for i in range(0, len(short_spctr), 1):
+                    data = numpy.loadtxt(short_spctr[i], delimiter = '\t', unpack = True)
+                    hv_data.append([data[0], data[1]])
+                    marks.append( Plotting.labs_lins[i] )
+                    labels.append('I$_{drv}$ = %(v1)d (mA)'%{ "v1":Ipump[i] } )
+
+            if PLOT_OAM_IV:
+                for i in range(0, len(OAM_IV), 1):
+                    data = numpy.loadtxt(OAM_IV[i], delimiter = '\t', unpack = True)
+                    hv_data.append([data[0], data[1]])
+                    marks.append( Plotting.labs_lins[i] )
+                    #labels.append('I$_{drv}$ = %(v1)d (mA)'%{ "v1":Ipump[i] } )
+
+                labels.append('OAM A')
+                labels.append('OAM B')
+
+            if PLOT_OAM_AMP:
+                #STEP = 1
+                #data = numpy.loadtxt(OAM_AMP_files[2], delimiter = '\t', unpack = True)
+                #hv_data.append([data[0], data[1]])
+                #labels.append('SLD + OTF + FP + C-band'); marks.append( Plotting.labs_lins[1] );
+
+                #data = numpy.loadtxt(OAM_AMP_files[1], delimiter = '\t', unpack = True)
+                #hv_data.append([data[0], data[1]])
+                #labels.append('SLD + OTF + FP'); marks.append( Plotting.labs_lins[0] );
+
+                #STEP = 22
+                #data = numpy.loadtxt(OAM_AMP_files[3], delimiter = '\t', unpack = True)
+                #hv_data.append([data[0], data[1]])
+                #labels.append('SLD + OTF + OAM-A'); marks.append( Plotting.labs_lins[2] );
+
+                #data = numpy.loadtxt(OAM_AMP_files[2], delimiter = '\t', unpack = True)
+                #hv_data.append([data[0], data[1]])
+                #labels.append('SLD + OTF + FP + C-band'); marks.append( Plotting.labs_lins[1] );
+
+                #STEP = 3
+                #data = numpy.loadtxt(OAM_AMP_files[4], delimiter = '\t', unpack = True)
+                #hv_data.append([data[0], data[1]])
+                #labels.append('SLD + OTF + OAM-A + C-band'); marks.append( Plotting.labs_lins[3] );
+
+                #data = numpy.loadtxt(OAM_AMP_files[3], delimiter = '\t', unpack = True)
+                #hv_data.append([data[0], data[1]])
+                #labels.append('SLD + OTF + OAM-A'); marks.append( Plotting.labs_lins[2] );
+
+                STEP = 4
+                data = numpy.loadtxt(OAM_AMP_files[6], delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[1]])
+                labels.append('SLD + OTF + C-band + OAM-A'); marks.append( Plotting.labs_lins[5] );
+
+                data = numpy.loadtxt(OAM_AMP_files[5], delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[1]])
+                labels.append('SLD + OTF + C-band'); marks.append( Plotting.labs_lins[4] );
+
+                data = numpy.loadtxt(OAM_AMP_files[0], delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[1]])
+                labels.append('SLD + OTF'); marks.append( Plotting.labs_line_only[1] );                
 
             # Generate the plot
             args = Plotting.plot_arg_multiple()
@@ -626,8 +721,8 @@ def Superlum_Amplification():
             if PLOT_Gain_Compar_Short:
                 args.x_label = 'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.05 nm)'
-                args.plt_range = [1530, 1560, -65, -15]
-                args.fig_name = 'Gain_Spectra_Compar'
+                args.plt_range = [1530, 1560, -60, 0]
+                args.fig_name = 'Gain_Spectra_Compar_2'
             if PLOT_Config1:
                 args.x_label = 'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.05 nm)'
@@ -652,7 +747,27 @@ def Superlum_Amplification():
                 args.x_label = 'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.05 nm)'
                 args.plt_range = [1540, 1560, -60, 0]
-                args.fig_name = 'Gain_Spectra_Compar_Filt'
+                args.fig_name = 'Gain_Spectra_Compar_Filt_2'
+            if PLOT_OAM_Spctr_Full:
+                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.y_label = 'Power (dBm / 0.1 nm)'
+                args.plt_range = [1500, 1600, -50, 0]
+                args.fig_name = 'JDSU_OAM_%(v1)s_Full'%{"v1":OAM}
+            if PLOT_OAM_Spctr_Short:
+                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.y_label = 'Power (dBm / 0.05 nm)'
+                args.plt_range = [1540, 1560, -60, -10]
+                args.fig_name = 'JDSU_OAM_%(v1)s_Short'%{"v1":OAM}
+            if PLOT_OAM_IV:
+                args.x_label = 'Current / mA'
+                args.y_label = 'Voltage / V'
+                args.plt_range = [0, 100, 0, 1.6]
+                args.fig_name = 'OAM_IV_Curves_2'
+            if PLOT_OAM_AMP:
+                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.y_label = 'Power (dBm / 0.05 nm)'
+                args.plt_range = [1540, 1560, -60, 10]
+                args.fig_name = 'JDSU_OAM_Test_%(v1)d'%{"v1":STEP}
 
             Plotting.plot_multiple_curves(hv_data, args)
 

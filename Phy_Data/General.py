@@ -564,7 +564,7 @@ def Superlum_Amplification():
             # Plot the data related to the JDSU OAM
             PLOT_OAM_Spctr_Full = False
             PLOT_OAM_Spctr_Short = False
-            PLOT_OAM_IV = True
+            PLOT_OAM_IV = False
             PLOT_OAM_AMP = False
             OAM = 'A'
             full_spctr = glob.glob('JDSU_OEM_%(v1)s_I_*_ASE_20_2_2023.txt'%{"v1":OAM})
@@ -643,7 +643,47 @@ def Superlum_Amplification():
 
                 data = numpy.loadtxt(OAM_AMP_files[0], delimiter = '\t', unpack = True)
                 hv_data.append([data[0], data[1]])
-                labels.append('SLD + OTF'); marks.append( Plotting.labs_line_only[1] );                
+                labels.append('SLD + OTF'); marks.append( Plotting.labs_line_only[1] );    
+                
+            # Counter Propagation Experiment
+            PLOT_COUNT = False
+            counter_files = ['SLD_T_125_I_400_Filtered_Santec_FP_Lbnd_Amp_Counter_Pump_400_21_2_2023.txt',
+                             'SLD_T_125_I_400_Filtered_Santec_FP_Lbnd_Amp_Pump_400_21_2_2023.txt',
+                             'SLD_T_125_I_400_Filtered_Santec_FP_Amp_21_2_2023.txt',
+                             'SLD_T_125_I_400_Filtered_Santec_21_2_2023.txt']
+
+            if PLOT_COUNT:
+                for i in range(0, len(counter_files), 1):
+                    data = numpy.loadtxt(counter_files[i], delimiter = '\t', unpack = True)
+                    hv_data.append([data[0], data[1]])                    
+
+                labels.append('SLD + OTF + FP + Lcntr'); marks.append( Plotting.labs_lins[0] );
+                labels.append('SLD + OTF + FP + L'); marks.append( Plotting.labs_lins[1] );
+                labels.append('SLD + OTF + FP'); marks.append( Plotting.labs_lins[2] );
+                labels.append('SLD + OTF'); marks.append( Plotting.labs_line_only[1] );
+
+            # C-band EDFA altered ASE
+            PLOT_Alt_ASE = True
+            ASE_Files = ['JDSU_OEM_A_I_400_ASE_21_2_2023.txt',
+                         'JDSU_OEM_A_I_400_ASE_20_2_2023.txt',
+                         'Fibre_CBand_EDFA_Gain_Pump_400_21_2_2023.txt',
+                         'Fibre_CBand_EDFA_Gain_Pump_400_15_2_2025.txt',
+                         'Fibre_LBand_EDFA_Gain_Pump_400_21_2_2023.txt',
+                         'Fibre_LBand_EDFA_Gain_Pump_400_15_2_2025.txt',
+                         'EDFA_3_26_1_2023.txt']
+
+            if PLOT_Alt_ASE:
+                for i in range(0, len(ASE_Files), 1):
+                    data = numpy.loadtxt(ASE_Files[i], delimiter = '\t', unpack = True)
+                    hv_data.append([data[0], data[1]])
+
+                labels.append('JDSU OAM-A 21-2-2023'); marks.append( Plotting.labs_lins[3] );
+                labels.append('JDSU OAM-A 20-2-2023'); marks.append( Plotting.labs_dashed[3] );
+                labels.append('C-band 21-2-2023'); marks.append( Plotting.labs_lins[0] );
+                labels.append('C-band 15-2-2023'); marks.append( Plotting.labs_dashed[0] );
+                labels.append('L-band 21-2-2023'); marks.append( Plotting.labs_lins[1] );
+                labels.append('L-band 15-2-2023'); marks.append( Plotting.labs_dashed[1] );
+                labels.append('EDFA-C-26G-S'); marks.append( Plotting.labs_line_only[1] );
 
             # Generate the plot
             args = Plotting.plot_arg_multiple()
@@ -768,6 +808,16 @@ def Superlum_Amplification():
                 args.y_label = 'Power (dBm / 0.05 nm)'
                 args.plt_range = [1540, 1560, -60, 10]
                 args.fig_name = 'JDSU_OAM_Test_%(v1)d'%{"v1":STEP}
+            if PLOT_COUNT:
+                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.y_label = 'Power (dBm / 0.05 nm)'
+                args.plt_range = [1540, 1560, -60, 10]
+                args.fig_name = 'Counter_Prop_Test'
+            if PLOT_Alt_ASE:
+                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.y_label = 'Power (dBm / 0.05 nm)'
+                args.plt_range = [1540, 1560, -60, -10]
+                args.fig_name = 'ASE_Change'
 
             Plotting.plot_multiple_curves(hv_data, args)
 

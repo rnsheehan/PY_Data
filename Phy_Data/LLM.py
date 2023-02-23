@@ -2972,3 +2972,209 @@ def Beat_Data_Report(Nbeats, F_AOM, Loop_Length, F_CUTOFF, Titles, Average, Max,
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
+
+def NKT_LCR_DSHI_Test():
+
+    # plot the data obtained while optimising the LCR-DSHI setup
+    # for testing the NKT Fibre Laser
+    # R. Sheehan 23 - 2 - 2023
+
+    FUNC_NAME = ".NKT_LCR_DSHI_Test()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/NKT_LCR_DSHI/'
+
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+
+            # Plot the measured NKT OPtical Spectrum
+            PLOT_OPT_SPCTR = False
+            if PLOT_OPT_SPCTR:
+                opt_spctr = glob.glob('NKT_Laser_I_*.txt')
+                Ipump = [100, 125, 150]
+
+                hv_data = []; labels = []; marks = []; 
+
+                for i in range(0, len(opt_spctr), 1):
+                    data = numpy.loadtxt(opt_spctr[i], delimiter = '\t',unpack = True)
+                    hv_data.append(data);
+                    marks.append(Plotting.labs_lins[i])
+                    labels.append('I$_{pump}$ = %(v1)d (mA)'%{"v1":Ipump[i]})
+
+                # Make the plot
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = 'Wavelength ( nm )'
+                args.y_label = 'Power ( dBm / 0.05 nm )'
+                args.plt_range = [1549, 1551, -50, 10]
+                args.fig_name = 'NKT_Optical_Spectrum'
+
+                Plotting.plot_multiple_curves(hv_data, args)
+
+            # Plot the Measured CNR
+            PLOT_CNR = False
+            if PLOT_CNR:
+                NKT_CNR = 'NKT_I_100_CNR.txt'
+                data = numpy.loadtxt(NKT_CNR, delimiter = '\t', unpack = True)
+
+                args = Plotting.plot_arg_single()
+                
+                args.loud = True
+                args.x_label = 'VOA Bias ( V )'
+                args.y_label = 'CNR ( dB )'
+                args.plt_range = [0, 4, 26, 44]
+                
+                Plotting.plot_single_curve_with_errors(data[0], data[1], data[2], args)
+
+            # Plot lineshape RBW = 20 kHz
+            PLOT_LINE_20 = False
+            if PLOT_LINE_20:
+                line_20_files = glob.glob('NKT_I_100_Vb_*_RBW_20_fb_80.txt')
+                VOA_bias = [0, 1, 2, 3, 3.5, 4, 4.5]
+
+                hv_data = []; labels = []; marks = []; 
+
+                for i in range(0, len(line_20_files), 1):
+                    data = numpy.loadtxt(line_20_files[i], delimiter = '\t',unpack = True)
+                    hv_data.append(data);
+                    marks.append(Plotting.labs_lins[i])
+                    labels.append('V$_{VOA}$ = %(v1)0.1f V'%{"v1":VOA_bias[i]})
+
+                # Make the plot
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = 'Frequency ( MHz )'
+                args.y_label = 'Spectral Power ( dBm / 20 kHz )'
+                args.plt_range = [79, 81, -100, -10]
+                args.fig_name = 'NKT_Lineshape_RBW_20'
+
+                Plotting.plot_multiple_curves(hv_data, args)
+
+            # Plot lineshape Variable RBW
+            PLOT_LINE_VaryR = False
+            if PLOT_LINE_VaryR:
+                line_vary_files = ['NKT_I_100_Vb_30_RBW_20_fb_80.txt', 'NKT_I_100_Vb_30_RBW_2_fb_80.txt', 'NKT_I_100_Vb_30_RBW_1_fb_80.txt','NKT_I_100_Vb_30_RBW_05_fb_80.txt']
+                print(line_vary_files)
+                RBW = [20, 2, 1, 0.5]
+
+                hv_data = []; labels = []; marks = []; 
+
+                for i in range(0, len(line_vary_files), 1):
+                    data = numpy.loadtxt(line_vary_files[i], delimiter = '\t',unpack = True)
+                    hv_data.append(data);
+                    marks.append(Plotting.labs_lins[i])
+                    labels.append('RBW = %(v1)0.1f kHz'%{"v1":RBW[i]})
+
+                # Make the plot
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = 'Frequency ( MHz )'
+                args.y_label = 'Spectral Power ( dBm )'
+                args.plt_range = [79.75, 80.25, -90, -10]
+                args.plt_title = 'V$_{VOA}$ = 3 V'
+                args.fig_name = 'NKT_Lineshape_RBW_Variable'
+
+                Plotting.plot_multiple_curves(hv_data, args)
+
+            # Plot all beat notes
+            PLOT_ALL_BEATS = True
+            if PLOT_ALL_BEATS:
+                fbeats = numpy.arange(80, 2970, 80)
+                
+                fcentre = deltaf = 80
+                span = 0.25
+                flo = fcentre - 0.5*span
+                fhi = fcentre + 0.5*span
+                Lf = 50
+
+                # Store data for combined plot
+                hv_data = []; labels = []; marks = []; dist_labels = []; 
+
+                # Extract data showing the blue-shift of the frequency peak
+                delta_peak = []
+
+                for i in range(0, len(fbeats), 1):
+                    beat_file = glob.glob('NKT_I_100_Vb_30_RBW_05_fb_%(v1)d.txt'%{"v1":fbeats[i]})
+
+                    data = numpy.loadtxt(beat_file[0], delimiter = '\t', unpack = True)
+
+                    # Extract data showing the blue-shift of the frequency peak
+                    delta_peak.append( 1e+3*( data[0][numpy.argmax(data[1])] - fbeats[i] ) )
+
+                    # Change the scale for the plot
+                    data[0] = 1e+3*(data[0] - fbeats[i]) # shift all measured frequencies to 0 MHz
+
+                    # Plot the measured spectrum
+                    args = Plotting.plot_arg_single()
+
+                    args.loud = False
+                    args.marker = Plotting.labs_lins[ i % len(Plotting.labs_lins) ]
+                    args.x_label = 'Frequency ( kHz )'
+                    args.y_label = 'Spectral Power ( dBm / 500 Hz )'
+                    args.plt_range = [-500*span, 500*span, -120, -20]
+                    args.plt_title = 'V$_{VOA}$ = 3 V'
+                    args.fig_name = beat_file[0].replace('.txt','')
+
+                    Plotting.plot_single_curve(data[0], data[1], args)
+
+                    # Store data for combined plot
+                    
+                    hv_data.append([ data[0], data[1] ] )
+                    marks.append(Plotting.labs_lins[ i % len(Plotting.labs_lins) ])
+                    labels.append('f$_{b}$ = %(v1)d MHz'%{"v1":fbeats[i]})
+                    dist_labels.append('D = %(v1)d km'%{"v1":(i+1)*Lf})
+
+                    flo = flo + deltaf
+                    fhi = fhi + deltaf
+
+                # Plot the deviation of the peak from the expected value
+                args = Plotting.plot_arg_single()
+
+                args.loud = True
+                args.marker = Plotting.labs[2]
+                args.x_label = 'Beat Frequency ( MHz )'
+                args.y_label = 'Peak Deviation ( kHz )'
+                #args.plt_range = [flo, fhi, -90, -10]
+                args.fig_name = 'Peak_Freq_Deviation'
+
+                Plotting.plot_single_linear_fit_curve(fbeats, delta_peak, args)
+
+                # What is the linear fit?
+                Common.linear_fit(fbeats, delta_peak, [-1, 1], True)
+
+                # Plot all the beats in a single plot
+                # Extract subset of data
+                hv_sub = []; lab_sub = []; mark_sub = []
+                for i in range(0, len(hv_data)-9, 4):
+                    hv_sub.append(hv_data[i]); lab_sub.append(dist_labels[i]); mark_sub.append(marks[i]); 
+                
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = True
+                args.crv_lab_list = lab_sub
+                args.mrk_list = mark_sub
+                args.x_label = 'Frequency ( kHz )'
+                args.y_label = 'Spectral Power ( dBm / 500 Hz )'
+                args.plt_range = [-500*span, 500*span, -110, -20]
+                args.plt_title = 'V$_{VOA}$ = 3 V'
+                args.fig_name = 'NKT_Lineshape_Combined_2'
+
+                Plotting.plot_multiple_curves(hv_sub, args)
+
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot find directory: ' + DATA_HOME + '\n'
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)

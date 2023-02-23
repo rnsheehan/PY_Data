@@ -88,5 +88,7 @@ if __name__ == '__main__':
 
     #LLM.Beat_Analysis()
 
-    General.Superlum_Amplification()
+    #General.Superlum_Amplification()
+
+    LLM.NKT_LCR_DSHI_Test()
 

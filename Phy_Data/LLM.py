@@ -3050,6 +3050,7 @@ def NKT_LCR_DSHI_Test():
                 args.loud = True
                 args.x_label = 'VOA Bias ( V )'
                 args.y_label = 'CNR ( dB )'
+                args.fig_name = 'NKT_CNR'
                 args.plt_range = [0, 4, 26, 44]
                 
                 Plotting.plot_single_curve_with_errors(data[0], data[1], data[2], args)
@@ -3111,7 +3112,7 @@ def NKT_LCR_DSHI_Test():
                 Plotting.plot_multiple_curves(hv_data, args)
 
             # Plot all beat notes
-            PLOT_ALL_BEATS = True
+            PLOT_ALL_BEATS = False
             if PLOT_ALL_BEATS:
                 fbeats = numpy.arange(80, 2970, 80)
                 
@@ -3194,6 +3195,37 @@ def NKT_LCR_DSHI_Test():
                 args.fig_name = 'NKT_Lineshape_Combined_2'
 
                 Plotting.plot_multiple_curves(hv_sub, args)
+
+            # Plot Initial Estimates of Fitted LLM
+            PLOT_INIT_FITTED = True
+            if PLOT_INIT_FITTED:
+                hv_data = []; labels = []; marks = []; 
+                fit_res_1 = 'NKT_Fitting_Results_1.txt'
+                data = numpy.loadtxt(fit_res_1, delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[1]]); labels.append('Estimated / kHz'); marks.append(Plotting.labs[0]); 
+                hv_data.append([data[0], data[2]]); labels.append('Voigt / kHz'); marks.append(Plotting.labs[1]); 
+                hv_data.append([data[0], data[3]]); labels.append('Lorentz / kHz'); marks.append(Plotting.labs[2]); 
+
+                nmeas = len(data[0])
+                ndrop = 15
+
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = 'Beat Frequency ( MHz )'
+                args.y_label = 'Laser Linewidth (kHz)'
+                args.plt_range = [0, 3000, 0, 6]
+                args.plt_title = 'V$_{VOA}$ = 3 V'
+                args.fig_name = 'NKT_Fitting_Results_1'
+
+                Plotting.plot_multiple_curves(hv_data, args)
+
+                # Compute the average 
+                print('Estimated: ',numpy.mean(data[1][0:nmeas-ndrop]),' +/- ',0.5*( numpy.max(data[1][0:nmeas-ndrop]) - numpy.min(data[1][0:nmeas-ndrop]) ),' kHz')
+                print('Estimated: ',numpy.mean(data[2][0:nmeas-ndrop]),' +/- ',0.5*( numpy.max(data[2][0:nmeas-ndrop]) - numpy.min(data[2][0:nmeas-ndrop]) ),' kHz')
+                print('Estimated: ',numpy.mean(data[3][0:nmeas-ndrop]),' +/- ',0.5*( numpy.max(data[3][0:nmeas-ndrop]) - numpy.min(data[3][0:nmeas-ndrop]) ),' kHz')
 
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot find directory: ' + DATA_HOME + '\n'

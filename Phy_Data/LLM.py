@@ -1562,7 +1562,7 @@ def OEWaves_Analysis():
             # NKT FNPSD
             filelst = ['NKT_T_25_I_110_PN_1.txt', 'NKT_T_25_I_110_PN_2.txt', 'NKT_T_25_I_110_FN_1.txt', 'NKT_T_25_I_110_FN_2.txt', 'NKT_T_25_I_110_FN_3.txt']
             laser_name = 'NKT'
-            #OEWaves_FNPSD_Multiple(filelst, laser_name, False)
+            #OEWaves_FNPSD_Multiple(filelst, laser_name, True)
             OEWaves_FNPSD_Integration(filelst, True)
 
             # JDSU DFB NKT FNPSD Comparison
@@ -1572,6 +1572,29 @@ def OEWaves_Analysis():
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
             raise Exception
+
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/Shengkai_LLM_22_2_2023/ZK Jia_test results_24_2_2023/'
+
+        if(os.path.isdir(DATA_HOME)):
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+
+            #filelst = glob.glob('ZJ_Test_*_24_2_2023.txt')
+            
+            #filelst = ['ZJ_Test_1_24_2_2023.txt', 'ZJ_Test_2_24_2_2023.txt', 'ZJ_Test_3_24_2_2023.txt', 'ZJ_Test_4_24_2_2023.txt', 'ZJ_Test_5_24_2_2023.txt']
+            #laser_name = 'ZJL_M1'
+            
+            filelst = ['ZJ_Test_6_24_2_2023.txt', 'ZJ_Test_7_24_2_2023.txt', 'ZJ_Test_8_24_2_2023.txt', 'ZJ_Test_9_24_2_2023.txt']
+            laser_name = 'ZJL_M2'            
+            
+            OEWaves_FNPSD_Multiple(filelst, laser_name, True)
+            
+            OEWaves_FNPSD_Integration(filelst, True)
+
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
+            raise Exception
+
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)

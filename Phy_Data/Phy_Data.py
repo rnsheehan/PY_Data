@@ -66,7 +66,7 @@ if __name__ == '__main__':
 
     #General.PDA10CS_Calibration()
 
-    #LLM.OEWaves_Analysis()
+    LLM.OEWaves_Analysis()
 
     #General.PDA10CS_Calibration()
 
@@ -90,5 +90,5 @@ if __name__ == '__main__':
 
     #General.Superlum_Amplification()
 
-    LLM.NKT_LCR_DSHI_Test()
+    #LLM.NKT_LCR_DSHI_Test()
 

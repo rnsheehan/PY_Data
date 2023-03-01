@@ -78,6 +78,8 @@ if __name__ == '__main__':
 
     #LLM.Lorentz_Voigt_Fit_Analysis()
 
+    LLM.Voigt_Fit_Analysis()
+
     #LLM.Plot_Spectra()
 
     #LLM.Multi_LLM_Analysis()
@@ -90,5 +92,5 @@ if __name__ == '__main__':
 
     #General.Superlum_Amplification()
 
-    LLM.NKT_LCR_DSHI_Test()
+    #LLM.NKT_LCR_DSHI_Test()
 

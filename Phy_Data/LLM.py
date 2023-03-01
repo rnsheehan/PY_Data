@@ -751,30 +751,35 @@ def Lorentz_Voigt_Fit_Analysis():
 
     try:
         #DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/Sample_Data/'
-        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/ESA_Spectra_Versus_VOA_Bias/'
+        #DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/ESA_Spectra_Versus_VOA_Bias/'
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/NKT_LCR_DSHI/'
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
 
-            Vvals = ['000','100','200','300','325','350','360','365','370','375','400']
-            Vvolts = [0.0, 1.0, 2.0, 3.0, 3.25, 3.5, 3.6, 3.65, 3.7, 3.75, 4.0]
+            #Vvals = ['000','100','200','300','325','350','360','365','370','375','400']
+            #Vvolts = [0.0, 1.0, 2.0, 3.0, 3.25, 3.5, 3.6, 3.65, 3.7, 3.75, 4.0]
+            Vvolts = numpy.arange(80, 2965, 80)
 
-            filetmplt = 'JDSU_DFB_T_20_I_50_V_%(v1)s_fit_results.txt'
+            #filetmplt = 'JDSU_DFB_T_20_I_50_V_%(v1)s_fit_results.txt'
+            filetmplt = 'NKT_I_100_Vb_30_RBW_05_fb_%(v1)d_fit_results.txt'
 
             CONVERT_TO_dBm = True
 
+            scale_factor = 1.0e+6
             nfiles = 12
-            for i in range(0, len(Vvals), 1):
+            for i in range(0, len(Vvolts), 1):
                 #file_tmplt = 'Smpl_LLM_%(v1)d_fit_results.txt'%{"v1":i}
                 #file_tmplt = 'LLM_Spctrm_I_%(v1)d_fit_results.txt'%{"v1":i}
-                file_tmplt = filetmplt%{"v1":Vvals[i]}
+                #file_tmplt = filetmplt%{"v1":Vvals[i]}
+                file_tmplt = filetmplt%{"v1":Vvolts[i]}
                 if glob.glob(file_tmplt):
                     hv_data = []; marks = []; labels = []
                     data = numpy.loadtxt(file_tmplt, delimiter = ',')
                     if CONVERT_TO_dBm:
-                        data[1] = Common.list_convert_mW_dBm(data[1] / 1.0e+6)
-                        data[2] = Common.list_convert_mW_dBm(data[2] / 1.0e+6)
-                        data[4] = Common.list_convert_mW_dBm(data[4] / 1.0e+6)
+                        data[1] = Common.list_convert_mW_dBm(data[1] / scale_factor)
+                        data[2] = Common.list_convert_mW_dBm(data[2] / scale_factor)
+                        data[4] = Common.list_convert_mW_dBm(data[4] / scale_factor)
                     hv_data.append([data[0], data[1]]); labels.append('Raw PSD'); marks.append(Plotting.labs_lins[0])
                     hv_data.append([data[0], data[2]]); labels.append('Voigt'); marks.append(Plotting.labs_lins[1])
                     hv_data.append([data[0], data[4]]); labels.append('Lorentz'); marks.append(Plotting.labs_lins[2])
@@ -785,10 +790,10 @@ def Lorentz_Voigt_Fit_Analysis():
                     args.loud = False
                     args.crv_lab_list = labels
                     args.mrk_list = marks
-                    args.x_label = 'Frequency / MHz'
-                    args.y_label = 'Spectral Power / dBm / 20kHz' if CONVERT_TO_dBm else 'Spectral Power / nW / 20kHz'
+                    args.x_label = 'Frequency / kHz'
+                    args.y_label = 'Spectral Power / dBm / 500Hz' if CONVERT_TO_dBm else 'Spectral Power / pW / 500Hz'
                     args.fig_name = file_tmplt.replace('.txt','')
-                    args.plt_range = [60, 100, -100, -70] if CONVERT_TO_dBm else [60, 100, 0, 0.1]
+                    args.plt_range = [-125, 125, -120, -20] if CONVERT_TO_dBm else [-125, 125, 0, 10]
 
                     Plotting.plot_multiple_curves(hv_data, args)
 
@@ -814,17 +819,20 @@ def Voigt_Fit_Analysis():
 
     try:
         #DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/Sample_Data/'
-        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/ESA_Spectra_Versus_VOA_Bias/'
+        #DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/ESA_Spectra_Versus_VOA_Bias/'
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/NKT_LCR_DSHI/'
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
 
-            Vvals = ['000','100','200','300','325','350','360','365','370','375','400']
-            Vvolts = [0.0, 1.0, 2.0, 3.0, 3.25, 3.5, 3.6, 3.65, 3.7, 3.75, 4.0]
+            #Vvals = ['000','100','200','300','325','350','360','365','370','375','400']
+            #Vvolts = [0.0, 1.0, 2.0, 3.0, 3.25, 3.5, 3.6, 3.65, 3.7, 3.75, 4.0]
+            #Vvolts = numpy.arange(80, 2965, 80)
 
             #vals = numpy.arange(17)
             #vals = numpy.arange(11)
-            vals = [0.0, 1.0, 2.0, 3.0, 3.25, 3.5, 3.6, 3.65, 3.7, 3.75, 4.0]
+            #vals = [0.0, 1.0, 2.0, 3.0, 3.25, 3.5, 3.6, 3.65, 3.7, 3.75, 4.0]
+            vals = numpy.arange(80, 2965, 80)
             
             VALUES = False
 
@@ -846,8 +854,8 @@ def Voigt_Fit_Analysis():
                     hv_data.append([vals, data[6]]); labels.append('Voigt Peak'); marks.append(Plotting.labs_pts[1])
                     hv_data.append([vals, data[10]]); labels.append('Lorentz Peak'); marks.append(Plotting.labs_pts[2])
                     f_ending = '_peaks'
-                    y_lab = 'PSD Peak Values / dBm / 20kHz'
-                    x_lab = 'VOA Bias / V'
+                    y_lab = 'PSD Peak Values / dBm / 500Hz'
+                    x_lab = 'Beat Frequency / MHz'
 
                 ## HWHM Vals
                 HWHM_VALS = False
@@ -855,8 +863,8 @@ def Voigt_Fit_Analysis():
                     hv_data.append([vals, data[5]]); labels.append('Voigt HWHM'); marks.append(Plotting.labs_pts[1])
                     hv_data.append([vals, data[9]]); labels.append('Lorentz HWHM'); marks.append(Plotting.labs_pts[2])
                     f_ending = '_HWHM'
-                    y_lab = 'Fitted HWHM / MHz'
-                    x_lab = 'VOA Bias / V'
+                    y_lab = 'Fitted HWHM / kHz'
+                    x_lab = 'Beat Frequency / MHz'
 
                 ## Voigt Fit Parameters Vals
                 VOIGT_FIT_VALS = False
@@ -865,26 +873,26 @@ def Voigt_Fit_Analysis():
                     hv_data.append([vals, data[3]]); labels.append('Voigt $\gamma$'); marks.append(Plotting.labs_pts[2])
                     hv_data.append([vals, data[4]]); labels.append('Voigt $\sigma$'); marks.append(Plotting.labs_pts[3])
                     f_ending = '_Voigt_vals'
-                    y_lab = 'Voigt Fit Parameters / MHz'
-                    x_lab = 'VOA Bias / V'
+                    y_lab = 'Voigt Fit Parameters / kHz'
+                    x_lab = 'Beat Frequency / MHz'
 
                 ## GOF chisq values
-                CHISQ = True
+                CHISQ = False
                 if CHISQ and not VALUES:
                     hv_data.append([vals, data[0]]); labels.append('Voigt'); marks.append(Plotting.labs_pts[1])
                     hv_data.append([vals, data[4]]); labels.append('Lorentz'); marks.append(Plotting.labs_pts[2])
                     f_ending = '_Fit_Chisq'
                     y_lab = 'Model Fit $\chi^{2}$'
-                    x_lab = 'VOA Bias / V'
+                    x_lab = 'Beat Frequency / MHz'
 
                  ## GOF chisq values
-                RED_CHISQ = False
+                RED_CHISQ = True
                 if RED_CHISQ and not VALUES:
                     hv_data.append([vals, data[2]]); labels.append('Voigt'); marks.append(Plotting.labs_pts[1])
                     hv_data.append([vals, data[6]]); labels.append('Lorentz'); marks.append(Plotting.labs_pts[2])
                     f_ending = '_Fit_Red_Chisq'
                     y_lab = 'Model Fit Reduced $\chi^{2}$'
-                    x_lab = 'VOA Bias / V'
+                    x_lab = 'Beat Frequency / MHz'
 
                 ## HWHM Vals
                 #sub_data = []

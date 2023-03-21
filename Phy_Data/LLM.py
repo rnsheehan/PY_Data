@@ -794,6 +794,7 @@ def Lorentz_Voigt_Fit_Analysis():
                     args.y_label = 'Spectral Power / dBm / 500Hz' if CONVERT_TO_dBm else 'Spectral Power / pW / 500Hz'
                     args.fig_name = file_tmplt.replace('.txt','')
                     args.plt_range = [-125, 125, -120, -20] if CONVERT_TO_dBm else [-125, 125, 0, 10]
+                    args.plt_title = 'f$_{b}$ = %(v1)d MHz, D$_{eff}$ = %(v2)d km'%{"v1":Vvolts[i], "v2":(i+1)*50}
 
                     Plotting.plot_multiple_curves(hv_data, args)
 

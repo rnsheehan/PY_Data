@@ -76,13 +76,13 @@ if __name__ == '__main__':
 
     #LLM.ESA_Spctrm_Attn()
 
-    LLM.Lorentz_Voigt_Fit_Analysis()
+    #LLM.Lorentz_Voigt_Fit_Analysis()
 
     #LLM.Voigt_Fit_Analysis()
 
     #LLM.Plot_Spectra()
 
-    #LLM.Multi_LLM_Analysis()
+    LLM.Multi_LLM_Analysis()
 
     #LLM.DLL_Hacking()
 

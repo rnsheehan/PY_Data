@@ -2258,12 +2258,32 @@ def Multi_LLM_Analysis():
     # Generate all the plots from the Multi-LLM Measurements
     # R. Sheehan 21 - 11 - 2022
 
+    # The axes
+    # 0: Time / s
+    # 1: Tair / C
+    # 2: Taom / C
+    # 3: Taomdrv / C
+    # 4: Pmax / dBm
+    # 5: Fmax / (MHz or kHz) Fmax < 80 =. kHz
+    # 6: LLest@-3dB / (MHz or kHz) Fmax < 80 =. kHz
+    # 7: LLVfit / (MHz or kHz) Fmax < 80 =. kHz
+    # 8: LLLfit / (MHz or kHz) Fmax < 80 =. kHz
+    # 9: LL@-20dB / (MHz or kHz) Fmax < 80 =. kHz
+    # 10: V_{h} / "nW"
+    # 11: V_{c} / (MHz or kHz) Fmax < 80 =. kHz
+    # 12: V_{\gamma} / (MHz or kHz) Fmax < 80 =. kHz
+    # 13: V_{\sigma} / (MHz or kHz) Fmax < 80 =. kHz
+    # 14: L_{h} / "nW"
+    # 15: L_{c} / (MHz or kHz) Fmax < 80 =. kHz
+    # 16: L_{\sigma} / (MHz or kHz) Fmax < 80 =. kHz
+
     FUNC_NAME = ".Multi_LLM_Analysis()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
         #DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_Setup_Test/LCR_DSHI_JDSU_DFB_T_20_D_50/'
-        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_1310/LCR_DSHI_LD5_591_T_25_D_10/'
+        #DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_1310/LCR_DSHI_LD5_591_T_25_D_10/'
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
@@ -2272,7 +2292,8 @@ def Multi_LLM_Analysis():
             # for now work on a single file, then make it more generic
             #thefile = 'LLM_Data_Nmeas_10_I_50_16_11_2022_12_53.txt'
             #thefile = 'LLM_Data_Nmeas_100_I_50_16_11_2022_13_02.txt'
-            thefile = 'LLM_Data_Nmeas_50_I_25_07_12_2022_15_01.txt'
+            #thefile = 'LLM_Data_Nmeas_50_I_25_07_12_2022_15_01.txt'
+            thefile = 'LLM_Data_Nmeas_100_I_100_29_03_2023_12_02.txt'
 
             if glob.glob(thefile):
 
@@ -2301,29 +2322,29 @@ def Multi_LLM_Analysis():
                 if RUN_CORRELATIONS:
                     # Correlations with Time
                     axis_n = 0; 
-                    axes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 15]
+                    axes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 15, 16]
                     for axis_m in axes:
                         Multi_LLM_Correlation(data, titles, axis_n, axis_m, True, False)
 
                     # Correlations with Pmax
                     axis_n = 4
-                    axes = [6, 7, 8, 9, 13]
+                    axes = [6, 7, 8, 9, 10, 14]
                     for axis_m in axes:
                         Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
 
                     # Correlations with AOM-Temperature
                     axis_n = 2
-                    axes = [6, 7, 8, 9, 13]
+                    axes = [6, 7, 8, 9, 10, 14]
                     for axis_m in axes:
                         Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
 
                     # Correlations with LL-Est
                     axis_n = 6
-                    axes = [7, 8]
+                    axes = [7, 8, 9]
                     for axis_m in axes:
                         Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
 
-                    # Correlation of LL-Vfit with LL=Lfit
+                    # Correlation of LL-Vfit with LL-Lfit
                     axis_n = 7
                     axis_m = 8
                     Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
@@ -2399,8 +2420,8 @@ def Multi_LLM_Extract_Fit_Params(dataFrame, titles, loud = False):
     # Voigt = False => Plot Lorentz Model
     # Use C++ dll to compute model values
     # LLest = 6, LLVfit = 7, LLLfit = 8
-    # Voigt params V_{h} = 9, f_{0} = 10, V_{g} = 11, V_{s} = 12
-    # Lorentz params L_{h} = 13, f_{0} = 14, L_{g} = 15
+    # Voigt params V_{h} = 10, f_{0} = 11, V_{g} = 12, V_{s} = 13
+    # Lorentz params L_{h} = 14, f_{0} = 15, L_{g} = 16
     # R. Sheehan 21 - 11 - 2022
 
     FUNC_NAME = ".Multi_LLM_Extract_Fit_Params()" # use this in exception handling messages
@@ -2413,14 +2434,14 @@ def Multi_LLM_Extract_Fit_Params(dataFrame, titles, loud = False):
         else:
             if titles is None: titles = list(dataFrame)
 
-            flow = 50; fhigh = 110; Nsteps = 500; 
+            flow = -100; fhigh = 100; Nsteps = 500; 
             plt_rng = '%(v1)d %(v2)d %(v3)d'%{"v1":flow, "v2":fhigh, "v3":Nsteps}
 
             # Averaged Voigt Model Fit Parameters
-            Vh = columnStatistics(dataFrame, titles, 9) # fitted height
-            Vf0 = columnStatistics(dataFrame, titles, 10) # centre frequency
-            Vgamma = columnStatistics(dataFrame, titles, 11) # Lorentzian HWHM
-            Vsigma = columnStatistics(dataFrame, titles, 12) # Gaussian std. dev.
+            Vh = columnStatistics(dataFrame, titles, 10) # fitted height
+            Vf0 = columnStatistics(dataFrame, titles, 11) # centre frequency
+            Vgamma = columnStatistics(dataFrame, titles, 12) # Lorentzian HWHM
+            Vsigma = columnStatistics(dataFrame, titles, 13) # Gaussian std. dev.
 
             # generate the arg-val strings
             Vave = '%(v1)0.5f %(v2)0.5f %(v3)0.5f %(v4)0.5f'%{"v1":Vh['Average'], "v2":Vf0['Average'], 
@@ -2439,9 +2460,9 @@ def Multi_LLM_Extract_Fit_Params(dataFrame, titles, loud = False):
             Vminargs = Vmin + ' ' + plt_rng + ' ' + Vminfile
 
             # Averaged Lorentz Model Fit Parameters
-            Lh = columnStatistics(dataFrame, titles, 13) # fitted height
-            Lf0 = columnStatistics(dataFrame, titles, 14) # centre frequency
-            Lgamma = columnStatistics(dataFrame, titles, 15) # Lorentzian HWHM
+            Lh = columnStatistics(dataFrame, titles, 14) # fitted height
+            Lf0 = columnStatistics(dataFrame, titles, 15) # centre frequency
+            Lgamma = columnStatistics(dataFrame, titles, 16) # Lorentzian HWHM
 
             # generate the arg-val strings
             Lave = '%(v1)0.5f %(v2)0.5f %(v3)0.5f'%{"v1":Lh['Average'], "v2":Lf0['Average'], "v3":Lgamma['Average']}
@@ -2511,8 +2532,9 @@ def Multi_LLM_Extract_Fit_Params(dataFrame, titles, loud = False):
             args.loud = True
             args.crv_lab_list = labels
             args.mrk_list = marks
-            args.x_label = 'Frequency ( MHz )'
-            args.y_label = 'Spectral Power ( dBm / 20kHz )' if PLOT_IN_DBM else 'Spectral Power ( nW / 20kHz )'
+            args.x_label = 'Frequency ( kHz )'
+            #args.y_label = 'Spectral Power ( dBm / 20kHz )' if PLOT_IN_DBM else 'Spectral Power ( nW / 20kHz )'
+            args.y_label = 'Spectral Power ( dBm / 500Hz )' if PLOT_IN_DBM else 'Spectral Power ( nW / 500Hz )'
             #args.plt_range = [30, 130, -105, -70]
             #args.fig_name = 'Voigt_Spectrum'
             #args.fig_name = 'Lorentz_Spectrum'
@@ -2524,8 +2546,9 @@ def Multi_LLM_Extract_Fit_Params(dataFrame, titles, loud = False):
             args.loud = True
             args.crv_lab_list = labels[0:3]
             args.mrk_list = marks[0:3]
-            args.x_label = 'Frequency ( MHz )'
-            args.y_label = 'Spectral Power ( dBm / 20kHz )' if PLOT_IN_DBM else 'Spectral Power ( nW / 20kHz )'
+            args.x_label = 'Frequency ( kHz )'
+            #args.y_label = 'Spectral Power ( dBm / 20kHz )' if PLOT_IN_DBM else 'Spectral Power ( nW / 20kHz )'
+            args.y_label = 'Spectral Power ( dBm / 500Hz )' if PLOT_IN_DBM else 'Spectral Power ( nW / 500Hz )'
             #args.plt_range = [30, 130, -105, -70]
             #args.fig_name = 'Voigt_Spectrum'
             #args.fig_name = 'Lorentz_Spectrum'
@@ -2537,8 +2560,9 @@ def Multi_LLM_Extract_Fit_Params(dataFrame, titles, loud = False):
             args.loud = True
             args.crv_lab_list = labels[3:6]
             args.mrk_list = marks[3:6]
-            args.x_label = 'Frequency ( MHz )'
-            args.y_label = 'Spectral Power ( dBm / 20kHz )' if PLOT_IN_DBM else 'Spectral Power ( nW / 20kHz )'
+            args.x_label = 'Frequency ( kHz )'
+            #args.y_label = 'Spectral Power ( dBm / 20kHz )' if PLOT_IN_DBM else 'Spectral Power ( nW / 20kHz )'
+            args.y_label = 'Spectral Power ( dBm / 500Hz )' if PLOT_IN_DBM else 'Spectral Power ( nW / 500Hz )'
             #args.plt_range = [30, 130, -105, -70]
             #args.fig_name = 'Voigt_Spectrum'
             #args.fig_name = 'Lorentz_Spectrum'
@@ -2556,8 +2580,8 @@ def Multi_LLM_Fit_Params_Report(dataFrame, titles, loud = False):
     # dataFrame contains the data from the Multi-LLM measurement
     # titles contains the names of the columns of data that have been measured
     # LLest = 6, LLVfit = 7, LLLfit = 8
-    # Voigt params V_{h} = 9, f_{0} = 10, V_{g} = 11, V_{s} = 12
-    # Lorentz params L_{h} = 13, f_{0} = 14, L_{g} = 15
+    # Voigt params V_{h} = 10, f_{0} = 11, V_{g} = 12, V_{s} = 13
+    # Lorentz params L_{h} = 14, f_{0} = 15, L_{g} = 16
     # R. Sheehan 21 - 11 - 2022
 
     FUNC_NAME = ".Multi_LLM_Fit_Params_Report()" # use this in exception handling messages
@@ -2585,17 +2609,18 @@ def Multi_LLM_Fit_Params_Report(dataFrame, titles, loud = False):
             columnStatistics(dataFrame, titles, 6, loud) # LL estimate from data
             columnStatistics(dataFrame, titles, 7, loud) # LL from Voigt Fit
             columnStatistics(dataFrame, titles, 8, loud) # LL from Lorentz Fit
+            columnStatistics(dataFrame, titles, 9, loud) # LL from Lorentz Fit
             
             print("\nVoigt Fit Parameters") # Averaged Voigt Model Fit Parameters
-            columnStatistics(dataFrame, titles, 9, loud) # fitted height
-            columnStatistics(dataFrame, titles, 10, loud) # centre frequency
-            columnStatistics(dataFrame, titles, 11, loud) # Lorentzian HWHM
-            columnStatistics(dataFrame, titles, 12, loud) # Gaussian std. dev.
+            columnStatistics(dataFrame, titles, 10, loud) # fitted height
+            columnStatistics(dataFrame, titles, 11, loud) # centre frequency
+            columnStatistics(dataFrame, titles, 12, loud) # Lorentzian HWHM
+            columnStatistics(dataFrame, titles, 13, loud) # Gaussian std. dev.
             
             print("\nLorentz Fit Parameters") # Averaged Lorentz Model Fit Parameters
-            columnStatistics(dataFrame, titles, 13, loud) # fitted height
-            columnStatistics(dataFrame, titles, 14, loud) # centre frequency
-            columnStatistics(dataFrame, titles, 15, loud) # Lorentzian HWHM
+            columnStatistics(dataFrame, titles, 14, loud) # fitted height
+            columnStatistics(dataFrame, titles, 15, loud) # centre frequency
+            columnStatistics(dataFrame, titles, 16, loud) # Lorentzian HWHM
             
             print("\nAOM Temperature Statistics") # AOM Temperature Statistics
             columnStatistics(dataFrame, titles, 1, loud) # Air Temperature

@@ -82,7 +82,7 @@ if __name__ == '__main__':
 
     #LLM.Plot_Spectra()
 
-    LLM.Multi_LLM_Analysis()
+    #LLM.Multi_LLM_Analysis()
 
     #LLM.DLL_Hacking()
 
@@ -93,4 +93,6 @@ if __name__ == '__main__':
     #General.Superlum_Amplification()
 
     #LLM.NKT_LCR_DSHI_Test()
+
+    General.PDA10CS_Calibration_3()
 

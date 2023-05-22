@@ -827,3 +827,186 @@ def Superlum_Amplification():
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
+
+def PDA10CS_Calibration_3():
+
+    # Calibration of two units of PDA10CS for use in the LCR-DSHI measurement setup
+    # R. Sheehan 22 - 5 - 2023
+
+    FUNC_NAME = ".PDA10CS_Calibration_3()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/CPT_Tests/PDA10D_Calibrate/'
+
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+
+            # Plot the output power measured using the PM100D
+            laser_file = 'JDSU_DFB_T_20_Iso_PM100D.txt' # laser + isolator
+            
+            laser_5050_B = 'JDSU_DFB_T_20_Iso_PM100D_5050_Blue.txt' # laser + isolator + 50:50 splitter blue branch            
+            laser_5050_B_90 = 'JDSU_DFB_T_20_Iso_PM100D_5050_Blue_9010_90.txt' # laser + isolator + 50:50 splitter blue branch + 90:10 splitter 90%
+            laser_5050_B_10 = 'JDSU_DFB_T_20_Iso_PM100D_5050_Blue_9010_10.txt' # laser + isolator + 50:50 splitter blue branch + 90:10 splitter 10%
+
+            laser_5050_Y = 'JDSU_DFB_T_20_Iso_PM100D_5050_Yellow.txt' # laser + isolator + 50:50 splitter yellow branch
+            laser_5050_Y_90 = 'JDSU_DFB_T_20_Iso_PM100D_5050_Yellow_9010_90.txt' # laser + isolator + 50:50 splitter yellow branch + 90:10 splitter 90%
+            laser_5050_Y_10 = 'JDSU_DFB_T_20_Iso_PM100D_5050_Yellow_9010_10.txt' # laser + isolator + 50:50 splitter yellow branch + 90:10 splitter 10%
+
+            PLOT_STD_PM100D = False
+            if PLOT_STD_PM100D:
+                
+                UNITS = False # make plot in mW
+                col_choice = 2 if UNITS else 3
+
+                # Make a multi-line plot
+                hv_data = []; labels = []; marks = []; 
+                
+                L1 = numpy.loadtxt(laser_file, delimiter = '\t', unpack = True)
+                hv_data.append([L1[0], L1[col_choice]]); labels.append('Laser + Iso Output'); marks.append(Plotting.labs_lins[0]); 
+                
+                LB = numpy.loadtxt(laser_5050_B, delimiter = '\t', unpack = True)
+                hv_data.append([LB[0], LB[col_choice]]); labels.append('Blue 50%'); marks.append(Plotting.labs_lins[2]);
+
+                LB90 = numpy.loadtxt(laser_5050_B_90, delimiter = '\t', unpack = True)
+                hv_data.append([LB90[0], LB90[col_choice]]); labels.append('Blue 90%'); marks.append(Plotting.labs_lins[3]);
+
+                LB10 = numpy.loadtxt(laser_5050_B_10, delimiter = '\t', unpack = True)
+                hv_data.append([LB10[0], LB10[col_choice]]); labels.append('Blue 10%'); marks.append(Plotting.labs_lins[4]);
+                
+                LY = numpy.loadtxt(laser_5050_Y, delimiter = '\t', unpack = True)
+                hv_data.append([LY[0], LY[col_choice]]); labels.append('Yellow 50%'); marks.append(Plotting.labs_lins[5]); 
+
+                LY90 = numpy.loadtxt(laser_5050_Y_90, delimiter = '\t', unpack = True)
+                hv_data.append([LY90[0], LY90[col_choice]]); labels.append('Yellow 90%'); marks.append(Plotting.labs_lins[6]);
+
+                LY10 = numpy.loadtxt(laser_5050_Y_10, delimiter = '\t', unpack = True)
+                hv_data.append([LY10[0], LY10[col_choice]]); labels.append('Yellow 10%'); marks.append(Plotting.labs_lins[1]);
+
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = 'Current (mA)'
+                args.y_label = 'Power (mW)' if UNITS else 'Power (dBm)'
+                args.fig_name = 'Power_PM100D_mW' if UNITS else 'Power_PM100D_dBm'
+
+                Plotting.plot_multiple_curves(hv_data, args)
+
+            # What is split ratio from 90:10 splitters? 
+            # P_{90} = P_{10} + 9.34 (\pm 0.11) [dBm]
+            PLOT_90_10_PM100D = False
+            if PLOT_90_10_PM100D:
+                
+                UNITS = False # make plot in mW
+                col_choice = 2 if UNITS else 3
+
+                # Make a multi-line plot
+                hv_data = []; labels = []; marks = []; 
+                LB = numpy.loadtxt(laser_5050_B, delimiter = '\t', unpack = True)
+                LB10 = numpy.loadtxt(laser_5050_B_10, delimiter = '\t', unpack = True)
+                LB90 = numpy.loadtxt(laser_5050_B_90, delimiter = '\t', unpack = True)
+                nn = len(LB10[col_choice])
+                #hv_data.append([LB10[col_choice][1:nn], LB[col_choice][1:nn]]); labels.append('Blue 100'); marks.append(Plotting.labs_lins[2]);
+                hv_data.append([LB10[col_choice][1:nn], LB90[col_choice][1:nn]]); labels.append('Blue 90:10'); marks.append(Plotting.labs[2]);
+
+                # linear fit of P_90 vs P_10
+                [mm, cc] = Common.linear_fit(numpy.asarray(LB10[col_choice][1:nn]), numpy.asarray(LB90[col_choice][1:nn]), [1,1], True)
+
+                LY = numpy.loadtxt(laser_5050_Y, delimiter = '\t', unpack = True)
+                LY10 = numpy.loadtxt(laser_5050_Y_10, delimiter = '\t', unpack = True)
+                LY90 = numpy.loadtxt(laser_5050_Y_90, delimiter = '\t', unpack = True)
+                #hv_data.append([LY10[col_choice][1:nn], LY[col_choice][1:nn]]); labels.append('Yellow 100'); marks.append(Plotting.labs_lins[5]);
+                hv_data.append([LY10[col_choice][1:nn], LY90[col_choice][1:nn]]); labels.append('Yellow 90:10'); marks.append(Plotting.labs[5]);
+
+                [mm, cc] = Common.linear_fit(numpy.asarray(LY10[col_choice][1:nn]), numpy.asarray(LY90[col_choice][1:nn]), [1,1], True)
+
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = '10% Power (mW)' if UNITS else '10% Power (dBm)'
+                args.y_label = '90% Power (mW)' if UNITS else '90% Power (dBm)'
+                args.fig_name = 'Power_9010_PM100D_mW' if UNITS else 'Power_9010_PM100D_dBm'
+
+                Plotting.plot_multiple_curves(hv_data, args)
+
+            # Can you fully recover P_{100} from P_{90} + P_{10}? 
+            # Or what is the 90:10 splitter IL? 
+            PLOT_90_10_IL = True
+            if PLOT_90_10_IL:
+                UNITS = True # make plot in mW
+                col_choice = 2 if UNITS else 3
+
+                # Make a multi-line plot
+                hv_data = []; labels = []; marks = []; 
+                LB = numpy.loadtxt(laser_5050_B, delimiter = '\t', unpack = True)
+                LB10 = numpy.loadtxt(laser_5050_B_10, delimiter = '\t', unpack = True)
+                LB90 = numpy.loadtxt(laser_5050_B_90, delimiter = '\t', unpack = True)
+                nn = len(LB10[col_choice])
+                
+                hv_data.append([LB[0][1:nn], LB[col_choice][1:nn]]); labels.append('Blue 100%'); marks.append(Plotting.labs_lins[2]);
+                hv_data.append([LB10[0][1:nn], LB90[col_choice][1:nn]]); labels.append('Blue 90%'); marks.append(Plotting.labs[2]);
+                hv_data.append([LB10[0][1:nn], LB10[col_choice][1:nn]]); labels.append('Blue 10%'); marks.append(Plotting.labs_dashed[2]);
+
+                LY = numpy.loadtxt(laser_5050_Y, delimiter = '\t', unpack = True)
+                LY10 = numpy.loadtxt(laser_5050_Y_10, delimiter = '\t', unpack = True)
+                LY90 = numpy.loadtxt(laser_5050_Y_90, delimiter = '\t', unpack = True)
+                hv_data.append([LY[0][1:nn], LY[col_choice][1:nn]]); labels.append('Yellow 100%'); marks.append(Plotting.labs_lins[5]);
+                hv_data.append([LY10[0][1:nn], LY90[col_choice][1:nn]]); labels.append('Yellow 90%'); marks.append(Plotting.labs[5]);                
+                hv_data.append([LY10[0][1:nn], LY10[col_choice][1:nn]]); labels.append('Yellow 90%'); marks.append(Plotting.labs_dashed[5]);                
+
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = 'Current (mA)'
+                args.y_label = 'Power (mW)' if UNITS else 'Power (dBm)'
+                args.fig_name = 'Power_1009010_mW' if UNITS else 'Power_1009010_dBm'
+
+                Plotting.plot_multiple_curves(hv_data, args)
+
+                # compute the IL
+                ILB = []; ILY = []; 
+                for i in range(1, nn, 1):
+                    if UNITS:
+                        ILB.append(LB90[col_choice][i] / LB[col_choice][i])
+                        ILY.append(LY90[col_choice][i] / LY[col_choice][i])
+                    else:
+                        ILB.append( math.fabs(LB[col_choice][i]) - math.fabs(LB90[col_choice][i]) )
+                        ILY.append( math.fabs(LY[col_choice][i]) - math.fabs(LY90[col_choice][i]) )
+
+                hv_data = []; labels = []; marks = []; 
+                hv_data.append([LY[0][1:nn], ILB]); labels.append('Blue IL'); marks.append(Plotting.labs[2])
+                hv_data.append([LY[0][1:nn], ILY]); labels.append('Yellow IL'); marks.append(Plotting.labs[5])
+
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = 'Current (mA)'
+                args.y_label = 'IL (mW)' if UNITS else 'IL (dB)'
+                args.fig_name = 'Power_9010_IL_mW' if UNITS else 'Power_9010_IL_dBm'
+
+                Plotting.plot_multiple_curves(hv_data, args)
+            
+            # plot the output power measured using the PDA10CS
+            laser_5050_BY_PDA10 = 'JDSU_DFB_T_20_Iso_PDA10_5050_Blue_Yellow_G_0.txt' # laser + isolator + 50:50 splitter blue branch -> PDA1, yellow branch -> PDA2
+            laser_5050_BY_PDA10_10_G_0 = 'JDSU_DFB_T_20_Iso_PDA10_5050_Blue_Yellow_10_G_0.txt' # laser + isolator + 50:50 splitter blue branch -> 90:10 -> PDA1, yellow branch -> 90:10 -> PDA2, 10% arms, G = 0 dB
+            laser_5050_BY_PDA10_10_G_10 = 'JDSU_DFB_T_20_Iso_PDA10_5050_Blue_Yellow_10_G_10.txt' # laser + isolator + 50:50 splitter blue branch -> 90:10 -> PDA1, yellow branch -> 90:10 -> PDA2, 10% arms, G = 10 dB
+            laser_5050_BY_PDA10_10_G_20 = 'JDSU_DFB_T_20_Iso_PDA10_5050_Blue_Yellow_10_G_20.txt' # laser + isolator + 50:50 splitter blue branch -> 90:10 -> PDA1, yellow branch -> 90:10 -> PDA2, 10% arms, G = 20 dB
+
+            laser_5050_YB_PDA10 = 'JDSU_DFB_T_20_Iso_PDA10_5050_Yellow_Blue_G_0.txt' # laser + isolator + 50:50 splitter yellow branch -> PDA1, blue branch -> PDA2
+            laser_5050_YB_PDA10_10_G_0 = 'JDSU_DFB_T_20_Iso_PDA10_5050_Yellow_Blue_10_G_0.txt' # laser + isolator + 50:50 splitter yellow branch -> 90:10 -> PDA1, blue branch -> 90:10 -> PDA2, 10% arms, G = 0 dB
+            laser_5050_YB_PDA10_10_G_10 = 'JDSU_DFB_T_20_Iso_PDA10_5050_Yellow_Blue_10_G_10.txt' # laser + isolator + 50:50 splitter yellow branch -> 90:10 -> PDA1, blue branch -> 90:10 -> PDA2, 10% arms, G = 10 dB
+            laser_5050_YB_PDA10_10_G_20 = 'JDSU_DFB_T_20_Iso_PDA10_5050_Yellow_Blue_10_G_20.txt' # laser + isolator + 50:50 splitter yellow branch -> 90:10 -> PDA1, blue branch -> 90:10 -> PDA2, 10% arms, G = 20 dB
+
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate directory: ' + DATA_HOME
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)

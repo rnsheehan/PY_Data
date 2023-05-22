@@ -33,72 +33,141 @@ def JDSU_DFB_LIV():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        dir_name = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/CPT_Tests/JDSU_DFB_EDFA/'
+        #dir_name = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/CPT_Tests/JDSU_DFB_EDFA/'
+        dir_name = 'c:/users/robertsheehan/Research/Laser_Physics/Data/DFB_Char/'
 
         if os.path.isdir(dir_name):
             os.chdir(dir_name)
             print(os.getcwd())
 
-            files = glob.glob('DFB_LIV_T_*.txt')
+            LIV_plot = True
+
+            if LIV_plot:
+
+                files = glob.glob('JDSU_CQF915_508_T_*_PM100D_S155C.txt')
+
+                # Plot the measured LIV data            
+                hv_data_v = []; hv_data_mW = []; hv_data_dBm = []; marks = []; labels = []; 
+                Tvals = [20, 23, 25, 27, 30, 33, 35]
+                for i in range(0, len(files), 1):
+                    labels.append("T = %(v1)d C"%{"v1":Tvals[i]})
+                    marks.append( Plotting.labs_lins[ i % ( len( Plotting.labs_lins ) ) ] )
+                    data = numpy.loadtxt(files[ i ], delimiter = '\t', unpack = True)
+                    hv_data_v.append([data[0], data[1]])
+                    hv_data_mW.append([data[0], data[2]])
+                    hv_data_dBm.append([data[0], data[3]])
+
+                # plot the data
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = '$I_{DFB}$ / mA'
+                args.y_label = '$V_{DFB}$ / V'
+                args.fig_name = 'JDSU_CQF915_508_Voltage'
+                #args.plt_range = [0, 50, 0, 1.1]
+
+                Plotting.plot_multiple_curves(hv_data_v, args)
+
+                args.y_label = '$P_{DFB}$ / mW'
+                args.fig_name = 'JDSU_CQF915_508_PmW'
+                #args.plt_range = [0, 50, 0, 7]
+
+                Plotting.plot_multiple_curves(hv_data_mW, args)
+
+                args.y_label = '$P_{DFB}$ / dBm'
+                args.fig_name = 'JDSU_CQF915_508_PdBm'
+                #args.plt_range = [0, 50, -40, 10]
+
+                Plotting.plot_multiple_curves(hv_data_dBm, args)
+
+                del hv_data_v; del hv_data_mW; del hv_data_dBm;
+
+                # Plot the peak voltage, power as function of temperature
+                #Tvals = []
+                Vpeak = []
+                Ppeak = []
+                for i in range(0, len(files), 1):
+                    #Tvals.append( float( files[ i ].replace('DFB_LIV_T','').replace('.txt','').replace('_','') ) )
+                    data = numpy.loadtxt(files[ i ], delimiter = '\t', unpack = True)
+                    Vpeak.append(data[1][-1])
+                    Ppeak.append(data[2][-1])
+
+                # Linear fit the Peak power versus Temperature
+                Common.linear_fit(numpy.asarray(Tvals), numpy.asarray(Ppeak), [1, 1], True)
+                # intercept = 10.165010586385849 mW
+                # slope = -0.06307007753890415 mW / K
+
+                # plot the data
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = '$T_{DFB}$ / C'
+                args.y_label = '$V_{DFB}$ / V'
+                args.y_label_2 = '$P_{DFB}$ / mW'
+                args.fig_name = 'JDSU_CQF915_508_I_200'
+                args.plt_title = 'JDSU CQF915/508 $I_{DFB}$ = 200 mA'
             
-            # Plot the measured LIV data            
-            hv_data_v = []; hv_data_mW = []; hv_data_dBm = []; marks = []; labels = []; 
-            indices = [0, 3, 5]
-            for i in range(0, len(indices), 1):
-                labels.append(files[ indices[i] ].replace('DFB_LIV_','').replace('.txt','').replace('_',' = '))
-                marks.append( Plotting.labs_lins[ i % ( len( Plotting.labs_lins ) ) ] )
-                data = numpy.loadtxt(files[ indices[i] ], delimiter = '\t', unpack = True)
-                hv_data_v.append([data[0], data[1]])
-                hv_data_mW.append([data[0], data[2]])
-                hv_data_dBm.append([data[0], data[3]])
-
-            # plot the data
-            args = Plotting.plot_arg_multiple()
-
-            args.loud = True
-            args.crv_lab_list = labels
-            args.mrk_list = marks
-            args.x_label = '$I_{DFB}$ / mA'
-            args.y_label = '$V_{DFB}$ / V'
-            args.fig_name = 'JDSU_DFB_Voltage'
-            args.plt_range = [0, 50, 0, 1.1]
-
-            #Plotting.plot_multiple_curves(hv_data_v, args)
-
-            args.y_label = '$P_{DFB}$ / mW'
-            args.fig_name = 'JDSU_DFB_PmW'
-            args.plt_range = [0, 50, 0, 7]
-
-            #Plotting.plot_multiple_curves(hv_data_mW, args)
-
-            args.y_label = '$P_{DFB}$ / dBm'
-            args.fig_name = 'JDSU_DFB_PdBm'
-            args.plt_range = [0, 50, -40, 10]
-
-            #Plotting.plot_multiple_curves(hv_data_dBm, args)
-
-            # Plot the peak voltage, power as function of temperature
-            Tvals = []
-            Vpeak = []
-            Ppeak = []
-            for i in range(0, len(files), 1):
-                Tvals.append( float( files[ i ].replace('DFB_LIV_T','').replace('.txt','').replace('_','') ) )
-                data = numpy.loadtxt(files[ i ], delimiter = '\t', unpack = True)
-                Vpeak.append(data[1][-1])
-                Ppeak.append(data[2][-1])
-
-            # plot the data
-            args = Plotting.plot_arg_multiple()
-
-            args.loud = True
-            args.crv_lab_list = labels
-            args.mrk_list = marks
-            args.x_label = '$T_{DFB}$ / C'
-            args.y_label = '$V_{DFB}$ / V'
-            args.y_label_2 = '$P_{DFB}$ / mW'
-            args.fig_name = 'JDSU_DFB_I_50'
+                Plotting.plot_two_axis(Tvals, Vpeak, Ppeak, args) 
+                
+                del Tvals; del Vpeak; del Ppeak; del args; 
             
-            Plotting.plot_two_axis(Tvals, Vpeak, Ppeak, args)            
+            # plot the optical spectra as function of temperature
+            SPCTR_plot = False
+
+            if SPCTR_plot:
+                files = glob.glob('JDSU_CQF915_508_T*I_100_Spctrm.txt')
+
+                # Plot the measured LIV data            
+                hv_data = []; marks = []; labels = []; WL_max = []; P_max = []; 
+                Tvals = [20, 23, 25, 27, 30, 33, 35]
+                for i in range(0, len(files), 1):
+                    labels.append("T = %(v1)d C"%{"v1":Tvals[i]})
+                    marks.append( Plotting.labs_lins[ i % ( len( Plotting.labs_lins ) ) ] )
+                    data = numpy.loadtxt(files[ i ], delimiter = '\t', unpack = True)
+                    WL_max.append(data[0][numpy.argmax(data[1])] )
+                    P_max.append(numpy.max(data[1]))
+                    hv_data.append([data[0], data[1]])
+
+                # plot the data
+                OSA_plot = False
+                if OSA_plot:
+                    args = Plotting.plot_arg_multiple()
+
+                    args.loud = True
+                    args.crv_lab_list = labels
+                    args.mrk_list = marks
+                    args.x_label = 'Wavelength $\lambda$ / nm'
+                    args.y_label = 'Power dBm / 0.05nm'
+                    args.fig_name = 'JDSU_CQF915_508_Spectrum'
+                    args.plt_title = 'JDSU CQF915/508 $I_{DFB}$ = 100 mA'
+                    #args.plt_range = [0, 50, 0, 1.1]
+
+                    Plotting.plot_multiple_curves(hv_data, args)
+
+                WLT_plot = True
+                if WLT_plot:
+
+                    # linear fits to the peak WL versus T data
+                    Common.linear_fit(numpy.asarray(Tvals), numpy.asarray(WL_max), [1, 1], True)
+                    # slope: 0.09424227543241155 nm / K
+                    # intercept: 1547.0581772630778 nm
+
+                    args = Plotting.plot_arg_multiple()
+
+                    args.loud = True
+                    args.crv_lab_list = labels
+                    args.mrk_list = marks
+                    args.x_label = '$T_{DFB}$ / C'
+                    args.y_label = '$\lambda_{peak}$ / nm'
+                    args.y_label_2 = '$P_{peak}$ / dBm / 0.05 nm'
+                    args.fig_name = 'JDSU_CQF915_508_I_100'
+                    #args.plt_title = 'JDSU CQF915/508 $I_{DFB}$ = I00 mA'
+            
+                    Plotting.plot_two_axis(Tvals, WL_max, P_max, args) 
 
         else:
             raise Exception

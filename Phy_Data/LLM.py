@@ -159,8 +159,6 @@ def JDSU_DFB_LIV():
                     args = Plotting.plot_arg_multiple()
 
                     args.loud = True
-                    args.crv_lab_list = labels
-                    args.mrk_list = marks
                     args.x_label = '$T_{DFB}$ / C'
                     args.y_label = '$\lambda_{peak}$ / nm'
                     args.y_label_2 = '$P_{peak}$ / dBm / 0.05 nm'

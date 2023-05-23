@@ -1006,6 +1006,7 @@ def PDA10CS_Calibration_3():
             laser_5050_YB_PDA10_10_G_10 = 'JDSU_DFB_T_20_Iso_PDA10_5050_Yellow_Blue_10_G_10.txt' # laser + isolator + 50:50 splitter yellow branch -> 90:10 -> PDA1, blue branch -> 90:10 -> PDA2, 10% arms, G = 10 dB
             laser_5050_YB_PDA10_10_G_20 = 'JDSU_DFB_T_20_Iso_PDA10_5050_Yellow_Blue_10_G_20.txt' # laser + isolator + 50:50 splitter yellow branch -> 90:10 -> PDA1, blue branch -> 90:10 -> PDA2, 10% arms, G = 20 dB
 
+            # plot the power as measured by the PDA10CS in units of V
             PLOT_STD_PDA10D = False
             if PLOT_STD_PDA10D:
 
@@ -1028,11 +1029,12 @@ def PDA10CS_Calibration_3():
                 args.mrk_list = marks
                 args.x_label = 'Current (mA)'
                 args.y_label = 'Power PDA10DCS (V)'
-                args.fig_name = 'Power_PDA10DCS_mW'
+                args.fig_name = 'Power_PDA10DCS_V'
 
                 Plotting.plot_multiple_curves(hv_data, args)
 
-            PLOT_COMPAR_PDA10D = True
+            # compare the power as measured in V to power as measured in units of mW
+            PLOT_COMPAR_PDA10D = False
             if PLOT_COMPAR_PDA10D:
                 UNITS = True # make plot in mW
                 col_choice = 2 if UNITS else 3
@@ -1044,17 +1046,162 @@ def PDA10CS_Calibration_3():
                 nn = len(LBY[0])
 
                 # linear fit of P_90 vs P_10
-                Common.linear_fit(numpy.asarray(LBY[1][1:nn]), numpy.asarray(LB[col_choice][1:nn]), [1,1], True)
-                Common.linear_fit(numpy.asarray(LYB[1][1:nn]), numpy.asarray(LY[col_choice][1:nn]), [1,1], True)
-                Common.linear_fit(numpy.asarray(LBY[2][1:nn]), numpy.asarray(LB[col_choice][1:nn]), [1,1], True)
-                Common.linear_fit(numpy.asarray(LYB[2][1:nn]), numpy.asarray(LY[col_choice][1:nn]), [1,1], True)
+                print('B@PD1')
+                Common.linear_fit(numpy.asarray(LBY[1][1:nn]), numpy.asarray(LB[col_choice][1:nn]), [1,1], True) # B@PD1 LBY[1][0:nn], LB[col_choice][0:nn]
+                print('Y@PD1')
+                Common.linear_fit(numpy.asarray(LYB[1][1:nn]), numpy.asarray(LY[col_choice][1:nn]), [1,1], True) # Y@PD1 LYB[1][0:nn], LY[col_choice][0:nn]
+                print('B@PD2')
+                Common.linear_fit(numpy.asarray(LYB[2][1:nn]), numpy.asarray(LB[col_choice][1:nn]), [1,1], True) # B@PD2 LYB[2][0:nn], LB[col_choice][0:nn]
+                print('Y@PD2')
+                Common.linear_fit(numpy.asarray(LBY[2][1:nn]), numpy.asarray(LY[col_choice][1:nn]), [1,1], True) # Y@PD2 LBY[2][0:nn], LY[col_choice][0:nn]
 
                 hv_data = []; labels = []; marks = []; 
                 hv_data.append([ LBY[1][1:nn], LB[col_choice][1:nn] ]); labels.append('Blue 50% PD1'); marks.append(Plotting.labs_lins[2]); 
                 hv_data.append([ LYB[1][1:nn], LY[col_choice][1:nn] ]); labels.append('Yellow 50% PD1'); marks.append(Plotting.labs_lins[5]);
+                # sample linear fit
+                x_vals = [0, 3.5]; y_vals = [0, 3.5*0.83]; 
+                hv_data.append([x_vals, y_vals]); labels.append('Avg PD1'); marks.append(Plotting.labs_lins[1]);
                 
                 hv_data.append([ LYB[2][1:nn], LB[col_choice][1:nn] ]); labels.append('Blue 50% PD2'); marks.append(Plotting.labs_dashed[2]);
                 hv_data.append([ LBY[2][1:nn], LY[col_choice][1:nn] ]); labels.append('Yellow 50% PD2'); marks.append(Plotting.labs_dashed[5]);   
+                # sample linear fit
+                x_vals = [0, 3.5]; y_vals = [0, 3.5*0.63]; 
+                hv_data.append([x_vals, y_vals]); labels.append('Avg PD2'); marks.append(Plotting.labs_dashed[1]);
+                
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = False
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = 'Power PDA10DCS (V)'
+                args.y_label = 'Power PM100D (mW)' if UNITS else 'Power PM100D (dBm)'
+                args.fig_name = 'Power_PDA10DCS_PM100D_mW' if UNITS else 'Power_PDA10DCS_PM100D_dBm'
+
+                Plotting.plot_multiple_curves(hv_data, args)
+
+            # compare the power as measured in V to power as measured in units of mW on shared axes
+            PLOT_COMPAR_TWO = False
+            if PLOT_COMPAR_TWO:
+                # make a two axis plot of the measured PDA10D data
+
+                UNITS = True # make plot in mW
+                col_choice = 2 if UNITS else 3
+
+                LB = numpy.loadtxt(laser_5050_B, delimiter = '\t', unpack = True)
+                LY = numpy.loadtxt(laser_5050_Y, delimiter = '\t', unpack = True)
+                LBY = numpy.loadtxt(laser_5050_BY_PDA10, delimiter = '\t', unpack = True)
+                LYB = numpy.loadtxt(laser_5050_YB_PDA10, delimiter = '\t', unpack = True)
+                nn = len(LBY[0])
+
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = False
+                args.x_label = 'Current (mA)'
+                args.y_label = 'Power PDA10DCS (V)'
+                args.y_label_2 = 'Power PM100D (mw)'
+
+                # B@PD1 LBY[1][0:nn], LB[col_choice][0:nn]
+                args.fig_name = 'Power_PDA10DCS_PM100D_B1_mW'
+                args.plt_title = 'Power Branch B PD1'            
+                Plotting.plot_two_axis(LBY[0][0:nn], LBY[1][0:nn], LB[col_choice][0:nn], args)
+                print('B@PD1')
+                Common.linear_fit(numpy.asarray(LBY[1][1:nn]), numpy.asarray(LB[col_choice][1:nn]), [1,1], True)
+                
+                # B@PD2 LYB[2][0:nn], LB[col_choice][0:nn]
+                args.fig_name = 'Power_PDA10DCS_PM100D_B2_mW'
+                args.plt_title = 'Power Branch B PD2'            
+                Plotting.plot_two_axis(LYB[0][0:nn], LYB[2][0:nn], LB[col_choice][0:nn], args)
+                print('B@PD2')
+                Common.linear_fit(numpy.asarray(LYB[2][1:nn]), numpy.asarray(LB[col_choice][1:nn]), [1,1], True)
+
+                # Y@PD1 LYB[1][0:nn], LY[col_choice][0:nn]
+                args.fig_name = 'Power_PDA10DCS_PM100D_Y1_mW'
+                args.plt_title = 'Power Branch Y PD1'            
+                Plotting.plot_two_axis(LYB[0][0:nn], LYB[1][0:nn], LY[col_choice][0:nn], args)
+                print('Y@PD1')
+                Common.linear_fit(numpy.asarray(LYB[1][1:nn]), numpy.asarray(LY[col_choice][1:nn]), [1,1], True)
+                
+                # Y@PD2 LBY[2][0:nn], LY[col_choice][0:nn]
+                args.fig_name = 'Power_PDA10DCS_PM100D_Y2_mW'
+                args.plt_title = 'Power Branch Y PD2'            
+                Plotting.plot_two_axis(LBY[0][0:nn], LBY[2][0:nn], LY[col_choice][0:nn], args)
+                print('Y@PD2')
+                Common.linear_fit(numpy.asarray(LBY[2][1:nn]), numpy.asarray(LY[col_choice][1:nn]), [1,1], True)
+
+            # compare the power measured through the 10% line in units of V and mW on shared axes
+            PLOT_COMPAR_TEN = False
+            if PLOT_COMPAR_TEN:
+                UNITS = True # make plot in mW
+                col_choice = 2 if UNITS else 3
+
+                LB10 = numpy.loadtxt(laser_5050_B_10, delimiter = '\t', unpack = True) # B@10% on PM100D
+                LY10 = numpy.loadtxt(laser_5050_Y_10, delimiter = '\t', unpack = True) # Y@10% on PM100D
+
+                LBY10 = numpy.loadtxt(laser_5050_BY_PDA10_10_G_0, delimiter = '\t', unpack = True) # B@10%@PD1 and Y@10%@PD2
+                LYB10 = numpy.loadtxt(laser_5050_YB_PDA10_10_G_0, delimiter = '\t', unpack = True) # B@10%@PD2 and Y@10%@PD1
+                nn = len(LBY10[0])
+
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = True
+                args.x_label = 'Current (mA)'
+                args.y_label = 'Power PDA10DCS (V)'
+                args.y_label_2 = 'Power PM100D (mw)'
+
+                # B@PD1 LBY[1][0:nn], LB[col_choice][0:nn]
+                args.fig_name = 'Power_PDA10DCS_PM100D_B1_mW_10'
+                args.plt_title = 'Power Branch B PD1'            
+                Plotting.plot_two_axis(LBY10[0][0:nn], LBY10[1][0:nn], LB10[col_choice][0:nn], args)
+                print('B@10%@PD1')
+                Common.linear_fit(numpy.asarray(LBY10[1][1:nn]), numpy.asarray(LB10[col_choice][1:nn]), [1,1], True)
+
+                # B@PD2 LYB[2][0:nn], LB[col_choice][0:nn]
+                args.fig_name = 'Power_PDA10DCS_PM100D_B2_mW_10'
+                args.plt_title = 'Power Branch B PD2'            
+                Plotting.plot_two_axis(LYB10[0][0:nn], LYB10[2][0:nn], LB10[col_choice][0:nn], args)
+                print('B@10%@PD2')
+                Common.linear_fit(numpy.asarray(LYB10[2][1:nn]), numpy.asarray(LB10[col_choice][1:nn]), [1,1], True)
+
+                # Y@PD1 LYB[1][0:nn], LY[col_choice][0:nn]
+                args.fig_name = 'Power_PDA10DCS_PM100D_Y1_mW_10'
+                args.plt_title = 'Power Branch Y PD1'            
+                Plotting.plot_two_axis(LYB10[0][0:nn], LYB10[1][0:nn], LY10[col_choice][0:nn], args)
+                print('Y@10%@PD1')
+                Common.linear_fit(numpy.asarray(LYB10[1][1:nn]), numpy.asarray(LY10[col_choice][1:nn]), [1,1], True)
+                
+                # Y@PD2 LBY[2][0:nn], LY[col_choice][0:nn]
+                args.fig_name = 'Power_PDA10DCS_PM100D_Y2_mW_10'
+                args.plt_title = 'Power Branch Y PD2'            
+                Plotting.plot_two_axis(LBY10[0][0:nn], LBY10[2][0:nn], LY10[col_choice][0:nn], args)
+                print('Y@10%@PD2')
+                Common.linear_fit(numpy.asarray(LBY10[2][1:nn]), numpy.asarray(LY10[col_choice][1:nn]), [1,1], True)
+
+            # compare the power measured through the 10% line in units of V and mW on shared axes
+            PLOT_COMPAR_TEN_AGAIN = False
+            if PLOT_COMPAR_TEN_AGAIN:
+                UNITS = True # make plot in mW
+                col_choice = 2 if UNITS else 3
+
+                LB = numpy.loadtxt(laser_5050_B_10, delimiter = '\t', unpack = True) # B@10% on PM100D
+                LY = numpy.loadtxt(laser_5050_Y_10, delimiter = '\t', unpack = True) # Y@10% on PM100D
+
+                LBY = numpy.loadtxt(laser_5050_BY_PDA10_10_G_0, delimiter = '\t', unpack = True) # B@10%@PD1 and Y@10%@PD2
+                LYB = numpy.loadtxt(laser_5050_YB_PDA10_10_G_0, delimiter = '\t', unpack = True) # B@10%@PD2 and Y@10%@PD1
+                nn = len(LBY[0])
+
+                hv_data = []; labels = []; marks = []; 
+
+                hv_data.append([ LBY[1][1:nn], LB[col_choice][1:nn] ]); labels.append('Blue 50% PD1'); marks.append(Plotting.labs_lins[2]); 
+                hv_data.append([ LYB[1][1:nn], LY[col_choice][1:nn] ]); labels.append('Yellow 50% PD1'); marks.append(Plotting.labs_lins[5]);
+                # sample linear fit
+                #x_vals = [0, 0.35]; y_vals = [0, 0.35*0.8]; 
+                #hv_data.append([x_vals, y_vals]); labels.append('Avg PD1'); marks.append(Plotting.labs_lins[1]);
+                
+                hv_data.append([ LYB[2][1:nn], LB[col_choice][1:nn] ]); labels.append('Blue 50% PD2'); marks.append(Plotting.labs_dashed[2]);
+                hv_data.append([ LBY[2][1:nn], LY[col_choice][1:nn] ]); labels.append('Yellow 50% PD2'); marks.append(Plotting.labs_dashed[5]);   
+                # sample linear fit
+                #x_vals = [0, 0.35]; y_vals = [0, 0.35*0.62]; 
+                #hv_data.append([x_vals, y_vals]); labels.append('Avg PD2'); marks.append(Plotting.labs_dashed[1]);
                 
                 args = Plotting.plot_arg_multiple()
 
@@ -1063,9 +1210,97 @@ def PDA10CS_Calibration_3():
                 args.mrk_list = marks
                 args.x_label = 'Power PDA10DCS (V)'
                 args.y_label = 'Power PM100D (mW)' if UNITS else 'Power PM100D (dBm)'
-                args.fig_name = 'Power_PDA10DCS_PM100D_mW' if UNITS else 'Power_PDA10DCS_PM100D_dBm'
+                args.fig_name = 'Power_PDA10DCS_PM100D_mW_10' if UNITS else 'Power_PDA10DCS_PM100D_dBm_10'
 
                 Plotting.plot_multiple_curves(hv_data, args)
+
+            # combine data sets to perform a true linear fit
+            PLOT_LINEAR = True
+            if PLOT_LINEAR:
+                # Import data from an earlier measurement on a different laser
+                current_loc = os.getcwd()
+
+                ALT_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Data/DFB_Char/'
+                os.chdir(ALT_HOME)
+
+                # load in the pairs of data that you used to do calibration previously
+                DFB1_PM1_1 = numpy.loadtxt('JDSU_CQF915_508_T_20_PM100D_S155C_Cal.txt', delimiter = '\t', unpack = True) # DFB power @PM100D
+                DFB1_PD1_1 = numpy.loadtxt('JDSU_CQF915_508_T_20_PDA10CS_EC_Cal.txt', delimiter = '\t', unpack = True) # DFB power @PDA1_1
+
+                DFB1_PM1_2 = numpy.loadtxt('JDSU_CQF915_508_T_20_PM100D_S155C_Cal_2.txt', delimiter = '\t', unpack = True) # DFB power @PM100D
+                DFB1_PD1_2 = numpy.loadtxt('JDSU_CQF915_508_T_20_PDA10CS_EC_Cal_2.txt', delimiter = '\t', unpack = True) # DFB power @PDA1_1
+                mm = len(DFB1_PD1_2[0])
+
+                DFB1_PM1_3 = numpy.loadtxt('JDSU_CQF915_508_T_20_PM100D_S155C_Cal_Imax_30_G_0.txt', delimiter = '\t', unpack = True) # DFB power @PM100D
+                DFB1_PD1_3 = numpy.loadtxt('JDSU_CQF915_508_T_20_PDA10CS_EC_Imax_30_G_0.txt', delimiter = '\t', unpack = True) # DFB power @PDA1_1
+
+                DFB1_PM1_4 = numpy.loadtxt('JDSU_CQF915_508_T_20_PM100D_S155C_Cal_Imax_20_G_0.txt', delimiter = '\t', unpack = True) # DFB power @PM100D
+                DFB1_PD1_4 = numpy.loadtxt('JDSU_CQF915_508_T_20_PDA10CS_EC_Imax_20_G_0.txt', delimiter = '\t', unpack = True) # DFB power @PDA1_1
+
+                # PD2
+                DFB1_PM2_1 = numpy.loadtxt('JDSU_CQF915_508_T_20_PM100D_S155C_Cal_Imax_20_G_0.txt', delimiter = '\t', unpack = True) # DFB power @PM100D
+                DFB1_PD2_1 = numpy.loadtxt('JDSU_CQF915_508_T_20_PDA10CS_EC_2_Imax_20_G_0.txt', delimiter = '\t', unpack = True) # DFB power @PDA1_1
+
+                DFB1_PM2_2 = numpy.loadtxt('JDSU_CQF915_508_T_20_PM100D_S155C_Cal_Imax_20_G_0.txt', delimiter = '\t', unpack = True) # DFB power @PM100D
+                DFB1_PD2_2 = numpy.loadtxt('JDSU_CQF915_508_T_20_PDA10CS_EC_2_Imax_20_G_0.txt', delimiter = '\t', unpack = True) # DFB power @PDA1_1
+
+                DFB1_PM2_3 = numpy.loadtxt('JDSU_CQF915_508_T_20_PM100D_S155C_Cal_Imax_30_2.txt', delimiter = '\t', unpack = True) # DFB power @PM100D
+                DFB1_PD2_3 = numpy.loadtxt('JDSU_CQF915_508_T_20_PDA10CS_EC_2_Imax_30_G_0.txt', delimiter = '\t', unpack = True) # DFB power @PDA1_1
+
+                DFB1_PM2_4 = numpy.loadtxt('JDSU_CQF915_508_T_20_PM100D_S155C_Cal_3.txt', delimiter = '\t', unpack = True) # DFB power @PM100D
+                DFB1_PD2_4 = numpy.loadtxt('JDSU_CQF915_508_T_20_PDA10CS_EC_2_Cal_3.txt', delimiter = '\t', unpack = True) # DFB power @PDA1_1
+
+                DFB1_PM2_5 = numpy.loadtxt('JDSU_CQF915_508_T_20_PM100D_S155C_Cal_4.txt', delimiter = '\t', unpack = True) # DFB power @PM100D
+                DFB1_PD2_5 = numpy.loadtxt('JDSU_CQF915_508_T_20_PDA10CS_EC_2_Cal_4.txt', delimiter = '\t', unpack = True) # DFB power @PDA1_1
+
+                ll = len(DFB1_PD2_5[0])
+
+                os.chdir(current_loc)
+
+                UNITS = True # make plot in mW
+                col_choice = 2 if UNITS else 3
+
+                LB = numpy.loadtxt(laser_5050_B, delimiter = '\t', unpack = True) # B@100% on PM100D
+                LY = numpy.loadtxt(laser_5050_Y, delimiter = '\t', unpack = True) # Y@100% on PM100D
+
+                LBY = numpy.loadtxt(laser_5050_BY_PDA10, delimiter = '\t', unpack = True) # B@100%@PD1 and Y@100%@PD2
+                LYB = numpy.loadtxt(laser_5050_YB_PDA10, delimiter = '\t', unpack = True) # B@100%@PD2 and Y@100%@PD1
+
+                LB10 = numpy.loadtxt(laser_5050_B_10, delimiter = '\t', unpack = True) # B@10% on PM100D
+                LY10 = numpy.loadtxt(laser_5050_Y_10, delimiter = '\t', unpack = True) # Y@10% on PM100D
+
+                LBY10 = numpy.loadtxt(laser_5050_BY_PDA10_10_G_0, delimiter = '\t', unpack = True) # B@10%@PD1 and Y@10%@PD2
+                LYB10 = numpy.loadtxt(laser_5050_YB_PDA10_10_G_0, delimiter = '\t', unpack = True) # B@10%@PD2 and Y@10%@PD1
+                nn = len(LBY10[0])
+
+                # plot the data for PD1
+                # B@PD1 LBY[1][0:nn], LB[col_choice][0:nn]
+                # Y@PD1 LYB[1][0:nn], LY[col_choice][0:nn]
+                X = numpy.concatenate((DFB1_PD1_1[1][1:mm], DFB1_PD1_2[1][1:mm], DFB1_PD1_3[1], DFB1_PD1_4[1], LBY[1][1:nn], LYB[1][1:nn], LBY10[1][1:nn], LYB10[1][1:nn]), axis = None)
+                Y = numpy.concatenate((DFB1_PM1_1[col_choice][1:mm], DFB1_PM1_2[col_choice][1:mm], DFB1_PM1_3[col_choice], DFB1_PM1_4[col_choice], LB[col_choice][1:nn], LY[col_choice][1:nn], LB10[col_choice][1:nn], LY10[col_choice][1:nn]), axis = None)
+                print('Linear Fit')
+                Common.linear_fit(numpy.asarray(X), numpy.asarray(Y), [1,1], True)
+
+                args = Plotting.plot_arg_single()
+
+                args.loud = True
+                args.x_label = 'Power PDA10DCS (V)'
+                args.y_label = 'Power PM100D (mW)'
+                args.fig_name = 'Power_PDA10DCS_PM100D_mW_Combined_1'
+
+                Plotting.plot_single_linear_fit_curve(X, Y, args)
+
+                # B@PD2 LYB[2][0:nn], LB[col_choice][0:nn]
+                # Y@PD2 LBY[2][0:nn], LY[col_choice][0:nn]
+                X = numpy.concatenate((DFB1_PD2_1[1], DFB1_PD2_2[1], DFB1_PD2_3[1], DFB1_PD2_4[1][1:ll], DFB1_PD2_5[1], LYB[2][1:nn], LBY[2][1:nn], LYB10[2][1:nn], LBY10[2][1:nn]), axis = None)
+                Y = numpy.concatenate((DFB1_PM2_1[col_choice], DFB1_PM2_2[col_choice], DFB1_PM2_3[col_choice], DFB1_PM2_4[col_choice][1:ll], DFB1_PM2_5[col_choice], LB[col_choice][1:nn], LY[col_choice][1:nn], LB10[col_choice][1:nn], LY10[col_choice][1:nn]), axis = None)
+                print('Linear Fit')
+                Common.linear_fit(numpy.asarray(X), numpy.asarray(Y), [1,1], True)
+
+                args.fig_name = 'Power_PDA10DCS_PM100D_mW_Combined_2'
+
+                Plotting.plot_single_linear_fit_curve(X, Y, args)
+
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate directory: ' + DATA_HOME
             raise Exception

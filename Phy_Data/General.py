@@ -897,7 +897,7 @@ def PDA10CS_Calibration_3():
 
             # What is split ratio from 90:10 splitters? 
             # P_{90} = P_{10} + 9.34 (\pm 0.11) [dBm]
-            PLOT_90_10_PM100D = False
+            PLOT_90_10_PM100D = True
             if PLOT_90_10_PM100D:
                 
                 UNITS = False # make plot in mW
@@ -933,6 +933,12 @@ def PDA10CS_Calibration_3():
                 args.fig_name = 'Power_9010_PM100D_mW' if UNITS else 'Power_9010_PM100D_dBm'
 
                 Plotting.plot_multiple_curves(hv_data, args)
+
+                # Combine the data sets to make a plot
+                X = numpy.concatenate((LB10[col_choice][1:nn], LY10[col_choice][1:nn]), axis = None)
+                Y = numpy.concatenate((LB90[col_choice][1:nn], LY90[col_choice][1:nn]), axis = None)
+                print('Linear Fit')
+                Common.linear_fit(numpy.asarray(X), numpy.asarray(Y), [1,1], True)
 
             # Can you fully recover P_{100} from P_{90} + P_{10}? 
             # Or what is the 90:10 splitter IL? 
@@ -1215,7 +1221,7 @@ def PDA10CS_Calibration_3():
                 Plotting.plot_multiple_curves(hv_data, args)
 
             # combine data sets to perform a true linear fit
-            PLOT_LINEAR = True
+            PLOT_LINEAR = False
             if PLOT_LINEAR:
                 # Import data from an earlier measurement on a different laser
                 current_loc = os.getcwd()

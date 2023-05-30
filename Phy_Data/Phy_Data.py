@@ -94,5 +94,7 @@ if __name__ == '__main__':
 
     #LLM.NKT_LCR_DSHI_Test()
 
-    General.PDA10CS_Calibration_3()
+    #General.PDA10CS_Calibration_3()
+
+    LLM.Plot_Multiple_Spectra()
 

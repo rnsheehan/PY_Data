@@ -3341,3 +3341,48 @@ def NKT_LCR_DSHI_Test():
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
+
+def Plot_Multiple_Spectra():
+
+    # Generate a plot of all the measured spectra from a Multi-LLM measurement
+    # R. Sheehan 30 - 5 - 2023
+
+    FUNC_NAME = ".NKT_LCR_DSHI_Test()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/LLM_Data_Nmeas_200_I_100_29_05_2023_14_20_Span_500k/'
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/LLM_Data_Nmeas_200_I_100_29_05_2023_15_34_Span_250k/'
+
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+
+            files = glob.glob('LLM_Meas_*.txt')
+            files.sort(key=lambda f: int(re.sub('\D', '', f))) # sort the filenames in place using the number within the string, assumes single digit in string
+
+            hv_data = []; marks = []; labels = []; 
+            deltaT = 20.0 / 60.0 # measurement time in mins
+            for i in range(0, len(files), 3):
+                values = Common.extract_values_from_string(files[i])
+                theTime = float(values[0])*deltaT
+                data = numpy.loadtxt(files[i], delimiter = '\t')
+                hv_data.append(data); marks.append(Plotting.labs_dotdash[i%len(Plotting.labs_dotdash)]); labels.append('T = %(v1)0.1f mins'%{"v1":theTime})
+
+            # make a plot
+            args = Plotting.plot_arg_multiple()
+
+            args.loud = True
+            args.crv_lab_list = labels
+            args.mrk_list = marks
+            args.x_label = 'Frequency / kHz'
+            args.y_label = 'Power / dBm / 0.5 kHz'
+            args.plt_range = [-50, 50, -75, -25]
+            args.fig_name = 'Measured_Spectra'
+
+            Plotting.plot_multiple_curves(hv_data, args)
+
+        else:
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)

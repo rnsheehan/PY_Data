@@ -2343,6 +2343,9 @@ def Multi_LLM_Analysis():
     # 14: L_{h} / "nW"
     # 15: L_{c} / (MHz or kHz) Fmax < 80 =. kHz
     # 16: L_{\sigma} / (MHz or kHz) Fmax < 80 =. kHz
+    # 17: P_{1} / dBm
+    # 18: P_{2} / dBm
+    # 19: P_{2} / P_{1}
 
     FUNC_NAME = ".Multi_LLM_Analysis()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
@@ -2367,64 +2370,72 @@ def Multi_LLM_Analysis():
             #thefile = 'LLM_Data_Nmeas_100_I_100_30_03_2023_12_03.txt'
             #thefile = 'LLM_Data_Nmeas_100_I_100_30_03_2023_12_51.txt'
             #thefile = 'LLM_Data_Nmeas_100_I_100_30_03_2023_13_27.txt'
-            thefile = 'LLM_Data_Nmeas_200_I_300_05_04_2023_16_15.txt'
+            #thefile = 'LLM_Data_Nmeas_200_I_300_05_04_2023_16_15.txt'
 
-            if glob.glob(thefile):
+            theDir = 'LLM_Data_Nmeas_200_I_100_29_05_2023_14_20_Span_500k/'
 
-                print("Analysing: ",thefile)
+            if os.path.isdir(theDir):
 
-                # read the data from the file
-                data = pandas.read_csv(thefile, delimiter = '\t')
-                titles = list(data)
+                os.chdir(theDir)
 
-                #print(titles, ", len(titles) = ", len(titles), ", len(data) = ", data.shape[1])
-                #print('')
+                print(os.getcwd())
 
-                # Create a directory for storing the results
-                resDir = thefile.replace('.txt','_Results')
+                thefile = 'Multi_LLM_Data.txt'
 
-                if not os.path.isdir(resDir):os.mkdir(resDir)
+                if glob.glob(thefile):
 
-                os.chdir(resDir)
+                    print("Analysing: ",thefile)
 
-                # Start publilshing the results
-                if not glob.glob('ResultsSummary.txt'): Multi_LLM_Fit_Params_Report(data, titles, True)
+                    # read the data from the file
+                    data = pandas.read_csv(thefile, delimiter = '\t')
+                    titles = list(data)
 
-                # Perform Correlation calculations of the variables
-                RUN_CORRELATIONS = True
+                    #print(titles, ", len(titles) = ", len(titles), ", len(data) = ", data.shape[1])
+                    #print('')
 
-                if RUN_CORRELATIONS:
-                    # Correlations with Time
-                    axis_n = 0; 
-                    axes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 15, 16]
-                    for axis_m in axes:
-                        Multi_LLM_Correlation(data, titles, axis_n, axis_m, True, False)
+                    # Create a directory for storing the results
+                    #resDir = thefile.replace('.txt','_Results')
+                    #if not os.path.isdir(resDir):os.mkdir(resDir)
+                    #os.chdir(resDir)
 
-                    # Correlations with Pmax
-                    axis_n = 4
-                    axes = [6, 7, 8, 9, 10, 14]
-                    for axis_m in axes:
+                    # Start publilshing the results
+                    if not glob.glob('ResultsSummary.txt'): Multi_LLM_Fit_Params_Report(data, titles, True)
+
+                    # Perform Correlation calculations of the variables
+                    RUN_CORRELATIONS = True
+
+                    if RUN_CORRELATIONS:
+                        # Correlations with Time
+                        axis_n = 0; 
+                        axes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 18, 19]
+                        for axis_m in axes:
+                            Multi_LLM_Correlation(data, titles, axis_n, axis_m, True, False)
+
+                        # Correlations with Pmax
+                        axis_n = 4
+                        axes = [6, 7, 8, 9, 10, 14]
+                        for axis_m in axes:
+                            Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
+
+                        # Correlations with AOM-Temperature
+                        axis_n = 2
+                        axes = [6, 7, 8, 9, 10, 14]
+                        for axis_m in axes:
+                            Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
+
+                        # Correlations with LL-Est
+                        axis_n = 6
+                        axes = [7, 8, 9]
+                        for axis_m in axes:
+                            Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
+
+                        # Correlation of LL-Vfit with LL-Lfit
+                        axis_n = 7
+                        axis_m = 8
                         Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
 
-                    # Correlations with AOM-Temperature
-                    axis_n = 2
-                    axes = [6, 7, 8, 9, 10, 14]
-                    for axis_m in axes:
-                        Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
-
-                    # Correlations with LL-Est
-                    axis_n = 6
-                    axes = [7, 8, 9]
-                    for axis_m in axes:
-                        Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
-
-                    # Correlation of LL-Vfit with LL-Lfit
-                    axis_n = 7
-                    axis_m = 8
-                    Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
-
-                # Make a plot of the spectra with max/min fitted params
-                Multi_LLM_Extract_Fit_Params(data, titles, True)
+                    # Make a plot of the spectra with max/min fitted params
+                    Multi_LLM_Extract_Fit_Params(data, titles, True)
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
             raise Exception

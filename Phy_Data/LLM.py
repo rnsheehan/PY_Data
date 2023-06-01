@@ -2372,7 +2372,7 @@ def Multi_LLM_Analysis():
             #thefile = 'LLM_Data_Nmeas_100_I_100_30_03_2023_13_27.txt'
             #thefile = 'LLM_Data_Nmeas_200_I_300_05_04_2023_16_15.txt'
 
-            theDir = 'LLM_Data_Nmeas_200_I_100_29_05_2023_14_20_Span_500k/'
+            theDir = 'LLM_Data_Nmeas_200_I_100_30_05_2023_19_31/'
 
             if os.path.isdir(theDir):
 
@@ -2403,6 +2403,7 @@ def Multi_LLM_Analysis():
 
                     # Perform Correlation calculations of the variables
                     RUN_CORRELATIONS = True
+                    RUN_TAOM_CORRELATIONS = False
 
                     if RUN_CORRELATIONS:
                         # Correlations with Time
@@ -2413,19 +2414,21 @@ def Multi_LLM_Analysis():
 
                         # Correlations with Pmax
                         axis_n = 4
-                        axes = [6, 7, 8, 9, 10, 14]
+                        axes = [6, 7, 8, 9, 10, 14, 17, 18]
                         for axis_m in axes:
                             Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
 
                         # Correlations with AOM-Temperature
-                        axis_n = 2
-                        axes = [6, 7, 8, 9, 10, 14]
-                        for axis_m in axes:
-                            Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
+                        # T_{AOM} = constant, no need to check for correlations here
+                        if RUN_TAOM_CORRELATIONS:
+                            axis_n = 2
+                            axes = [6, 7, 8, 9, 10, 14, 17, 18]
+                            for axis_m in axes:
+                                Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
 
                         # Correlations with LL-Est
                         axis_n = 6
-                        axes = [7, 8, 9]
+                        axes = [7, 8, 9, 17, 18]
                         for axis_m in axes:
                             Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
 
@@ -2435,7 +2438,7 @@ def Multi_LLM_Analysis():
                         Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
 
                     # Make a plot of the spectra with max/min fitted params
-                    Multi_LLM_Extract_Fit_Params(data, titles, True)
+                    if not glob.glob('Fitted*dBm.png'): Multi_LLM_Extract_Fit_Params(data, titles, True)
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
             raise Exception
@@ -2711,6 +2714,11 @@ def Multi_LLM_Fit_Params_Report(dataFrame, titles, loud = False):
             columnStatistics(dataFrame, titles, 1, loud) # Air Temperature
             columnStatistics(dataFrame, titles, 2, loud) # AOM Temperature
             columnStatistics(dataFrame, titles, 3, loud) # AOM Driver Temperature
+
+            print("\nLoop Power Statistics") # Loop Power Statistics
+            columnStatistics(dataFrame, titles, 17, loud) # Input Power @ P1
+            columnStatistics(dataFrame, titles, 18, loud) # Loop Power @ P2
+            columnStatistics(dataFrame, titles, 19, loud) # Power Ratio P2 / P1
 
             sys.stdout = old_target # return to the usual stdout
 
@@ -3363,7 +3371,7 @@ def Plot_Multiple_Spectra():
 
     try:
         #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/LLM_Data_Nmeas_200_I_100_29_05_2023_14_20_Span_500k/'
-        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/LLM_Data_Nmeas_200_I_100_29_05_2023_15_34_Span_250k/'
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/LLM_Data_Nmeas_200_I_200_31_05_2023_10_12/'
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
@@ -3387,7 +3395,7 @@ def Plot_Multiple_Spectra():
             args.mrk_list = marks
             args.x_label = 'Frequency / kHz'
             args.y_label = 'Power / dBm / 0.5 kHz'
-            args.plt_range = [-50, 50, -75, -25]
+            #args.plt_range = [-50, 50, -100, -25]
             args.fig_name = 'Measured_Spectra'
 
             Plotting.plot_multiple_curves(hv_data, args)

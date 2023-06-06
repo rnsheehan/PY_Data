@@ -2320,7 +2320,7 @@ def Plot_Spectra():
         print(ERR_STATEMENT)
         print(e)
 
-def Multi_LLM_Analysis():
+def Multi_LLM_Analysis(DATA_HOME):
 
     # Generate all the plots from the Multi-LLM Measurements
     # R. Sheehan 21 - 11 - 2022
@@ -2353,7 +2353,7 @@ def Multi_LLM_Analysis():
     try:
         #DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_Setup_Test/LCR_DSHI_JDSU_DFB_T_20_D_50/'
         #DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_1310/LCR_DSHI_LD5_591_T_25_D_10/'
-        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
+        #DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
@@ -2372,73 +2372,67 @@ def Multi_LLM_Analysis():
             #thefile = 'LLM_Data_Nmeas_100_I_100_30_03_2023_13_27.txt'
             #thefile = 'LLM_Data_Nmeas_200_I_300_05_04_2023_16_15.txt'
 
-            theDir = 'LLM_Data_Nmeas_200_I_100_30_05_2023_19_31/'
+            #theDir = 'LLM_Data_Nmeas_200_I_100_30_05_2023_19_31/'
 
-            if os.path.isdir(theDir):
+            thefile = 'Multi_LLM_Data.txt'
 
-                os.chdir(theDir)
+            if glob.glob(thefile):
 
-                print(os.getcwd())
+                print("Analysing: ",thefile)
 
-                thefile = 'Multi_LLM_Data.txt'
+                # read the data from the file
+                data = pandas.read_csv(thefile, delimiter = '\t')
+                titles = list(data)
 
-                if glob.glob(thefile):
+                #print(titles, ", len(titles) = ", len(titles), ", len(data) = ", data.shape[1])
+                #print('')
 
-                    print("Analysing: ",thefile)
+                # Create a directory for storing the results
+                #resDir = thefile.replace('.txt','_Results')
+                #if not os.path.isdir(resDir):os.mkdir(resDir)
+                #os.chdir(resDir)
 
-                    # read the data from the file
-                    data = pandas.read_csv(thefile, delimiter = '\t')
-                    titles = list(data)
+                # Start publilshing the results
+                if not glob.glob('ResultsSummary.txt'): Multi_LLM_Fit_Params_Report(data, titles, True)
 
-                    #print(titles, ", len(titles) = ", len(titles), ", len(data) = ", data.shape[1])
-                    #print('')
+                # Perform Correlation calculations of the variables
+                RUN_CORRELATIONS = True
+                RUN_TAOM_CORRELATIONS = False
 
-                    # Create a directory for storing the results
-                    #resDir = thefile.replace('.txt','_Results')
-                    #if not os.path.isdir(resDir):os.mkdir(resDir)
-                    #os.chdir(resDir)
+                if RUN_CORRELATIONS:
+                    # Correlations with Time
+                    axis_n = 0; 
+                    axes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 18, 19]
+                    for axis_m in axes:
+                        Multi_LLM_Correlation(data, titles, axis_n, axis_m, True, False)
 
-                    # Start publilshing the results
-                    if not glob.glob('ResultsSummary.txt'): Multi_LLM_Fit_Params_Report(data, titles, True)
+                    # Correlations with Pmax
+                    axis_n = 4
+                    axes = [6, 7, 8, 9, 10, 14, 17, 18]
+                    for axis_m in axes:
+                        Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
 
-                    # Perform Correlation calculations of the variables
-                    RUN_CORRELATIONS = True
-                    RUN_TAOM_CORRELATIONS = False
-
-                    if RUN_CORRELATIONS:
-                        # Correlations with Time
-                        axis_n = 0; 
-                        axes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 18, 19]
-                        for axis_m in axes:
-                            Multi_LLM_Correlation(data, titles, axis_n, axis_m, True, False)
-
-                        # Correlations with Pmax
-                        axis_n = 4
+                    # Correlations with AOM-Temperature
+                    # T_{AOM} = constant, no need to check for correlations here
+                    if RUN_TAOM_CORRELATIONS:
+                        axis_n = 2
                         axes = [6, 7, 8, 9, 10, 14, 17, 18]
                         for axis_m in axes:
                             Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
 
-                        # Correlations with AOM-Temperature
-                        # T_{AOM} = constant, no need to check for correlations here
-                        if RUN_TAOM_CORRELATIONS:
-                            axis_n = 2
-                            axes = [6, 7, 8, 9, 10, 14, 17, 18]
-                            for axis_m in axes:
-                                Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
-
-                        # Correlations with LL-Est
-                        axis_n = 6
-                        axes = [7, 8, 9, 17, 18]
-                        for axis_m in axes:
-                            Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
-
-                        # Correlation of LL-Vfit with LL-Lfit
-                        axis_n = 7
-                        axis_m = 8
+                    # Correlations with LL-Est
+                    axis_n = 6
+                    axes = [7, 8, 9, 17, 18]
+                    for axis_m in axes:
                         Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
 
-                    # Make a plot of the spectra with max/min fitted params
-                    if not glob.glob('Fitted*dBm.png'): Multi_LLM_Extract_Fit_Params(data, titles, True)
+                    # Correlation of LL-Vfit with LL-Lfit
+                    axis_n = 7
+                    axis_m = 8
+                    Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
+
+                # Make a plot of the spectra with max/min fitted params
+                if not glob.glob('Fitted*dBm.png'): Multi_LLM_Extract_Fit_Params(data, titles, False)
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
             raise Exception
@@ -2617,7 +2611,7 @@ def Multi_LLM_Extract_Fit_Params(dataFrame, titles, loud = False):
             args = Plotting.plot_arg_multiple()
                 
             # Extended LL Plot
-            args.loud = True
+            args.loud = loud
             args.crv_lab_list = labels
             args.mrk_list = marks
             args.x_label = 'Frequency ( kHz )'
@@ -2631,7 +2625,7 @@ def Multi_LLM_Extract_Fit_Params(dataFrame, titles, loud = False):
             Plotting.plot_multiple_curves(hv_data, args)
 
             # Extended LL Plot
-            args.loud = True
+            args.loud = loud
             args.crv_lab_list = labels[0:3]
             args.mrk_list = marks[0:3]
             args.x_label = 'Frequency ( kHz )'
@@ -2645,7 +2639,7 @@ def Multi_LLM_Extract_Fit_Params(dataFrame, titles, loud = False):
             Plotting.plot_multiple_curves(hv_data[0:3], args)
 
             # Extended LL Plot
-            args.loud = True
+            args.loud = loud
             args.crv_lab_list = labels[3:6]
             args.mrk_list = marks[3:6]
             args.x_label = 'Frequency ( kHz )'
@@ -3361,7 +3355,7 @@ def NKT_LCR_DSHI_Test():
         print(ERR_STATEMENT)
         print(e)
 
-def Plot_Multiple_Spectra():
+def Plot_Multiple_Spectra(DATA_HOME):
 
     # Generate a plot of all the measured spectra from a Multi-LLM measurement
     # R. Sheehan 30 - 5 - 2023
@@ -3371,7 +3365,7 @@ def Plot_Multiple_Spectra():
 
     try:
         #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/LLM_Data_Nmeas_200_I_100_29_05_2023_14_20_Span_500k/'
-        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/LLM_Data_Nmeas_200_I_200_31_05_2023_10_12/'
+        #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/LLM_Data_Nmeas_200_I_200_31_05_2023_10_12/'
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
@@ -3390,17 +3384,192 @@ def Plot_Multiple_Spectra():
             # make a plot
             args = Plotting.plot_arg_multiple()
 
-            args.loud = True
+            args.loud = False
             args.crv_lab_list = labels
             args.mrk_list = marks
             args.x_label = 'Frequency / kHz'
             args.y_label = 'Power / dBm / 0.5 kHz'
-            #args.plt_range = [-50, 50, -100, -25]
+            args.plt_range = [-50, 50, -90, -25]
             args.fig_name = 'Measured_Spectra'
 
             Plotting.plot_multiple_curves(hv_data, args)
 
         else:
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Multi_Multi_LLM_Analysis():
+
+    # Perform the multi-llm analysis calculations for multiple sets of measurements
+    # i.e. Analyse the Multi-LLM data as a function of voa bias / loop power ratio and Input Power
+    # R. Sheehan 6 - 6 - 2023
+
+    FUNC_NAME = ".Multi_Multi_LLM_Analysis()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        # loop the Multi-LLM Analysis calculations over a list of directories
+        # gather the averaged data as a function of VOA bias / loop power Ratio
+
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
+
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+
+            # Make a directory for storing the results
+            resDir = 'Loop_Power_Variation/'
+            if not os.path.isdir(resDir): os.mkdir(resDir)
+
+            # Generate the list of directories to be analysed
+            Ival = 200
+            Month = '05'
+            dir_list = glob.glob('LLM_Data_Nmeas_200_I_%(v1)d_*_%(v2)s_*/'%{"v1":Ival,"v2":Month})
+            #dir_list = dir_list[2:len(dir_list)]
+
+            PARSE_ESA_FILES = False
+            esaResFileName = 'ESA_Results_I_%(v1)d.txt'%{"v1":Ival}
+
+            # Create files for storing the accumulated data
+            if os.path.isdir(resDir) and PARSE_ESA_FILES:
+                os.chdir(resDir)
+                if not glob.glob(esaResFileName): 
+                    esaFile = open(esaResFileName,'x') # create the file to be written to
+                    esaFile.write('VOA Bias ( V )\tInput Power (dBm)\tLoop Power (dBm)\tPower Ratio P2 / P1\n') # write the file header
+                    esaFile.close()
+                os.chdir(DATA_HOME)
+
+            PLOT_SPECTRA = False
+
+            PERFORM_MULTI_LLM = False
+            
+            if len(dir_list) > 0:
+                for i in range(0, len(dir_list), 1): 
+                    # Extract the Power versus VOA data
+                    if PARSE_ESA_FILES:
+                        theVals = Parse_ESA_Settings(dir_list[i])
+                        print(theVals['VVoa'],' , ',theVals['P2/P1'] )
+                        os.chdir(DATA_HOME)
+                        os.chdir(resDir)
+                        esaFile = open(esaResFileName,'a')
+                        esaFile.write('%(v1)0.3f\t%(v2)0.3f\t%(v3)0.3f\t%(v4)0.3f\n'%{"v1":theVals['VVoa'], "v2":theVals['P1'], "v3":theVals['P2'], "v4":theVals['P2/P1']})
+                        esaFile.close()
+                        os.chdir(DATA_HOME)
+                    
+                    # Plot the Measured Spectra
+                    if PLOT_SPECTRA:
+                        Plot_Multiple_Spectra(dir_list[i])
+                        os.chdir(DATA_HOME)
+                    
+                    # Do the Multi-LLM Analysis on each measured data
+                    if PERFORM_MULTI_LLM:
+                        Multi_LLM_Analysis(dir_list[i])
+                        os.chdir(DATA_HOME)
+
+            else:
+                ERR_STATEMENT = ERR_STATEMENT + '\ndir_list is empty'
+                raise Exception
+
+            # Make a plot of the ESA file Data
+            PLOT_ESA_FILES = False
+
+            if PLOT_ESA_FILES:
+                os.chdir(resDir)
+                hv_data1 = []; labels1 = []; marks1 = []
+                hv_data2 = []; labels2 = []; marks2 = []
+                Ivals = [100, 200, 300]
+                for i in range(0, len(Ivals), 1):
+                    esaResFileName = 'ESA_Results_I_%(v1)d.txt'%{"v1":Ivals[i]}
+                    data = numpy.loadtxt(esaResFileName, delimiter = '\t', unpack = True, skiprows = 1)
+                    hv_data1.append([data[0], data[1]]); labels1.append('P$_{1}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks1.append(Plotting.labs_dashed[i]); 
+                    hv_data1.append([data[0], data[2]]); labels1.append('P$_{2}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks1.append(Plotting.labs[i]); 
+                    
+                    hv_data2.append([data[0], data[3]]); labels2.append('I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs[i]); 
+
+                # Make the Plot
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = False
+                args.crv_lab_list = labels1
+                args.mrk_list = marks1
+                args.x_label = 'VOA Bias (V)'
+                args.y_label = 'Power (dBm)'
+                args.fig_name = 'Input_Loop_Power'
+
+                Plotting.plot_multiple_curves(hv_data1, args)
+
+                args.crv_lab_list = labels2
+                args.mrk_list = marks2
+                args.x_label = 'VOA Bias (V)'
+                args.y_label = 'Power Ratio P$_{2}$ / P$_{1}$'
+                args.fig_name = 'Input_Loop_Power_Ratio'
+
+                Plotting.plot_multiple_curves(hv_data2, args)
+        else:
+            raise Exception        
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Parse_ESA_Settings(DATA_HOME, loud = False):
+
+    # Read the ESA Settings file and extract the measurement power settings
+    # Output is dictionary of the form [ Input Power (dBm), Loop Power (dBm), Loop / Input Ratio, VOA Bias (V) ]
+    # R. Sheehan 6 - 6 - 2023
+
+    FUNC_NAME = ".Parse_ESA_Settings()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            thePath = 'ESA_Settings.txt'
+            if glob.glob(thePath):
+                theFile = open(thePath,'r')
+                theData = theFile.readlines() # read the data from the file
+                line_list = [10, 11, 12, 13]
+                theVals = []
+                theLabels = ['P1', 'P2', 'P2/P1', 'VVoa']
+                count = 0
+                for lines in theData: 
+                    if count in line_list:
+                        if loud: print( Common.extract_values_from_string(lines) )
+                        theVals.append( float( Common.extract_values_from_string(lines)[-1] ) )
+                    count = count + 1
+                resDict = dict( zip( theLabels, theVals ) ) # make the dictionary
+                return resDict
+            else:
+                ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate: ' + thePath
+                raise Exception
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate: ' + DATA_HOME
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Parse_Results_Summary(DATA_HOME, loud = False):
+
+    # Read the Results Summary files and extract various values
+
+    # R. Sheehan 6 - 6 - 2023
+
+    FUNC_NAME = ".Parse_Results_Summary()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            thePath = 'ResultsSummary.txt'
+            if glob.glob(thePath):
+                pass
+            else:
+                ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate: ' + thePath
+                raise Exception
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate: ' + DATA_HOME
             raise Exception
     except Exception as e:
         print(ERR_STATEMENT)

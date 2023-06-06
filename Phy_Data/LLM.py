@@ -3424,8 +3424,8 @@ def Multi_Multi_LLM_Analysis():
             if not os.path.isdir(resDir): os.mkdir(resDir)
 
             # Generate the list of directories to be analysed
-            Ival = 200
-            Month = '05'
+            Ival = 300
+            Month = '06'
             dir_list = glob.glob('LLM_Data_Nmeas_200_I_%(v1)d_*_%(v2)s_*/'%{"v1":Ival,"v2":Month})
             #dir_list = dir_list[2:len(dir_list)]
 
@@ -3438,6 +3438,24 @@ def Multi_Multi_LLM_Analysis():
                 if not glob.glob(esaResFileName): 
                     esaFile = open(esaResFileName,'x') # create the file to be written to
                     esaFile.write('VOA Bias ( V )\tInput Power (dBm)\tLoop Power (dBm)\tPower Ratio P2 / P1\n') # write the file header
+                    esaFile.close()
+                os.chdir(DATA_HOME)
+
+            PARSE_RES_FILES = True
+            esaResFileName = 'Measurement_Results_I_%(v1)d.txt'%{"v1":Ival}
+            esaErrFileName = 'Measurement_Errors_I_%(v1)d.txt'%{"v1":Ival}
+
+            # Create files for storing the accumulated data
+            # Output is of the form ['Pmax/dBm', 'LLest', 'LL_Vfit', 'LL_Lfit', 'LLest_-20', 'Voigt_Lor_HWHM', 'Voigt_Gau_Stdev', 'P1/dBm', 'P2/dBm', 'P2/P1']
+            if os.path.isdir(resDir) and PARSE_RES_FILES:
+                os.chdir(resDir)
+                if not glob.glob(esaResFileName): 
+                    esaFile = open(esaResFileName,'x') # create the file to be written to
+                    esaFile.write('Input Power (dBm)\tLoop Power (dBm)\tPower Ratio P2 / P1\tPmax (dBm)\tLLest\tLL_Vfit\tLL_Lfit\tLLest_-20\tVoigt_Lor_HWHM\tVoigt_Gau_Stdev\n') # write the file header
+                    esaFile.close()
+                if not glob.glob(esaErrFileName): 
+                    esaFile = open(esaErrFileName,'x') # create the file to be written to
+                    esaFile.write('Input Power (dBm)\tLoop Power (dBm)\tPower Ratio P2 / P1\tPmax (dBm)\tLLest\tLL_Vfit\tLL_Lfit\tLLest_-20\tVoigt_Lor_HWHM\tVoigt_Gau_Stdev\n') # write the file header
                     esaFile.close()
                 os.chdir(DATA_HOME)
 
@@ -3455,6 +3473,27 @@ def Multi_Multi_LLM_Analysis():
                         os.chdir(resDir)
                         esaFile = open(esaResFileName,'a')
                         esaFile.write('%(v1)0.3f\t%(v2)0.3f\t%(v3)0.3f\t%(v4)0.3f\n'%{"v1":theVals['VVoa'], "v2":theVals['P1'], "v3":theVals['P2'], "v4":theVals['P2/P1']})
+                        esaFile.close()
+                        os.chdir(DATA_HOME)
+
+                    # Extract the Measurement Results
+                    # Output is of the form ['Pmax/dBm', 'LLest', 'LL_Vfit', 'LL_Lfit', 'LLest_-20', 'Voigt_Lor_HWHM', 'Voigt_Gau_Stdev', 'P1/dBm', 'P2/dBm', 'P2/P1']
+                    if PARSE_RES_FILES:
+                        theVals, theErrs = Parse_Results_Summary(dir_list[i])
+                        #print(theVals['VVoa'],' , ',theVals['P2/P1'] )
+                        os.chdir(DATA_HOME)
+                        os.chdir(resDir)
+
+                        esaFile = open(esaResFileName,'a')
+                        esaFile.write('%(v1)0.5f\t%(v2)0.5f\t%(v3)0.5f\t%(v4)0.5f\t%(v5)0.5f\t%(v6)0.5f\t%(v7)0.5f\t%(v8)0.5f\t%(v9)0.5f\t%(v10)0.5f\n'%{"v1":theVals['P1/dBm'], "v2":theVals['P2/dBm'], "v3":theVals['P2/P1'], "v4":theVals['Pmax/dBm'], 
+                                                                                                                                                         "v5":theVals['LLest'], "v6":theVals['LL_Vfit'], "v7":theVals['LL_Lfit'], "v8":theVals['LLest_-20'], 
+                                                                                                                                                         "v9":theVals['Voigt_Lor_HWHM'], "v10":theVals['Voigt_Gau_Stdev'] } )
+                        esaFile.close()
+
+                        esaFile = open(esaErrFileName,'a')
+                        esaFile.write('%(v1)0.5f\t%(v2)0.5f\t%(v3)0.5f\t%(v4)0.5f\t%(v5)0.5f\t%(v6)0.5f\t%(v7)0.5f\t%(v8)0.5f\t%(v9)0.5f\t%(v10)0.5f\n'%{"v1":theErrs['P1/dBm'], "v2":theErrs['P2/dBm'], "v3":theErrs['P2/P1'], "v4":theErrs['Pmax/dBm'], 
+                                                                                                                                                         "v5":theErrs['LLest'], "v6":theErrs['LL_Vfit'], "v7":theErrs['LL_Lfit'], "v8":theErrs['LLest_-20'], 
+                                                                                                                                                         "v9":theErrs['Voigt_Lor_HWHM'], "v10":theErrs['Voigt_Gau_Stdev'] } )
                         esaFile.close()
                         os.chdir(DATA_HOME)
                     
@@ -3553,7 +3592,8 @@ def Parse_ESA_Settings(DATA_HOME, loud = False):
 def Parse_Results_Summary(DATA_HOME, loud = False):
 
     # Read the Results Summary files and extract various values
-
+    # Output is two dictionaries one for the values, one for the errors
+    # Output is of the form ['Pmax/dBm', 'LLest', 'LL_Vfit', 'LL_Lfit', 'LLest_-20', 'Voigt_Lor_HWHM', 'Voigt_Gau_Stdev', 'P1/dBm', 'P2/dBm', 'P2/P1']
     # R. Sheehan 6 - 6 - 2023
 
     FUNC_NAME = ".Parse_Results_Summary()" # use this in exception handling messages
@@ -3564,7 +3604,30 @@ def Parse_Results_Summary(DATA_HOME, loud = False):
             os.chdir(DATA_HOME)
             thePath = 'ResultsSummary.txt'
             if glob.glob(thePath):
-                pass
+                theFile = open(thePath,'r')
+                theData = theFile.readlines() # read the data from the file
+                line_list = [5, 6, 7, 8, 9, 14, 15, 28, 29, 30]
+                theLabels = ['Pmax/dBm', 'LLest', 'LL_Vfit', 'LL_Lfit', 'LLest_-20', 'Voigt_Lor_HWHM', 'Voigt_Gau_Stdev', 'P1/dBm', 'P2/dBm', 'P2/P1']
+                theVals = []
+                theErrs = []
+                count = 0
+                for lines in theData:
+                    if count in line_list:
+                        if loud: print(Common.extract_values_from_string(lines))
+                        
+                        if count == 9 or count == 28 or count == 29: pos = 1
+                        elif count == 30: pos = 2
+                        else: pos = 0
+                        theVals.append( float ( Common.extract_values_from_string(lines)[pos] ) )
+                        
+                        if count == 9 or count == 28 or count == 29: pos = 5
+                        elif count == 30: pos = 6
+                        else: pos = 4
+                        theErrs.append( float ( Common.extract_values_from_string(lines)[pos] ) )
+                    count = count + 1
+                resDict = dict( zip( theLabels, theVals ) ) # make the dictionary for the values
+                errDict = dict( zip( theLabels, theErrs ) ) # make the dictionary for the errors
+                return [resDict, errDict]
             else:
                 ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate: ' + thePath
                 raise Exception

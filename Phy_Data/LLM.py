@@ -3424,10 +3424,10 @@ def Multi_Multi_LLM_Analysis():
             if not os.path.isdir(resDir): os.mkdir(resDir)
 
             # Generate the list of directories to be analysed
-            Ival = 300
-            Month = '06'
+            Ival = 100
+            Month = '05'
             dir_list = glob.glob('LLM_Data_Nmeas_200_I_%(v1)d_*_%(v2)s_*/'%{"v1":Ival,"v2":Month})
-            #dir_list = dir_list[2:len(dir_list)]
+            dir_list = dir_list[2:len(dir_list)]
 
             PARSE_ESA_FILES = False
             esaResFileName = 'ESA_Results_I_%(v1)d.txt'%{"v1":Ival}

@@ -3441,7 +3441,7 @@ def Multi_Multi_LLM_Analysis():
                     esaFile.close()
                 os.chdir(DATA_HOME)
 
-            PARSE_RES_FILES = True
+            PARSE_RES_FILES = False
             esaResFileName = 'Measurement_Results_I_%(v1)d.txt'%{"v1":Ival}
             esaErrFileName = 'Measurement_Errors_I_%(v1)d.txt'%{"v1":Ival}
 
@@ -3506,7 +3506,6 @@ def Multi_Multi_LLM_Analysis():
                     if PERFORM_MULTI_LLM:
                         Multi_LLM_Analysis(dir_list[i])
                         os.chdir(DATA_HOME)
-
             else:
                 ERR_STATEMENT = ERR_STATEMENT + '\ndir_list is empty'
                 raise Exception
@@ -3519,9 +3518,12 @@ def Multi_Multi_LLM_Analysis():
                 hv_data1 = []; labels1 = []; marks1 = []
                 hv_data2 = []; labels2 = []; marks2 = []
                 Ivals = [100, 200, 300]
+                Pvals = [3.356, 9.313, 11.767]
+                Perr = [0.016, 0.015, 0.013]
                 for i in range(0, len(Ivals), 1):
                     esaResFileName = 'ESA_Results_I_%(v1)d.txt'%{"v1":Ivals[i]}
                     data = numpy.loadtxt(esaResFileName, delimiter = '\t', unpack = True, skiprows = 1)
+                    print('Average Input Power I = ',Ivals[i], ': ',numpy.mean(data[1]), ' +/- ', 0.5*( numpy.max(data[1]) - numpy.min(data[1]) ), ' ( dBm )')
                     hv_data1.append([data[0], data[1]]); labels1.append('P$_{1}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks1.append(Plotting.labs_dashed[i]); 
                     hv_data1.append([data[0], data[2]]); labels1.append('P$_{2}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks1.append(Plotting.labs[i]); 
                     
@@ -3546,6 +3548,101 @@ def Multi_Multi_LLM_Analysis():
                 args.fig_name = 'Input_Loop_Power_Ratio'
 
                 Plotting.plot_multiple_curves(hv_data2, args)
+
+            PLOT_RES_FILES = True
+
+            if PLOT_RES_FILES:
+                os.chdir(resDir)
+                print(os.getcwd())
+                # make a plot of various measured values versus Power Ratio
+                # col 0: P1 / dBm col 1: P2 / dBm col 2: P2 / P1 col 3: Pmax / dBm col 4: LLest / units col 5: LLVfit / units col 6: LLLfit / units col 7: LL-20 / units col 8: LLVGau / units col 9: LLVLor / units
+                # 2. P1, P2 versus Power Ratio with Errors
+                # 1. Pmax versus Power Ratio with Errors
+                # 3. LLest versus Power Ratio with Errors
+                # 4. LL-20 versus Power Ratio with Errors
+                # 5. LLVfit versus Power Ratio with Errors
+                Ivals = [100, 200, 300]
+                Pvals = [3.356, 9.312, 11.765]
+                Perr = [0.013, 0.014, 0.012]
+                hv_data1 = []; labels1 = []; marks1 = []
+                hv_data2 = []; labels2 = []; marks2 = []
+                hv_data3 = []; labels3 = []; marks3 = []
+                hv_data4 = []; labels4 = []; marks4 = []
+                hv_data5 = []; labels5 = []; marks5 = []
+                for i in range(0, len(Ivals), 1):
+                    esaResFileName = 'Measurement_Results_I_%(v1)d.txt'%{"v1":Ivals[i]}
+                    esaErrFileName = 'Measurement_Errors_I_%(v1)d.txt'%{"v1":Ivals[i]}
+                    data = numpy.loadtxt(esaResFileName, delimiter = '\t', unpack = True, skiprows = 1)
+                    dataErr = numpy.loadtxt(esaErrFileName, delimiter = '\t', unpack = True, skiprows = 1)
+
+                    print('Average Input Power I = ',Ivals[i], ': ',numpy.mean(data[0]), ' +/- ', 0.5*( numpy.max(data[0]) - numpy.min(data[0]) ), ' ( dBm )')
+
+                    hv_data1.append([data[2], data[3], dataErr[3]]); labels1.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks1.append(Plotting.labs_lins[i%(len(Plotting.labs))])
+
+                    hv_data2.append([data[2], data[0], dataErr[0]]); labels2.append('P$_{1}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs_lins[i%(len(Plotting.labs))])
+                    hv_data2.append([data[2], data[1], dataErr[1]]); labels2.append('P$_{2}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs_dashed[i%(len(Plotting.labs))])
+
+                    hv_data3.append([data[2], data[4], dataErr[4]]); labels3.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks3.append(Plotting.labs[i%(len(Plotting.labs))])
+
+                    hv_data4.append([data[2], data[7], dataErr[7]]); labels4.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks4.append(Plotting.labs[i%(len(Plotting.labs))])
+
+                    hv_data5.append([data[2], data[5], dataErr[5]]); labels5.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks5.append(Plotting.labs[i%(len(Plotting.labs))])
+
+                # 1. Pmax versus Power Ratio with Errors
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = False
+                args.crv_lab_list = labels1
+                args.mrk_list = marks1
+                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
+                args.y_label = 'Spectral Peak Value (dBm / 500Hz)'
+                args.fig_name = 'Spectral_Peak_Value'
+
+                Plotting.plot_multiple_curves_with_errors(hv_data1, args)
+
+                # 2. P1, P2 versus Power Ratio with Errors
+                args.loud = False
+                args.crv_lab_list = labels2
+                args.mrk_list = marks2
+                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
+                args.y_label = 'Optical Power ( dBm )'
+                args.fig_name = 'Optical_Power'
+
+                Plotting.plot_multiple_curves_with_errors(hv_data2, args)
+
+                # 3. LLest versus Power Ratio with Errors
+                args.loud = False
+                args.crv_lab_list = labels3
+                args.mrk_list = marks3
+                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
+                args.y_label = 'Laser Linewidth ( kHz )'
+                args.fig_name = 'Laser_Linewidth'
+                args.plt_range = [0, 1.5, 0, 5]
+
+                Plotting.plot_multiple_curves_with_errors(hv_data3, args)
+
+                # 4. LL-20 versus Power Ratio with Errors
+                args.loud = False
+                args.crv_lab_list = labels4
+                args.mrk_list = marks4
+                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
+                args.y_label = 'Laser Linewidth at -20 dB ( kHz )'
+                args.fig_name = 'Laser_Linewidth_20'
+                args.plt_range = [0, 1.5, 0, 20]
+
+                Plotting.plot_multiple_curves_with_errors(hv_data4, args)
+
+                # 5. LLVfit, LLGau, LLLor versus Power Ratio with Errors
+                args.loud = True
+                args.crv_lab_list = labels5
+                args.mrk_list = marks5
+                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
+                args.y_label = 'Laser Linewidth Voigt Fit ( kHz )'
+                args.fig_name = 'Laser_Linewidth_Voigt'
+                args.plt_range = [0, 1.5, 0, 5]
+
+                Plotting.plot_multiple_curves_with_errors(hv_data5, args)
+
         else:
             raise Exception        
     except Exception as e:

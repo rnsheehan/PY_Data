@@ -3577,10 +3577,10 @@ def Multi_Multi_LLM_Analysis():
 
                     print('Average Input Power I = ',Ivals[i], ': ',numpy.mean(data[0]), ' +/- ', 0.5*( numpy.max(data[0]) - numpy.min(data[0]) ), ' ( dBm )')
 
-                    hv_data1.append([data[2], data[3], dataErr[3]]); labels1.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks1.append(Plotting.labs_lins[i%(len(Plotting.labs))])
+                    hv_data1.append([data[2], data[3], numpy.absolute( dataErr[3] ) ] ); labels1.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks1.append(Plotting.labs_lins[i%(len(Plotting.labs))])
 
                     hv_data2.append([data[2], data[0], dataErr[0]]); labels2.append('P$_{1}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs_lins[i%(len(Plotting.labs))])
-                    hv_data2.append([data[2], data[1], dataErr[1]]); labels2.append('P$_{2}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs_dashed[i%(len(Plotting.labs))])
+                    hv_data2.append([data[2], data[1], numpy.absolute( dataErr[1] ) ]  ); labels2.append('P$_{2}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs_dashed[i%(len(Plotting.labs))])
 
                     hv_data3.append([data[2], data[4], dataErr[4]]); labels3.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks3.append(Plotting.labs[i%(len(Plotting.labs))])
 
@@ -3591,7 +3591,7 @@ def Multi_Multi_LLM_Analysis():
                 # 1. Pmax versus Power Ratio with Errors
                 args = Plotting.plot_arg_multiple()
 
-                args.loud = False
+                args.loud = True
                 args.crv_lab_list = labels1
                 args.mrk_list = marks1
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
@@ -3601,7 +3601,7 @@ def Multi_Multi_LLM_Analysis():
                 Plotting.plot_multiple_curves_with_errors(hv_data1, args)
 
                 # 2. P1, P2 versus Power Ratio with Errors
-                args.loud = False
+                args.loud = True
                 args.crv_lab_list = labels2
                 args.mrk_list = marks2
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
@@ -3633,7 +3633,7 @@ def Multi_Multi_LLM_Analysis():
                 Plotting.plot_multiple_curves_with_errors(hv_data4, args)
 
                 # 5. LLVfit, LLGau, LLLor versus Power Ratio with Errors
-                args.loud = True
+                args.loud = False
                 args.crv_lab_list = labels5
                 args.mrk_list = marks5
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'

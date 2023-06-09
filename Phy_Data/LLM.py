@@ -2432,7 +2432,7 @@ def Multi_LLM_Analysis(DATA_HOME):
                     Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
 
                 # Make a plot of the spectra with max/min fitted params
-                if not glob.glob('Fitted*dBm.png'): Multi_LLM_Extract_Fit_Params(data, titles, False)
+                if not glob.glob('Fitted*dBm.png'): Multi_LLM_Extract_Fit_Params(data, titles, True)
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
             raise Exception
@@ -2601,11 +2601,12 @@ def Multi_LLM_Extract_Fit_Params(dataFrame, titles, loud = False):
             hv_data.append(spctr_data); labels.append('L$_{max}$'); marks.append(Plotting.labs_dotdash[1])
 
             Compute_Spectrum(False, Lminargs)
-            spctr_data = numpy.loadtxt(Lminfile, delimiter = ',', unpack = True)            
-            if PLOT_IN_DBM:
-                spctr_data[1] = spctr_data[1] / 1e+6 # convert uW -> mW
-                spctr_data[1] = Common.list_convert_mW_dBm(spctr_data[1]) # convert mW -> dBm
-            hv_data.append(spctr_data); labels.append('L$_{min}$'); marks.append(Plotting.labs_dotted[1])
+            if glob.glob(Lminfile):
+                spctr_data = numpy.loadtxt(Lminfile, delimiter = ',', unpack = True)            
+                if PLOT_IN_DBM:
+                    spctr_data[1] = spctr_data[1] / 1e+6 # convert uW -> mW
+                    spctr_data[1] = Common.list_convert_mW_dBm(spctr_data[1]) # convert mW -> dBm
+                hv_data.append(spctr_data); labels.append('L$_{min}$'); marks.append(Plotting.labs_dotted[1])
 
             # Plot the data
             args = Plotting.plot_arg_multiple()
@@ -3355,7 +3356,7 @@ def NKT_LCR_DSHI_Test():
         print(ERR_STATEMENT)
         print(e)
 
-def Plot_Multiple_Spectra(DATA_HOME, RBW_Val = 500):
+def Plot_Multiple_Spectra(DATA_HOME, RBW_Val = 500, Tmeas = 20):
 
     # Generate a plot of all the measured spectra from a Multi-LLM measurement
     # R. Sheehan 30 - 5 - 2023
@@ -3374,7 +3375,7 @@ def Plot_Multiple_Spectra(DATA_HOME, RBW_Val = 500):
             files.sort(key=lambda f: int(re.sub('\D', '', f))) # sort the filenames in place using the number within the string, assumes single digit in string
 
             hv_data = []; marks = []; labels = []; 
-            deltaT = 20.0 / 60.0 # measurement time in mins
+            deltaT = Tmeas / 60.0 # measurement time in mins
             for i in range(0, len(files), 3):
                 values = Common.extract_values_from_string(files[i])
                 theTime = float(values[0])*deltaT
@@ -3673,10 +3674,12 @@ def Span_Variation_Multi_LLM_Analysis():
             if not os.path.isdir(resDir): os.mkdir(resDir)
 
             # Generate the list of directories to be analysed
-            dir_list = ['LLM_Data_Nmeas_200_I_100_29_05_2023_14_20_Span_500k/', 'LLM_Data_Nmeas_200_I_100_29_05_2023_15_34_Span_250k/']
+            dir_list = ['LLM_Data_Nmeas_200_I_100_29_05_2023_14_20_Span_500k/', 'LLM_Data_Nmeas_200_I_100_29_05_2023_15_34_Span_250k/', 
+                        'LLM_Data_Nmeas_200_I_100_08_06_2023_12_57_Span_100k/', 'LLM_Data_Nmeas_200_I_100_09_06_2023_09_42_Span_50k/']
             RBW_list = [500, 500, 100, 50]
+            Tmeas_list = [20, 20, 30, 40]
 
-            PARSE_ESA_FILES = True
+            PARSE_ESA_FILES = False
             Ival = 100
             esaResFileName = 'ESA_Results_I_%(v1)d.txt'%{"v1":Ival}
 
@@ -3712,7 +3715,7 @@ def Span_Variation_Multi_LLM_Analysis():
             PERFORM_MULTI_LLM = True
             
             if len(dir_list) > 0:
-                for i in range(0, len(dir_list), 1): 
+                for i in range(2, len(dir_list), 1): 
                     # Extract the Power versus VOA data
                     if PARSE_ESA_FILES:
                         theVals = Parse_ESA_Settings(dir_list[i])
@@ -3748,7 +3751,7 @@ def Span_Variation_Multi_LLM_Analysis():
                     
                     # Plot the Measured Spectra
                     if PLOT_SPECTRA:
-                        Plot_Multiple_Spectra(dir_list[i], RBW_list[i])
+                        Plot_Multiple_Spectra(dir_list[i], RBW_list[i], Tmeas_list[i])
                         os.chdir(DATA_HOME)
                     
                     # Do the Multi-LLM Analysis on each measured data

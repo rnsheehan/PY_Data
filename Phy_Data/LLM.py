@@ -3421,14 +3421,16 @@ def Power_Variation_Multi_LLM_Analysis():
             print(os.getcwd())
 
             # Make a directory for storing the results
-            resDir = 'Loop_Power_Variation/'
+            resDir = 'Loop_Power_Variation_FSpan_100/'
             if not os.path.isdir(resDir): os.mkdir(resDir)
 
             # Generate the list of directories to be analysed
-            Ival = 100
-            Month = '05'
-            dir_list = glob.glob('LLM_Data_Nmeas_200_I_%(v1)d_*_%(v2)s_*/'%{"v1":Ival,"v2":Month})
-            dir_list = dir_list[2:len(dir_list)]
+            #Ival = 100; Day = '19';  
+            #Ival = 200; Day = '20';
+            Ival = 300; Day = '21';
+            Month = '06'; RBW = 100; Tmeas = 28.5;
+            dir_list = glob.glob('LLM_Data_Nmeas_200_I_%(v1)d_%(v3)s_%(v2)s_*/'%{"v1":Ival, "v3":Day, "v2":Month})
+            #dir_list = dir_list[2:len(dir_list)]
 
             PARSE_ESA_FILES = False
             esaResFileName = 'ESA_Results_I_%(v1)d.txt'%{"v1":Ival}
@@ -3500,7 +3502,7 @@ def Power_Variation_Multi_LLM_Analysis():
                     
                     # Plot the Measured Spectra
                     if PLOT_SPECTRA:
-                        Plot_Multiple_Spectra(dir_list[i])
+                        Plot_Multiple_Spectra(dir_list[i], RBW, Tmeas)
                         os.chdir(DATA_HOME)
                     
                     # Do the Multi-LLM Analysis on each measured data
@@ -3533,7 +3535,7 @@ def Power_Variation_Multi_LLM_Analysis():
                 # Make the Plot
                 args = Plotting.plot_arg_multiple()
 
-                args.loud = False
+                args.loud = True
                 args.crv_lab_list = labels1
                 args.mrk_list = marks1
                 args.x_label = 'VOA Bias (V)'
@@ -3550,7 +3552,7 @@ def Power_Variation_Multi_LLM_Analysis():
 
                 Plotting.plot_multiple_curves(hv_data2, args)
 
-            PLOT_RES_FILES = False
+            PLOT_RES_FILES = True
 
             if PLOT_RES_FILES:
                 os.chdir(resDir)
@@ -3612,35 +3614,35 @@ def Power_Variation_Multi_LLM_Analysis():
                 Plotting.plot_multiple_curves_with_errors(hv_data2, args)
 
                 # 3. LLest versus Power Ratio with Errors
-                args.loud = False
+                args.loud = True
                 args.crv_lab_list = labels3
                 args.mrk_list = marks3
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
                 args.y_label = 'Laser Linewidth ( kHz )'
                 args.fig_name = 'Laser_Linewidth'
-                args.plt_range = [0, 1.5, 0, 5]
+                #args.plt_range = [0, 1.5, 0, 5]
 
                 Plotting.plot_multiple_curves_with_errors(hv_data3, args)
 
                 # 4. LL-20 versus Power Ratio with Errors
-                args.loud = False
+                args.loud = True
                 args.crv_lab_list = labels4
                 args.mrk_list = marks4
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
                 args.y_label = 'Laser Linewidth at -20 dB ( kHz )'
                 args.fig_name = 'Laser_Linewidth_20'
-                args.plt_range = [0, 1.5, 0, 20]
+                #args.plt_range = [0, 1.5, 0, 20]
 
                 Plotting.plot_multiple_curves_with_errors(hv_data4, args)
 
                 # 5. LLVfit, LLGau, LLLor versus Power Ratio with Errors
-                args.loud = False
+                args.loud = True
                 args.crv_lab_list = labels5
                 args.mrk_list = marks5
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
                 args.y_label = 'Laser Linewidth Voigt Fit ( kHz )'
                 args.fig_name = 'Laser_Linewidth_Voigt'
-                args.plt_range = [0, 1.5, 0, 5]
+                #args.plt_range = [0, 1.5, 0, 5]
 
                 Plotting.plot_multiple_curves_with_errors(hv_data5, args)
 

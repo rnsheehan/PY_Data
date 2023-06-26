@@ -98,7 +98,7 @@ if __name__ == '__main__':
 
     #General.PDA10CS_Calibration_3()
 
-    LLM.Span_Variation_Multi_LLM_Analysis()
+    LLM.Power_Variation_Multi_LLM_Analysis()
 
     
 

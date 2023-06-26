@@ -3693,8 +3693,8 @@ def Span_Variation_Multi_LLM_Analysis():
                 os.chdir(DATA_HOME)
 
             PARSE_RES_FILES = False
-            #esaResFileName = 'Measurement_Results_I_%(v1)d.txt'%{"v1":Ival}
-            #esaErrFileName = 'Measurement_Errors_I_%(v1)d.txt'%{"v1":Ival}
+            esaResFileName = 'Measurement_Results_I_%(v1)d.txt'%{"v1":Ival}
+            esaErrFileName = 'Measurement_Errors_I_%(v1)d.txt'%{"v1":Ival}
 
             # Create files for storing the accumulated data
             # Output is of the form ['Pmax/dBm', 'LLest', 'LL_Vfit', 'LL_Lfit', 'LLest_-20', 'Voigt_Lor_HWHM', 'Voigt_Gau_Stdev', 'P1/dBm', 'P2/dBm', 'P2/P1']
@@ -3712,10 +3712,10 @@ def Span_Variation_Multi_LLM_Analysis():
 
             PLOT_SPECTRA = False
 
-            PERFORM_MULTI_LLM = True
+            PERFORM_MULTI_LLM = False
             
             if len(dir_list) > 0:
-                for i in range(2, len(dir_list), 1): 
+                for i in range(0, len(dir_list), 1): 
                     # Extract the Power versus VOA data
                     if PARSE_ESA_FILES:
                         theVals = Parse_ESA_Settings(dir_list[i])
@@ -3769,25 +3769,26 @@ def Span_Variation_Multi_LLM_Analysis():
                 os.chdir(resDir)
                 hv_data1 = []; labels1 = []; marks1 = []
                 hv_data2 = []; labels2 = []; marks2 = []
-                Ivals = [100, 200, 300]
-                Pvals = [3.356, 9.313, 11.767]
-                Perr = [0.016, 0.015, 0.013]
+                Ivals = [100]
+                Pvals = [3.354]
+                Perr = [0.179]
                 for i in range(0, len(Ivals), 1):
                     esaResFileName = 'ESA_Results_I_%(v1)d.txt'%{"v1":Ivals[i]}
                     data = numpy.loadtxt(esaResFileName, delimiter = '\t', unpack = True, skiprows = 1)
                     print('Average Input Power I = ',Ivals[i], ': ',numpy.mean(data[1]), ' +/- ', 0.5*( numpy.max(data[1]) - numpy.min(data[1]) ), ' ( dBm )')
-                    hv_data1.append([data[0], data[1]]); labels1.append('P$_{1}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks1.append(Plotting.labs_dashed[i]); 
-                    hv_data1.append([data[0], data[2]]); labels1.append('P$_{2}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks1.append(Plotting.labs[i]); 
+                    hv_data1.append([data[4]/1000.0, data[1]]); labels1.append('P$_{1}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks1.append(Plotting.labs_dashed[i]); 
+                    hv_data1.append([data[4]/1000.0, data[2]]); labels1.append('P$_{2}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks1.append(Plotting.labs[i]); 
                     
-                    hv_data2.append([data[0], data[3]]); labels2.append('I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs[i]); 
+                    hv_data2.append([data[4]/1000.0, data[3]]); labels2.append('I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs[i]); 
 
                 # Make the Plot
+
                 args = Plotting.plot_arg_multiple()
 
-                args.loud = False
+                args.loud = True
                 args.crv_lab_list = labels1
                 args.mrk_list = marks1
-                args.x_label = 'VOA Bias (V)'
+                args.x_label = 'Frequency Span (kHz)'
                 args.y_label = 'Power (dBm)'
                 args.fig_name = 'Input_Loop_Power'
 
@@ -3795,13 +3796,13 @@ def Span_Variation_Multi_LLM_Analysis():
 
                 args.crv_lab_list = labels2
                 args.mrk_list = marks2
-                args.x_label = 'VOA Bias (V)'
+                args.x_label = 'Frequency Span (kHz)'
                 args.y_label = 'Power Ratio P$_{2}$ / P$_{1}$'
                 args.fig_name = 'Input_Loop_Power_Ratio'
 
                 Plotting.plot_multiple_curves(hv_data2, args)
 
-            PLOT_RES_FILES = False
+            PLOT_RES_FILES = True
 
             if PLOT_RES_FILES:
                 os.chdir(resDir)
@@ -3813,9 +3814,10 @@ def Span_Variation_Multi_LLM_Analysis():
                 # 3. LLest versus Power Ratio with Errors
                 # 4. LL-20 versus Power Ratio with Errors
                 # 5. LLVfit versus Power Ratio with Errors
-                Ivals = [100, 200, 300]
-                Pvals = [3.356, 9.312, 11.765]
-                Perr = [0.013, 0.014, 0.012]
+                Ivals = [100]
+                Pvals = [3.354]
+                Perr = [0.179]
+                FSpan = [500, 250, 100, 50]
                 hv_data1 = []; labels1 = []; marks1 = []
                 hv_data2 = []; labels2 = []; marks2 = []
                 hv_data3 = []; labels3 = []; marks3 = []
@@ -3829,47 +3831,46 @@ def Span_Variation_Multi_LLM_Analysis():
 
                     print('Average Input Power I = ',Ivals[i], ': ',numpy.mean(data[0]), ' +/- ', 0.5*( numpy.max(data[0]) - numpy.min(data[0]) ), ' ( dBm )')
 
-                    hv_data1.append([data[2], data[3], numpy.absolute( dataErr[3] ) ] ); labels1.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks1.append(Plotting.labs_lins[i%(len(Plotting.labs))])
+                    hv_data1.append([FSpan, data[3], numpy.absolute( dataErr[3] ) ] ); labels1.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks1.append(Plotting.labs_lins[i%(len(Plotting.labs))])
 
-                    hv_data2.append([data[2], data[0], dataErr[0]]); labels2.append('P$_{1}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs_lins[i%(len(Plotting.labs))])
-                    hv_data2.append([data[2], data[1], numpy.absolute( dataErr[1] ) ]  ); labels2.append('P$_{2}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs_dashed[i%(len(Plotting.labs))])
+                    hv_data2.append([FSpan, data[0], dataErr[0]]); labels2.append('P$_{1}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs_lins[i%(len(Plotting.labs))])
+                    hv_data2.append([FSpan, data[1], numpy.absolute( dataErr[1] ) ]  ); labels2.append('P$_{2}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs_dashed[i%(len(Plotting.labs))])
 
-                    hv_data3.append([data[2], data[4], dataErr[4]]); labels3.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks3.append(Plotting.labs[i%(len(Plotting.labs))])
+                    hv_data3.append([FSpan, data[4], dataErr[4]]); labels3.append('LL Estimate'); marks3.append(Plotting.labs[i%(len(Plotting.labs))])
+                    hv_data3.append([FSpan, data[5], dataErr[5]]); labels3.append('LL Fitted'); marks3.append(Plotting.labs[(i+1)%(len(Plotting.labs))])
 
-                    hv_data4.append([data[2], data[7], dataErr[7]]); labels4.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks4.append(Plotting.labs[i%(len(Plotting.labs))])
+                    hv_data4.append([FSpan, data[7], dataErr[7]]); labels4.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks4.append(Plotting.labs[i%(len(Plotting.labs))])
 
-                    hv_data5.append([data[2], data[5], dataErr[5]]); labels5.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks5.append(Plotting.labs[i%(len(Plotting.labs))])
+                    hv_data5.append([FSpan, data[5], dataErr[5]]); labels5.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks5.append(Plotting.labs[i%(len(Plotting.labs))])
 
-                # 1. Pmax versus Power Ratio with Errors
+                # 1. Pmax versus FSpan with Errors
                 args = Plotting.plot_arg_multiple()
 
-                args.loud = True
+                args.loud = False
                 args.crv_lab_list = labels1
                 args.mrk_list = marks1
-                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
+                args.x_label = 'Frequency Span (kHz)'
                 args.y_label = 'Spectral Peak Value (dBm / 500Hz)'
                 args.fig_name = 'Spectral_Peak_Value'
 
                 Plotting.plot_multiple_curves_with_errors(hv_data1, args)
 
                 # 2. P1, P2 versus Power Ratio with Errors
-                args.loud = True
+                args.loud = False
                 args.crv_lab_list = labels2
                 args.mrk_list = marks2
-                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
                 args.y_label = 'Optical Power ( dBm )'
                 args.fig_name = 'Optical_Power'
 
                 Plotting.plot_multiple_curves_with_errors(hv_data2, args)
 
                 # 3. LLest versus Power Ratio with Errors
-                args.loud = False
+                args.loud = True
                 args.crv_lab_list = labels3
                 args.mrk_list = marks3
-                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
                 args.y_label = 'Laser Linewidth ( kHz )'
                 args.fig_name = 'Laser_Linewidth'
-                args.plt_range = [0, 1.5, 0, 5]
+                args.plt_range = [0, 510, 1, 4]
 
                 Plotting.plot_multiple_curves_with_errors(hv_data3, args)
 
@@ -3877,10 +3878,9 @@ def Span_Variation_Multi_LLM_Analysis():
                 args.loud = False
                 args.crv_lab_list = labels4
                 args.mrk_list = marks4
-                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
                 args.y_label = 'Laser Linewidth at -20 dB ( kHz )'
                 args.fig_name = 'Laser_Linewidth_20'
-                args.plt_range = [0, 1.5, 0, 20]
+                args.plt_range = [0, 510, 5, 15]
 
                 Plotting.plot_multiple_curves_with_errors(hv_data4, args)
 
@@ -3888,10 +3888,9 @@ def Span_Variation_Multi_LLM_Analysis():
                 args.loud = False
                 args.crv_lab_list = labels5
                 args.mrk_list = marks5
-                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
                 args.y_label = 'Laser Linewidth Voigt Fit ( kHz )'
                 args.fig_name = 'Laser_Linewidth_Voigt'
-                args.plt_range = [0, 1.5, 0, 5]
+                args.plt_range = [0, 510, 1, 4]
 
                 Plotting.plot_multiple_curves_with_errors(hv_data5, args)
 

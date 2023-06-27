@@ -2859,7 +2859,8 @@ def Beat_Analysis():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_Setup_Test/LCR_DSHI_JDSU_DFB_T_20_D_50/Beat_3/'
+        Ival = 300
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_50/I_%(v1)d/'%{"v1":Ival}
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
@@ -2867,13 +2868,14 @@ def Beat_Analysis():
 
             f_AOM = 80
             loop_length = 50
-            f_cutoff = 720; 
-
-            beatfiles = glob.glob('Beat_Data_Nmeas_*_I_*.txt')
+            f_cutoff = 1280; 
+            
+            beatfiles = glob.glob('Beat_Data_Nmeas_*_I_%(v1)d*.txt'%{"v1":Ival})
 
             Nbeats, Titles, averaged_data, max_data, min_data = Average_Data_From_Beat_Files(beatfiles)
             
-            Beat_Data_Report(Nbeats, f_AOM, loop_length, f_cutoff, Titles, averaged_data, max_data, min_data)
+            filename = 'Results_Summary_I_%(v1)d.txt'%{"v1":Ival}
+            Beat_Data_Report(Nbeats, f_AOM, loop_length, f_cutoff, Titles, averaged_data, max_data, min_data, filename)
 
             Full = False
             Cutoff = True
@@ -2890,6 +2892,9 @@ def Extract_Data_From_Beat_File(beatfile, loud = False):
 
     # Extract the data from a single beat measurement file
     # return a list with data stored as elements of the list
+    # 0: Beat No.   1: Fbeat / MHz  2: Distance / km    3: Time/ s  4: Tair/C   5: Taom/C   6: Taomdrv/C    7: Pmax/dBm 8: Fmax	
+    # 9: LLest	10: LL_Vfit	11: LL_Lfit	12: LLest_-20	13: Voigt_h/nW	14: Voigt_c	15: Voigt_Lor_HWHM	16: Voigt_Gau_Stdev	17: Lor_h/nW	
+    # 18: Lor_c 19: Lor_HWHM 20: P1/dBm	21: P2/dBm	22: P2/P1
     # R. Sheehan 13 - 12 - 2022
 
     FUNC_NAME = ".Extract_Data_From_Beat_File()" # use this in exception handling messages
@@ -2902,8 +2907,8 @@ def Extract_Data_From_Beat_File(beatfile, loud = False):
             titles = list(df)
             Nbeats = df.shape[0]
 
-            dfaxes = numpy.arange(4, 19, 1)
-            dfaxes = numpy.delete(dfaxes, [9, 13]) # not interested in Voigt fc (axis 9) or Lorentz fc (axis 13)
+            dfaxes = numpy.arange(4, 22, 1)
+            dfaxes = numpy.delete(dfaxes, [14, 18]) # not interested in Voigt fc (axis 14) or Lorentz fc (axis 18)
 
             data = [] # empty list for storing the data from the file
             sub_titles = [] # obtain the list of axes being analysed
@@ -3072,7 +3077,7 @@ def Plot_Beat_Data(Nbeats, F_AOM, Loop_Length, F_CUTOFF, Titles, Average, Max, M
         print(ERR_STATEMENT)
         print(e)
 
-def Beat_Data_Report(Nbeats, F_AOM, Loop_Length, F_CUTOFF, Titles, Average, Max, Min):
+def Beat_Data_Report(Nbeats, F_AOM, Loop_Length, F_CUTOFF, Titles, Average, Max, Min, res_filename):
 
     # Print a report on the averaged beat data values
     # R. Sheehan 15 - 12 - 2022
@@ -3092,7 +3097,7 @@ def Beat_Data_Report(Nbeats, F_AOM, Loop_Length, F_CUTOFF, Titles, Average, Max,
             fend_indx = 1 + numpy.where(fbeats == F_CUTOFF)[0][0]
 
             # Redirect the output to a file
-            old_target, sys.stdout = sys.stdout, open('ResultsSummary.txt', 'w')
+            old_target, sys.stdout = sys.stdout, open(res_filename, 'w')
 
             print("System Settings")
             print("Loop length:",Loop_Length,"km")
@@ -3598,7 +3603,7 @@ def Power_Variation_Multi_LLM_Analysis():
                 args.crv_lab_list = labels1
                 args.mrk_list = marks1
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
-                args.y_label = 'Spectral Peak Value (dBm / 500Hz)'
+                args.y_label = 'Spectral Peak Value (dBm / 100Hz)'
                 args.fig_name = 'Spectral_Peak_Value'
 
                 Plotting.plot_multiple_curves_with_errors(hv_data1, args)
@@ -3620,7 +3625,7 @@ def Power_Variation_Multi_LLM_Analysis():
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
                 args.y_label = 'Laser Linewidth ( kHz )'
                 args.fig_name = 'Laser_Linewidth'
-                #args.plt_range = [0, 1.5, 0, 5]
+                args.plt_range = [0, 1.5, 1.5, 3.5]
 
                 Plotting.plot_multiple_curves_with_errors(hv_data3, args)
 
@@ -3631,7 +3636,7 @@ def Power_Variation_Multi_LLM_Analysis():
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
                 args.y_label = 'Laser Linewidth at -20 dB ( kHz )'
                 args.fig_name = 'Laser_Linewidth_20'
-                #args.plt_range = [0, 1.5, 0, 20]
+                args.plt_range = [0, 1.5, 7, 14]
 
                 Plotting.plot_multiple_curves_with_errors(hv_data4, args)
 
@@ -3642,7 +3647,7 @@ def Power_Variation_Multi_LLM_Analysis():
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
                 args.y_label = 'Laser Linewidth Voigt Fit ( kHz )'
                 args.fig_name = 'Laser_Linewidth_Voigt'
-                #args.plt_range = [0, 1.5, 0, 5]
+                args.plt_range = [0, 1.5, 1.5, 3.5]
 
                 Plotting.plot_multiple_curves_with_errors(hv_data5, args)
 

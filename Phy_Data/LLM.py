@@ -2859,7 +2859,7 @@ def Beat_Analysis():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        Ival = 300
+        Ival = 100
         DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_50/I_%(v1)d/'%{"v1":Ival}
 
         if os.path.isdir(DATA_HOME):
@@ -2868,7 +2868,7 @@ def Beat_Analysis():
 
             f_AOM = 80
             loop_length = 50
-            f_cutoff = 1280; 
+            f_cutoff = 1200; 
             
             beatfiles = glob.glob('Beat_Data_Nmeas_*_I_%(v1)d*.txt'%{"v1":Ival})
 
@@ -2907,9 +2907,11 @@ def Extract_Data_From_Beat_File(beatfile, loud = False):
             titles = list(df)
             Nbeats = df.shape[0]
 
-            dfaxes = numpy.arange(4, 22, 1)
-            dfaxes = numpy.delete(dfaxes, [14, 18]) # not interested in Voigt fc (axis 14) or Lorentz fc (axis 18)
+            # Generate an array of indices of axes that you're interested in analysing
+            dfaxes = numpy.arange(4, 23, 1)
+            dfaxes = numpy.delete(dfaxes, [numpy.argwhere(dfaxes == 14), numpy.argwhere(dfaxes == 18)]) # not interested in Voigt fc (axis 14) or Lorentz fc (axis 18)
 
+            # Extract the values from the data-frame and store them in an array
             data = [] # empty list for storing the data from the file
             sub_titles = [] # obtain the list of axes being analysed
 

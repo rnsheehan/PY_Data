@@ -2859,16 +2859,16 @@ def Beat_Analysis():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        Ival = 100
-        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_50/I_%(v1)d/'%{"v1":Ival}
+        Ival = 200
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_10/I_%(v1)d/'%{"v1":Ival}
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
             print(os.getcwd())
 
             f_AOM = 80
-            loop_length = 50
-            f_cutoff = 1200; 
+            loop_length = 10
+            f_cutoff = 960; 
             
             beatfiles = glob.glob('Beat_Data_Nmeas_*_I_%(v1)d*.txt'%{"v1":Ival})
 
@@ -3019,7 +3019,7 @@ def Plot_Beat_Data(Nbeats, F_AOM, Loop_Length, F_CUTOFF, Titles, Average, Max, M
             fend_indx = 1 + numpy.where(fbeats == F_CUTOFF)[0][0]
 
             if Full_Plots:
-                PLOT_WITH_BEATS = True
+                PLOT_WITH_BEATS = False
 
                 xvals = fbeats if PLOT_WITH_BEATS else distance
                 xlabel = 'Beat Frequency / MHz' if PLOT_WITH_BEATS else 'Loop Length / km'
@@ -3047,7 +3047,7 @@ def Plot_Beat_Data(Nbeats, F_AOM, Loop_Length, F_CUTOFF, Titles, Average, Max, M
                     del hv_data
 
             if Cutoff_Plots:
-                PLOT_WITH_BEATS = True
+                PLOT_WITH_BEATS = False
 
                 xvals = fbeats if PLOT_WITH_BEATS else distance
                 xlabel = 'Beat Frequency / MHz' if PLOT_WITH_BEATS else 'Loop Length / km'

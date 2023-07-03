@@ -2859,7 +2859,7 @@ def Beat_Analysis():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        Ival = 200
+        Ival = 300
         DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_10/I_%(v1)d/'%{"v1":Ival}
 
         if os.path.isdir(DATA_HOME):
@@ -2868,19 +2868,50 @@ def Beat_Analysis():
 
             f_AOM = 80
             loop_length = 10
-            f_cutoff = 960; 
+            f_start = 240; 
+            f_cutoff = 720; 
             
             beatfiles = glob.glob('Beat_Data_Nmeas_*_I_%(v1)d*.txt'%{"v1":Ival})
 
             Nbeats, Titles, averaged_data, max_data, min_data = Average_Data_From_Beat_Files(beatfiles)
             
             filename = 'Results_Summary_I_%(v1)d.txt'%{"v1":Ival}
-            Beat_Data_Report(Nbeats, f_AOM, loop_length, f_cutoff, Titles, averaged_data, max_data, min_data, filename)
+            Beat_Data_Report(Nbeats, f_AOM, loop_length, f_start, f_cutoff, Titles, averaged_data, max_data, min_data, filename)
 
             Full = False
             Cutoff = True
             Loud = False
-            Plot_Beat_Data(Nbeats, f_AOM, loop_length, f_cutoff, Titles, averaged_data, max_data, min_data, Full, Cutoff, Loud)                        
+            Plot_Beat_Data(Nbeats, f_AOM, loop_length, f_start, f_cutoff, Titles, averaged_data, max_data, min_data, Full, Cutoff, Loud)
+            
+            Loud = False
+            Choices = [0, 1, 2] # Plot the temperatures together
+            TheName = 'Temperature'
+            TheUnits = ' / C'
+            Plot_Beat_Data_Combo(Nbeats, f_AOM, loop_length, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, max_data, min_data, Loud)
+
+            Loud = False
+            Choices = [14, 15] # Plot the loop powers together
+            TheName = 'Power'
+            TheUnits = ' / dBm'
+            Plot_Beat_Data_Combo(Nbeats, f_AOM, loop_length, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, max_data, min_data, Loud)
+
+            Loud = False
+            Choices = [5, 6, 7] # Plot the measured + fitted dnu together
+            TheName = 'Linewidth'
+            TheUnits = ' / kHz / 100 Hz'
+            Plot_Beat_Data_Combo(Nbeats, f_AOM, loop_length, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, max_data, min_data, Loud)
+
+            Loud = True
+            Choices = [5, 8] # Plot the estimated dnu together
+            TheName = 'Estimated Linewidth'
+            TheUnits = ' / kHz / 100 Hz'
+            Plot_Beat_Data_Combo(Nbeats, f_AOM, loop_length, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, max_data, min_data, Loud)
+
+            Loud = False
+            Choices = [10, 11] # Plot the Voigt Fit Parameters together
+            TheName = 'Voigt Parameters'
+            TheUnits = ' / kHz / 100 Hz'
+            Plot_Beat_Data_Combo(Nbeats, f_AOM, loop_length, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, max_data, min_data, Loud)
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
             raise Exception
@@ -2999,7 +3030,67 @@ def Average_Data_From_Beat_Files(beatfiles):
         print(ERR_STATEMENT)
         print(e)
 
-def Plot_Beat_Data(Nbeats, F_AOM, Loop_Length, F_CUTOFF, Titles, Average, Max, Min, Full_Plots, Cutoff_Plots, loud = False):
+def Plot_Beat_Data_Combo(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, Choices, TheName, TheUnits, Average, Max, Min, loud = False):
+    # plot combinations of the averaged data with error bars
+    # R. Sheehan 3 - 7 - 2023
+
+    FUNC_NAME = ".Plot_Beat_Data_Combo()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        fbeats = numpy.arange(F_AOM, Nbeats*F_AOM + 1, F_AOM)
+        distance = numpy.arange(Loop_Length, Nbeats*Loop_Length + 1, Loop_Length )
+        fend_indx = 1 + numpy.where(fbeats == F_CUTOFF)[0][0]
+        fstart_indx = int( -1 + ( F_Start / F_AOM ) )
+        
+        c1 = True if Nbeats > 0 else False
+        c2 = True if len(Average) > 0 else False
+        c3 = True if fstart_indx < fend_indx else False
+        c4 = True if len(Choices) > 1 else False
+        # must add more conditions here
+
+        if c1 and c2 and c3 and c4:
+            
+            # Plot data measured between F_Start and F_CUTOFF Only
+            PLOT_WITH_BEATS = False # Makes more sense to plot against distance rather than Beat Frequency
+
+            xvals = fbeats if PLOT_WITH_BEATS else distance
+            xlabel = 'Beat Frequency / MHz' if PLOT_WITH_BEATS else 'Loop Length / km'
+
+            hv_data = []; labels = []; marks = []
+
+            count = 0
+            for i in Choices:
+                Error = 0.5*(Max[i] - Min[i])
+                avg_val = numpy.mean(Average[i][fstart_indx:fend_indx])
+                avg_error = numpy.mean(Error[fstart_indx:fend_indx])
+
+                hv_data.append([xvals[fstart_indx:fend_indx], Average[i][fstart_indx:fend_indx], Error[fstart_indx:fend_indx]]); 
+                labels.append(Titles[i])
+                marks.append(Plotting.labs_pts[count])
+                
+                count = count + 1
+
+            args = Plotting.plot_arg_multiple()                
+
+            args.loud = loud
+            args.x_label = xlabel
+            args.y_label = TheName + TheUnits
+            args.crv_lab_list = labels
+            args.mrk_list = marks
+            args.fig_name = TheName + '_Err'
+                
+            Plotting.plot_multiple_curves_with_errors(hv_data, args)
+
+            del hv_data
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nError with input values'
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Plot_Beat_Data(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, Average, Max, Min, Full_Plots, Cutoff_Plots, loud = False):
 
     # plot the averaged data with error bars
     # R. Sheehan 13 - 12 - 2022
@@ -3008,18 +3099,21 @@ def Plot_Beat_Data(Nbeats, F_AOM, Loop_Length, F_CUTOFF, Titles, Average, Max, M
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
+        fbeats = numpy.arange(F_AOM, Nbeats*F_AOM + 1, F_AOM)
+        distance = numpy.arange(Loop_Length, Nbeats*Loop_Length + 1, Loop_Length )
+        fend_indx = 1 + numpy.where(fbeats == F_CUTOFF)[0][0]
+        fstart_indx = int( -1 + ( F_Start / F_AOM ) )
+        
         c1 = True if Nbeats > 0 else False
         c2 = True if len(Average) > 0 else False
-        #c3 = True if len(Error) > 0 else False
+        c3 = True if fstart_indx < fend_indx else False
         # must add more conditions here
 
-        if c1 and c2:
-            fbeats = numpy.arange(F_AOM, Nbeats*F_AOM + 1, F_AOM)
-            distance = numpy.arange(Loop_Length, Nbeats*Loop_Length + 1, Loop_Length )
-            fend_indx = 1 + numpy.where(fbeats == F_CUTOFF)[0][0]
-
+        if c1 and c2 and c3:
+            
+            # Plot all data from all beat notes
             if Full_Plots:
-                PLOT_WITH_BEATS = False
+                PLOT_WITH_BEATS = False # Makes more sense to plot against distance rather than Beat Frequency
 
                 xvals = fbeats if PLOT_WITH_BEATS else distance
                 xlabel = 'Beat Frequency / MHz' if PLOT_WITH_BEATS else 'Loop Length / km'
@@ -3046,40 +3140,36 @@ def Plot_Beat_Data(Nbeats, F_AOM, Loop_Length, F_CUTOFF, Titles, Average, Max, M
 
                     del hv_data
 
+            # Plot data measured between F_Start and F_CUTOFF Only
             if Cutoff_Plots:
-                PLOT_WITH_BEATS = False
+                PLOT_WITH_BEATS = False # Makes more sense to plot against distance rather than Beat Frequency
 
                 xvals = fbeats if PLOT_WITH_BEATS else distance
                 xlabel = 'Beat Frequency / MHz' if PLOT_WITH_BEATS else 'Loop Length / km'
 
-                labels = ['Max', 'Avg', 'Min']
-                marks = [Plotting.labs_dotdash[0], Plotting.labs_lins[0], Plotting.labs_dotted[0]]
-
                 for i in range(0, len(Average), 1):
                     Error = 0.5*(Max[i] - Min[i])
-                    avg_val = numpy.mean(Average[i][0:fend_indx])
-                    avg_error = numpy.mean(Error[0:fend_indx])
+                    avg_val = numpy.mean(Average[i][fstart_indx:fend_indx])
+                    avg_error = numpy.mean(Error[fstart_indx:fend_indx])
 
                     args = Plotting.plot_arg_single()                
 
                     args.loud = loud
                     args.x_label = xlabel
                     args.y_label = Titles[i]
-                    #args.crv_lab_list = labels
-                    #args.mrk_list = marks
                     args.fig_name = Titles[i].replace('/','_') + '_Err'
                     args.plt_title = "Avg = %(v1)0.3f +/- %(v2)0.3f"%{"v1":avg_val, "v2":avg_error}
                 
-                    Plotting.plot_single_linear_fit_curve_with_errors(xvals[0:fend_indx], Average[i][0:fend_indx], Error[0:fend_indx], args)
+                    Plotting.plot_single_linear_fit_curve_with_errors(xvals[fstart_indx:fend_indx], Average[i][fstart_indx:fend_indx], Error[fstart_indx:fend_indx], args)
 
         else:
-            ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
+            ERR_STATEMENT = ERR_STATEMENT + '\nError with input values'
             raise Exception
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
 
-def Beat_Data_Report(Nbeats, F_AOM, Loop_Length, F_CUTOFF, Titles, Average, Max, Min, res_filename):
+def Beat_Data_Report(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, Average, Max, Min, res_filename):
 
     # Print a report on the averaged beat data values
     # R. Sheehan 15 - 12 - 2022
@@ -3088,16 +3178,17 @@ def Beat_Data_Report(Nbeats, F_AOM, Loop_Length, F_CUTOFF, Titles, Average, Max,
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
+
+        fbeats = numpy.arange(F_AOM, Nbeats*F_AOM + 1, F_AOM)
+        fstart_indx = int( -1 + ( F_Start / F_AOM ) )
+        fend_indx = 1 + numpy.where(fbeats == F_CUTOFF)[0][0]
+
         c1 = True if Nbeats > 0 else False
         c2 = True if len(Average) > 0 else False
-        #c3 = True if len(Error) > 0 else False
+        c3 = True if fstart_indx < fend_indx else False
         # must add more conditions here
 
-        if c1 and c2:
-
-            fbeats = numpy.arange(F_AOM, Nbeats*F_AOM + 1, F_AOM)
-            fend_indx = 1 + numpy.where(fbeats == F_CUTOFF)[0][0]
-
+        if c1 and c2 and c3:
             # Redirect the output to a file
             old_target, sys.stdout = sys.stdout, open(res_filename, 'w')
 
@@ -3105,15 +3196,15 @@ def Beat_Data_Report(Nbeats, F_AOM, Loop_Length, F_CUTOFF, Titles, Average, Max,
             print("Loop length:",Loop_Length,"km")
             print("f_{AOM}:",F_AOM,"MHz")
             print("Nbeats Sampled:",Nbeats)
-            print("Nbeats Useful:",fend_indx)
+            print("Nbeats Useful:",fend_indx - fstart_indx)
             print("f_{cuttoff}:",F_CUTOFF,"MHz")
             print("Effective Loop Length:",fend_indx*Loop_Length,"km")            
 
             print("\nResults")
             for i in range(0, len(Average), 1):
                 Error = 0.5*(Max[i] - Min[i])
-                avg_val = numpy.mean(Average[i][0:fend_indx])
-                avg_error = numpy.mean(Error[0:fend_indx])
+                avg_val = numpy.mean(Average[i][fstart_indx:fend_indx])
+                avg_error = numpy.mean(Error[fstart_indx:fend_indx])
                 #print(Titles[i],":",avg_val,"+/-",avg_error)                
                 print("%(v1)s: %(v2)0.3f +/- %(v3)0.3f"%{"v1":Titles[i], "v2":avg_val, "v3":avg_error})
 

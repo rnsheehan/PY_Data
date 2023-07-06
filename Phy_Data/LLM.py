@@ -2860,16 +2860,19 @@ def Beat_Analysis():
 
     try:
         Ival = 300
-        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_10/I_%(v1)d/'%{"v1":Ival}
+        theLaser = 'CoBriteTLS'
+        temperature = 25
+        loopLength = 50
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/I_%(v1)d/'%{"v1":Ival, "v2":theLaser, "v3":temperature, "v4":loopLength}
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
             print(os.getcwd())
 
             f_AOM = 80
-            loop_length = 10
-            f_start = 240; 
-            f_cutoff = 720; 
+            loop_length = 50
+            f_start = 80; 
+            f_cutoff = 1280; 
             
             beatfiles = glob.glob('Beat_Data_Nmeas_*_I_%(v1)d*.txt'%{"v1":Ival})
 
@@ -2898,19 +2901,22 @@ def Beat_Analysis():
             Loud = False
             Choices = [5, 6, 7] # Plot the measured + fitted dnu together
             TheName = 'Linewidth'
-            TheUnits = ' / kHz / 100 Hz'
+            #TheUnits = ' / kHz / 100 Hz'
+            TheUnits = ' / MHz / 2 kHz'
             Plot_Beat_Data_Combo(Nbeats, f_AOM, loop_length, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, max_data, min_data, Loud)
 
             Loud = True
             Choices = [5, 8] # Plot the estimated dnu together
             TheName = 'Estimated Linewidth'
-            TheUnits = ' / kHz / 100 Hz'
+            #TheUnits = ' / kHz / 100 Hz'
+            TheUnits = ' / MHz / 2 kHz'
             Plot_Beat_Data_Combo(Nbeats, f_AOM, loop_length, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, max_data, min_data, Loud)
 
             Loud = False
             Choices = [10, 11] # Plot the Voigt Fit Parameters together
             TheName = 'Voigt Parameters'
-            TheUnits = ' / kHz / 100 Hz'
+            #TheUnits = ' / kHz / 100 Hz'
+            TheUnits = ' / MHz / 2 kHz'
             Plot_Beat_Data_Combo(Nbeats, f_AOM, loop_length, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, max_data, min_data, Loud)
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME

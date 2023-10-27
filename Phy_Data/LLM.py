@@ -1595,6 +1595,9 @@ def OEWaves_FNPSD_Integration(filelst, laser_name, loud = False):
                 integral = 0
                 for j in range(1, len(hv_data[i][0]), 1):
                     # only compute the integral in the regions where S > beta-slope * f
+                    # and for frequencies where noise is dominated by 1/f noise, i.e. f < 100 kHz
+                    # argument goes that for f > 100 kHz noise is purely Gaussian and therefore does
+                    # not contribute significantly to LL
                     if hv_data[i][0][j] < 1e+5 and hv_data[i][1][j] > beta_slope * hv_data[i][0][j]:
                         integral = integral + ( hv_data[i][0][j] - hv_data[i][0][j-1] ) * hv_data[i][1][j]
                 print('Integral ',i,': ',integral,', HWHM: ',0.5*math.sqrt(8.0*integral))

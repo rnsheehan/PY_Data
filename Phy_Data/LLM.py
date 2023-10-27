@@ -1302,7 +1302,7 @@ def Parse_OEWaves_file(filename, loud = False):
 
             if loud: print("Data dimensions (cols, rows) = ", measured_data.shape)
 
-            return [meas_type, measured_data, LL_data]
+            return [meas_type, measured_data, LL_data, instantaneous_ll]
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + filename
     except Exception as e:
@@ -1442,7 +1442,7 @@ def OEWaves_FNPSD_Multiple(filelst, laser_name, loud = False):
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        ll_data = []; hv_data = []; ll_marks = []; marks = []; labels = []; 
+        ll_data = []; instant_ll = []; hv_data = []; ll_marks = []; marks = []; labels = []; 
         plt_indx = 3 # this is the indx of the column storing the FNPSD data
         count = 0
         for f in filelst:
@@ -1450,10 +1450,19 @@ def OEWaves_FNPSD_Multiple(filelst, laser_name, loud = False):
             if 'Phase' in ret_val[0]:
                 hv_data.append([ret_val[1][0], ret_val[1][plt_indx]]); 
                 ll_data.append(ret_val[2])
+                instant_ll.append(ret_val[3])
                 ll_marks.append( Plotting.labs_pts[ count%len(Plotting.labs_pts) ] ); 
                 marks.append( Plotting.labs_lins[ count%len(Plotting.labs_lins) ] ); 
                 labels.append('M %(v1)d'%{"v1":count+1})
                 count = count + 1
+
+        if loud:
+            avg_ll = numpy.mean(instant_ll)
+            delta_ll = 0.5*(numpy.max(instant_ll) - numpy.min(instant_ll))
+            print("Average Instantaneous LL")
+            print("LL_int_avg = %(v1)0.3f +/- %(v2)0.3f kHz"%{"v1":avg_ll, "v2":delta_ll})
+            print("LL_int_avg = %(v1)0.3f +/- %(v2)0.3f MHz"%{"v1":avg_ll/1000.0, "v2":delta_ll/1000.0})
+            print("")
 
         # determine the average of all the extended LL values
         arr_tmp = []
@@ -1484,6 +1493,33 @@ def OEWaves_FNPSD_Multiple(filelst, laser_name, loud = False):
         args.log_y = False            
 
         Plotting.plot_single_curve_with_errors(ll_data[0][0], avg_LL, err_LL, args)
+
+        # write the various estimates of the LL to a single file
+        # write the averaged extended LL data to a file
+        # Redirect the output to a file
+        LL_res_file = laser_name + '_LL_Results.txt'
+        old_target, sys.stdout = sys.stdout, open(LL_res_file, 'w')
+
+        ext_avg_ll = numpy.mean(avg_LL)
+        ext_delta_ll = numpy.mean(err_LL)
+        
+        print('Observation Time (ms),\tExtended LL (kHz)')
+        for i in range(0, len(avg_LL), 1):
+            print('%(v1)0.3f,\t%(v2)0.3f,\t%(v3)0.3f'%{"v1":ll_data[0][0][i], "v2":avg_LL[i], "v3":err_LL[i]})
+        print("")
+        print("Average Extended LL")
+        print("LL_ext_avg = %(v1)0.3f +/- %(v2)0.3f kHz"%{"v1":ext_avg_ll, "v2":ext_delta_ll})
+        print("LL_ext_avg = %(v1)0.3f +/- %(v2)0.3f MHz"%{"v1":ext_avg_ll/1000.0, "v2":ext_delta_ll/1000.0})
+        print("")
+
+        int_avg_ll = numpy.mean(instant_ll)
+        delta_ll = 0.5*(numpy.max(instant_ll) - numpy.min(instant_ll))
+        print("Average Instantaneous LL")
+        print("LL_int_avg = %(v1)0.3f +/- %(v2)0.3f kHz"%{"v1":int_avg_ll, "v2":delta_ll})
+        print("LL_int_avg = %(v1)0.3f +/- %(v2)0.3f MHz"%{"v1":int_avg_ll/1000.0, "v2":delta_ll/1000.0})
+        print("")
+        
+        sys.stdout = old_target # return to the usual stdout
 
         # Plot the data sets on a single graph
         args = Plotting.plot_arg_multiple()
@@ -1523,7 +1559,7 @@ def OEWaves_FNPSD_Multiple(filelst, laser_name, loud = False):
         print(ERR_STATEMENT)
         print(e)
 
-def OEWaves_FNPSD_Integration(filelst, loud = False):
+def OEWaves_FNPSD_Integration(filelst, laser_name, loud = False):
     # Analyse data measured by the OEWaves OE4000
     # estimate LL from the FNPSD data from multiple measurements
     # asume that LL can be approximated according to the technique presented in
@@ -1577,10 +1613,22 @@ def OEWaves_FNPSD_Integration(filelst, loud = False):
             delta_integral = 0.5*( numpy.max(appr_lst) - numpy.min(appr_lst) )
             rel_error = delta_integral / avg_integral
             print('HWHM: ',avg_integral,' +/-',delta_integral,' Hz')
-            print('HWHM: ',avg_integral/1e+6,' +/-',delta_integral/1e+6,' MHz')
             print('HWHM: ',avg_integral/1e+3,' +/-',delta_integral/1e+3,' kHz')
+            print('HWHM: ',avg_integral/1e+6,' +/-',delta_integral/1e+6,' MHz')
             print('Rel. Error: ',rel_error)
             print('')
+
+            # write the various estimates of the LL to a single file
+            # Redirect the output to a file
+            LL_res_file = laser_name + '_LL_Results.txt'
+            old_target, sys.stdout = sys.stdout, open(LL_res_file, 'a')
+
+            print("Sum Over PSD LL")
+            print("LL_sum_avg = %(v1)0.3f +/- %(v2)0.3f kHz"%{"v1":avg_integral/1e+3, "v2":delta_integral/1e+3})
+            print("LL_sum_avg = %(v1)0.3f +/- %(v2)0.3f MHz"%{"v1":avg_integral/1e+6, "v2":delta_integral/1e+6})
+            print("")
+        
+            sys.stdout = old_target # return to the usual stdout
 
             del hv_data;  
         else:
@@ -1599,7 +1647,7 @@ def OEWaves_Analysis():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/OE4000_Init/'
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/OE4000_Init/DFB_Test_Data/'
 
         if(os.path.isdir(DATA_HOME)):
             os.chdir(DATA_HOME)
@@ -1611,8 +1659,10 @@ def OEWaves_Analysis():
             #filename = 'NKT_T_25_I_110_RIN_2.txt'
             #OEWaves_Analysis_Single(filename, True)
 
-            #filenames = glob.glob("*.txt")
-            #for f in filenames: OEWaves_Analysis_Single(f)
+            filenames = glob.glob("DFBTest*.txt")
+            #for f in filenames: OEWaves_Analysis_Single(f, True)
+            OEWaves_FNPSD_Multiple(filenames, 'Alt_DFB', False)
+            OEWaves_FNPSD_Integration(filenames, 'Alt_DFB', True)
 
             # JDSU DFB RIN
             filelst = ['JDSU_DFB_T_20_I_50_RIN_1.txt', 'JDSU_DFB_T_20_I_50_RIN_2.txt']
@@ -1633,13 +1683,13 @@ def OEWaves_Analysis():
             filelst = ['JDSU_DFB_T_20_I_50_PN_1.txt', 'JDSU_DFB_T_20_I_50_PN_2.txt', 'JDSU_DFB_T_20_I_50_PN_3.txt', 'JDSU_DFB_T_20_I_50_FN_1.txt', 'JDSU_DFB_T_20_I_50_FN_2.txt']
             laser_name = 'JDSU_DFB'
             #OEWaves_FNPSD_Multiple(filelst, laser_name, False)
-            OEWaves_FNPSD_Integration(filelst, True)
+            #OEWaves_FNPSD_Integration(filelst, True)
 
             # NKT FNPSD
             filelst = ['NKT_T_25_I_110_PN_1.txt', 'NKT_T_25_I_110_PN_2.txt', 'NKT_T_25_I_110_FN_1.txt', 'NKT_T_25_I_110_FN_2.txt', 'NKT_T_25_I_110_FN_3.txt']
             laser_name = 'NKT'
             #OEWaves_FNPSD_Multiple(filelst, laser_name, True)
-            OEWaves_FNPSD_Integration(filelst, True)
+            #OEWaves_FNPSD_Integration(filelst, True)
 
             # JDSU DFB NKT FNPSD Comparison
             filelst = ['JDSU_DFB_T_20_I_50_PN_3.txt', 'NKT_T_25_I_110_PN_1.txt']
@@ -1649,27 +1699,27 @@ def OEWaves_Analysis():
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
             raise Exception
 
-        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/Shengkai_LLM_22_2_2023/ZK Jia_test results_24_2_2023/'
+        #DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/Shengkai_LLM_22_2_2023/ZK Jia_test results_24_2_2023/'
 
-        if(os.path.isdir(DATA_HOME)):
-            os.chdir(DATA_HOME)
-            print(os.getcwd())
+        #if(os.path.isdir(DATA_HOME)):
+        #    os.chdir(DATA_HOME)
+        #    print(os.getcwd())
 
-            #filelst = glob.glob('ZJ_Test_*_24_2_2023.txt')
+        #    #filelst = glob.glob('ZJ_Test_*_24_2_2023.txt')
             
-            #filelst = ['ZJ_Test_1_24_2_2023.txt', 'ZJ_Test_2_24_2_2023.txt', 'ZJ_Test_3_24_2_2023.txt', 'ZJ_Test_4_24_2_2023.txt', 'ZJ_Test_5_24_2_2023.txt']
-            #laser_name = 'ZJL_M1'
+        #    #filelst = ['ZJ_Test_1_24_2_2023.txt', 'ZJ_Test_2_24_2_2023.txt', 'ZJ_Test_3_24_2_2023.txt', 'ZJ_Test_4_24_2_2023.txt', 'ZJ_Test_5_24_2_2023.txt']
+        #    #laser_name = 'ZJL_M1'
             
-            filelst = ['ZJ_Test_6_24_2_2023.txt', 'ZJ_Test_7_24_2_2023.txt', 'ZJ_Test_8_24_2_2023.txt', 'ZJ_Test_9_24_2_2023.txt']
-            laser_name = 'ZJL_M2'            
+        #    filelst = ['ZJ_Test_6_24_2_2023.txt', 'ZJ_Test_7_24_2_2023.txt', 'ZJ_Test_8_24_2_2023.txt', 'ZJ_Test_9_24_2_2023.txt']
+        #    laser_name = 'ZJL_M2'            
             
-            OEWaves_FNPSD_Multiple(filelst, laser_name, True)
+        #    OEWaves_FNPSD_Multiple(filelst, laser_name, True)
             
-            OEWaves_FNPSD_Integration(filelst, True)
+        #    OEWaves_FNPSD_Integration(filelst, True)
 
-        else:
-            ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
-            raise Exception
+        #else:
+        #    ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
+        #    raise Exception
 
     except Exception as e:
         print(ERR_STATEMENT)

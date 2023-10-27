@@ -9,6 +9,7 @@ import PY3108
 import PY2108
 import LLM
 import General
+import math
 
 def main():
     pass
@@ -66,7 +67,7 @@ if __name__ == '__main__':
 
     #General.PDA10CS_Calibration()
 
-    #LLM.OEWaves_Analysis()
+    LLM.OEWaves_Analysis()
 
     #General.PDA10CS_Calibration()
 
@@ -100,7 +101,7 @@ if __name__ == '__main__':
 
     #LLM.Power_Variation_Multi_LLM_Analysis()
 
-    LLM.Repeated_Multi_LLM_Analysis()
+    #LLM.Repeated_Multi_LLM_Analysis()
 
     
 

@@ -1492,7 +1492,7 @@ def OEWaves_FNPSD_Multiple(filelst, laser_name, loud = False):
         args.fig_name = laser_name + '_FNPSD_extended_LL_err'
         args.log_x = True
         args.log_y = False    
-        args.plt_range = [0.08, 120, 10, 300]
+        #args.plt_range = [0.08, 120, 10, 300]
 
         Plotting.plot_single_curve_with_errors(ll_data[0][0], avg_LL, err_LL, args)
 
@@ -1536,7 +1536,7 @@ def OEWaves_FNPSD_Multiple(filelst, laser_name, loud = False):
         args.log_x = True
         args.log_y = False  
         args.show_leg = False
-        args.plt_range = [0.08, 120, 10, 300]
+        #args.plt_range = [0.08, 120, 10, 300]
 
         Plotting.plot_multiple_curves(ll_data, args) 
                 
@@ -1656,7 +1656,7 @@ def OEWaves_Analysis():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/OE4000_Init/CoBrite_TLS/'
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/OE4000_Init/NKT_Fibre_Laser/'
 
         if(os.path.isdir(DATA_HOME)):
             os.chdir(DATA_HOME)
@@ -1669,12 +1669,13 @@ def OEWaves_Analysis():
             #OEWaves_Analysis_Single(filename, True)
 
             #dev_name = 'Ref_DFB'
-            dev_name = 'CoBrite_TLS'
-            Ival = 9
-            filestr = '%(v1)s_P_%(v2)d*.txt'%{"v1":dev_name, "v2":Ival}
+            #dev_name = 'CoBrite_TLS'
+            dev_name = 'NKT'
+            Ival = 175
+            filestr = '%(v1)s_I_%(v2)d*.txt'%{"v1":dev_name, "v2":Ival}
             
-            dev_name = 'Reference_DFB'
-            resstr = '%(v1)s_P_%(v2)d'%{"v1":dev_name, "v2":Ival}
+            dev_name = 'NKT_FL'
+            resstr = '%(v1)s_I_%(v2)d'%{"v1":dev_name, "v2":Ival}
 
             filenames = glob.glob(filestr)
             #for f in filenames: OEWaves_Analysis_Single(f, True)

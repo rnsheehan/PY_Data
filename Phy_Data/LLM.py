@@ -1278,14 +1278,39 @@ def Parse_OEWaves_file(filename, loud = False):
 
             if 'Phase' in meas_type:
                 vals = Common.extract_values_from_string(preamble[-1]) # extract measured LL from preample
+                n_elw = 4 # ideally there would be 4 Ext. LW measurements
+                n_occur = preamble[-1].count('N/A') # ideally n_occur = 0, however, sometimes it's 1, 2, 3?                
                 instantaneous_ll = float(vals[5])/1000.0 # instantaneous LL in units of kHz
-                if loud: print(vals)
-                if 'N/A' in preamble[-1]:
-                    extended_ll_times = [float(vals[-2]), float(vals[-4]), float(vals[-6])] # extended LL observation times in units of ms
-                    extended_ll_vals = [float(vals[-3]), float(vals[-5]), float(vals[-7])]
-                else:
-                    extended_ll_times = [float(vals[-1]), float(vals[-3]), float(vals[-5]), float(vals[-7])] # extended LL observation times in units of ms
-                    extended_ll_vals = [float(vals[-2]), float(vals[-4]), float(vals[-6]), float(vals[-8])]
+                if loud: 
+                    print(vals)
+                    print("Length(vals) = ", len(vals))
+                    print("No. occurrences of N/A: ",n_occur)
+
+                # Extract the data for the Extended LW measurement, whatever that is
+                #extended_ll_times = []
+                #extended_ll_vals = []                 
+                #ideal_x_indx = [13, 11, 9, 7] # ideally the data would be located at these indexes
+                #ideal_y_indx = [12, 10, 8, 6]
+                #for i in range(n_occur, n_elw, 1):
+                #    extended_ll_times.append( float( vals[ ideal_x_indx[ i ] ] ) )
+                #    extended_ll_vals.append( float( vals[ ideal_y_indx[ i ] ] ) )
+
+                # Extract the data for the Extended LW measurement
+                # this time put a zero wherever there is an N/A value
+                # this simplifies the data munging down the line
+                extended_ll_times = [0.1, 1, 10, 100]
+                extended_ll_vals = [0.0, 0.0, 0.0, 0.0]                 
+                ideal_x_indx = [13, 11, 9, 7] # ideally the data would be located at these indexes
+                ideal_y_indx = [12, 10, 8, 6] # ideally the data would be located at these indexes
+                for i in range(n_occur, n_elw, 1):
+                    extended_ll_vals[i] = float( vals[ ideal_y_indx[ i ] ] )
+                
+                #if 'N/A' in preamble[-1]:
+                #    extended_ll_times = [float(vals[-2]), float(vals[-4]), float(vals[-6])] # extended LL observation times in units of ms
+                #    extended_ll_vals = [float(vals[-3]), float(vals[-5]), float(vals[-7])]
+                #else:
+                #    extended_ll_times = [float(vals[-1]), float(vals[-3]), float(vals[-5]), float(vals[-7])] # extended LL observation times in units of ms
+                #    extended_ll_vals = [float(vals[-2]), float(vals[-4]), float(vals[-6]), float(vals[-8])]
 
                 LL_data.append(extended_ll_times)
                 LL_data.append(extended_ll_vals)
@@ -1456,13 +1481,25 @@ def OEWaves_FNPSD_Multiple(filelst, laser_name, loud = False):
                 labels.append('M %(v1)d'%{"v1":count+1})
                 count = count + 1
 
+        avg_ll = numpy.mean(instant_ll)
+        delta_ll = 0.5*(numpy.max(instant_ll) - numpy.min(instant_ll))
+
         if loud:
-            avg_ll = numpy.mean(instant_ll)
-            delta_ll = 0.5*(numpy.max(instant_ll) - numpy.min(instant_ll))
             print("Average Instantaneous LL")
             print("LL_int_avg = %(v1)0.3f +/- %(v2)0.3f kHz"%{"v1":avg_ll, "v2":delta_ll})
             print("LL_int_avg = %(v1)0.3f +/- %(v2)0.3f MHz"%{"v1":avg_ll/1000.0, "v2":delta_ll/1000.0})
             print("")
+
+        # Make a histogram of the instantaneous LW measurements
+        args = Plotting.plot_arg_single()
+
+        args.loud = loud
+        args.x_label = 'Instantaneous LW ( kHz )'
+        args.y_label = 'Frequency'
+        args.fig_name = laser_name + '_instantaneous_LW'
+        args.plt_title = "LL_int_avg = %(v1)0.3f +/- %(v2)0.3f kHz"%{"v1":avg_ll, "v2":delta_ll}
+
+        Plotting.plot_histogram(instant_ll, args)        
 
         # determine the average of all the extended LL values
         arr_tmp = []
@@ -1484,15 +1521,15 @@ def OEWaves_FNPSD_Multiple(filelst, laser_name, loud = False):
         args = Plotting.plot_arg_single()
 
         args.loud = loud
-        #args.curve_label = 'JDSU DFB Laser'
-        #args.curve_label = 'NKT Fibre Laser'
-        #args.marker = Plotting.labs_lins[0]
         args.x_label = 'Observation Time ( ms )'
         args.y_label = 'Linewidth ( kHz )'
         args.fig_name = laser_name + '_FNPSD_extended_LL_err'
         args.log_x = True
-        args.log_y = False    
-        #args.plt_range = [0.08, 120, 10, 300]
+        args.log_y = False 
+        args.show_leg = False
+        #args.plt_range = [0.08, 120, 1000, 6000]
+        args.plt_range = [0.08, 120, 10, 300]
+        #args.plt_range = [0.08, 120, 0.0, 40]
 
         Plotting.plot_single_curve_with_errors(ll_data[0][0], avg_LL, err_LL, args)
 
@@ -1502,8 +1539,8 @@ def OEWaves_FNPSD_Multiple(filelst, laser_name, loud = False):
         LL_res_file = laser_name + '_LL_Results.txt'
         old_target, sys.stdout = sys.stdout, open(LL_res_file, 'w')
 
-        ext_avg_ll = numpy.mean(avg_LL)
-        ext_delta_ll = numpy.mean(err_LL)
+        ext_avg_ll = numpy.mean( avg_LL ) if math.fabs(avg_LL[0]) > 0.0 else numpy.mean( avg_LL[1:-1] )
+        ext_delta_ll = numpy.mean( err_LL ) if math.fabs(err_LL[0]) > 0.0 else numpy.mean( err_LL[1:-1] )
         
         print('Observation Time (ms),\tExtended LL (kHz)')
         for i in range(0, len(avg_LL), 1):
@@ -1536,7 +1573,9 @@ def OEWaves_FNPSD_Multiple(filelst, laser_name, loud = False):
         args.log_x = True
         args.log_y = False  
         args.show_leg = False
-        #args.plt_range = [0.08, 120, 10, 300]
+        #args.plt_range = [0.08, 120, 1000, 6000]
+        args.plt_range = [0.08, 120, 10, 300]
+        #args.plt_range = [0.08, 120, 0.0, 40]
 
         Plotting.plot_multiple_curves(ll_data, args) 
                 
@@ -1639,6 +1678,19 @@ def OEWaves_FNPSD_Integration(filelst, laser_name, loud = False):
         
             sys.stdout = old_target # return to the usual stdout
 
+            # Make a histogram of the summed LW measurements
+            args = Plotting.plot_arg_single()
+
+            args.loud = loud
+            args.x_label = 'Summed LW ( kHz )'
+            args.y_label = 'Frequency'
+            args.fig_name = laser_name + '_summed_LW'
+            args.plt_title = "LL_sum_avg = %(v1)0.3f +/- %(v2)0.3f kHz"%{"v1":avg_integral/1e+3, "v2":delta_integral/1e+3}
+
+            for i in range(0, len(appr_lst), 1): appr_lst[i] = appr_lst[i] / 1e+3
+
+            Plotting.plot_histogram(appr_lst, args)
+
             del hv_data;  
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nIntegration not possible\nNo data available'
@@ -1656,7 +1708,7 @@ def OEWaves_Analysis():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/OE4000_Init/NKT_Fibre_Laser/'
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/OE4000_Init/CoBrite_TLS/'
 
         if(os.path.isdir(DATA_HOME)):
             os.chdir(DATA_HOME)
@@ -1666,20 +1718,24 @@ def OEWaves_Analysis():
             #filename = 'JDSU_DFB_T_20_I_50_RIN_2.txt'
             #filename = 'NKT_T_25_I_110_FN_1.txt'
             #filename = 'NKT_T_25_I_110_RIN_2.txt'
+            #filename = 'NKT_I_125_1000_20_11_2023.txt'
+            #filename = 'NKT_I_150_1428_20_11_2023.txt'
             #OEWaves_Analysis_Single(filename, True)
 
             #dev_name = 'Ref_DFB'
-            #dev_name = 'CoBrite_TLS'
-            dev_name = 'NKT'
-            Ival = 175
-            filestr = '%(v1)s_I_%(v2)d*.txt'%{"v1":dev_name, "v2":Ival}
+            dev_name = 'CoBrite_TLS'
+            #dev_name = 'NKT'
+            Ival = 9
+            filestr = '%(v1)s_P_%(v2)d*.txt'%{"v1":dev_name, "v2":Ival}
             
-            dev_name = 'NKT_FL'
-            resstr = '%(v1)s_I_%(v2)d'%{"v1":dev_name, "v2":Ival}
+            #dev_name = 'Reference_DFB'
+            dev_name = 'CoBrite_Tunable'
+            #dev_name = 'NKT_FL'
+            resstr = '%(v1)s_P_%(v2)d'%{"v1":dev_name, "v2":Ival}
 
             filenames = glob.glob(filestr)
             #for f in filenames: OEWaves_Analysis_Single(f, True)
-            OEWaves_FNPSD_Multiple(filenames, resstr, True)
+            OEWaves_FNPSD_Multiple(filenames, resstr, False)
             OEWaves_FNPSD_Integration(filenames, resstr, True)
 
             # JDSU DFB RIN

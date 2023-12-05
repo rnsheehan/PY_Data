@@ -2477,7 +2477,7 @@ def Multi_LLM_Analysis(DATA_HOME):
     try:
         #DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_Setup_Test/LCR_DSHI_JDSU_DFB_T_20_D_50/'
         #DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_1310/LCR_DSHI_LD5_591_T_25_D_10/'
-        #DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
+        #DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/LLM_Data_Nmeas_200_I_100_19_06_2023_19_06/'
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
@@ -2496,7 +2496,7 @@ def Multi_LLM_Analysis(DATA_HOME):
             #thefile = 'LLM_Data_Nmeas_100_I_100_30_03_2023_13_27.txt'
             #thefile = 'LLM_Data_Nmeas_200_I_300_05_04_2023_16_15.txt'
 
-            #theDir = 'LLM_Data_Nmeas_200_I_100_30_05_2023_19_31/'
+            #theDir = 'LLM_Data_Nmeas_200_I_100_19_06_2023_19_06/'
 
             thefile = 'Multi_LLM_Data.txt'
 
@@ -2520,8 +2520,8 @@ def Multi_LLM_Analysis(DATA_HOME):
                 if not glob.glob('ResultsSummary.txt'): Multi_LLM_Fit_Params_Report(data, titles, True)
 
                 # Perform Correlation calculations of the variables
-                RUN_CORRELATIONS = False
-                RUN_TAOM_CORRELATIONS = False
+                RUN_CORRELATIONS = True
+                RUN_TAOM_CORRELATIONS = True
 
                 if RUN_CORRELATIONS:
                     # Correlations with Time

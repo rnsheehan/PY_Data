@@ -2516,9 +2516,14 @@ def Multi_LLM_Analysis(DATA_HOME):
                 #if not os.path.isdir(resDir):os.mkdir(resDir)
                 #os.chdir(resDir)
 
-                # Start publilshing the results
-                if not glob.glob('ResultsSummary.txt'): Multi_LLM_Fit_Params_Report(data, titles, True)
+                LOUD = True
+                ERRORISSTDEV = True
 
+                # Start publilshing the results
+                if not glob.glob('ResultsSummary.txt'): Multi_LLM_Fit_Params_Report(data, titles, ERRORISSTDEV, LOUD)
+
+                LOUD = False      
+                
                 # Perform Correlation calculations of the variables
                 RUN_CORRELATIONS = True
                 RUN_TAOM_CORRELATIONS = True
@@ -2527,14 +2532,16 @@ def Multi_LLM_Analysis(DATA_HOME):
                     # Correlations with Time
                     axis_n = 0; 
                     axes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 18, 19]
+                    INCLUDEHIST = True
                     for axis_m in axes:
-                        Multi_LLM_Correlation(data, titles, axis_n, axis_m, True, False)
+                        Multi_LLM_Correlation(data, titles, axis_n, axis_m, INCLUDEHIST, ERRORISSTDEV, LOUD)
 
                     # Correlations with Pmax
                     axis_n = 4
                     axes = [6, 7, 8, 9, 10, 14, 17, 18]
+                    INCLUDEHIST = False
                     for axis_m in axes:
-                        Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
+                        Multi_LLM_Correlation(data, titles, axis_n, axis_m, INCLUDEHIST, ERRORISSTDEV, LOUD)
 
                     # Correlations with AOM-Temperature
                     # T_{AOM} = constant, no need to check for correlations here
@@ -2542,21 +2549,22 @@ def Multi_LLM_Analysis(DATA_HOME):
                         axis_n = 2
                         axes = [6, 7, 8, 9, 10, 14, 17, 18]
                         for axis_m in axes:
-                            Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
+                            Multi_LLM_Correlation(data, titles, axis_n, axis_m, INCLUDEHIST, ERRORISSTDEV, LOUD)
 
                     # Correlations with LL-Est
                     axis_n = 6
                     axes = [7, 8, 9, 17, 18]
                     for axis_m in axes:
-                        Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
+                        Multi_LLM_Correlation(data, titles, axis_n, axis_m, INCLUDEHIST, ERRORISSTDEV, LOUD)
 
                     # Correlation of LL-Vfit with LL-Lfit
                     axis_n = 7
                     axis_m = 8
-                    Multi_LLM_Correlation(data, titles, axis_n, axis_m, False, False)
+                    Multi_LLM_Correlation(data, titles, axis_n, axis_m, INCLUDEHIST, ERRORISSTDEV, LOUD)
 
                 # Make a plot of the spectra with max/min fitted params
-                if not glob.glob('Fitted*dBm.png'): Multi_LLM_Extract_Fit_Params(data, titles, True)
+                LOUD = True
+                if not glob.glob('Fitted*dBm.png'): Multi_LLM_Extract_Fit_Params(data, titles, ERRORISSTDEV, LOUD)
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
             raise Exception
@@ -2564,11 +2572,12 @@ def Multi_LLM_Analysis(DATA_HOME):
         print(ERR_STATEMENT)
         print(e)
 
-def Multi_LLM_Correlation(dataFrame, titles, axis_n, axis_m, include_hist = True, loud = False):
+def Multi_LLM_Correlation(dataFrame, titles, axis_n, axis_m, include_hist = True, errorIsstdev = True, loud = False):
 
     # Perform correlation analysis on two columns of the Multi-LLM data
     # dataFrame contains the data from the Multi-LLM measurement
     # titles contains the names of the columns of data that have been measured
+    # errorIsstdev decides whether or not you want the error to be expressed in terms of the standard deviation or the data range
     # axis_n is one parameter of the correlation
     # axis_m is the other parameter of the correlation, in some cases this will be a dependent variable
     # R. Sheehan 21 - 11 - 2022
@@ -2600,7 +2609,7 @@ def Multi_LLM_Correlation(dataFrame, titles, axis_n, axis_m, include_hist = True
             args.loud = loud
             args.x_label = titles[axis_n]
             args.y_label = titles[axis_m]
-            args.plt_title = '%(v1)s %(v2)0.3f +/- %(v3)0.3f, r = %(v4)0.3f'%{"v1":titles[axis_m], "v2":average, "v3":errorRange, "v4":rcoeff}
+            args.plt_title = '%(v1)s %(v2)0.3f +/- %(v3)0.3f, r = %(v4)0.3f'%{"v1":titles[axis_m], "v2":average, "v3":(stdev if errorIsstdev else errorRange), "v4":rcoeff}
             args.fig_name = '%(v1)s_vs_%(v2)s'%{"v1":titles[axis_m].replace('/','_'), "v2":titles[axis_n].replace('/','_')}            
             Plotting.plot_single_linear_fit_curve( dataFrame[ titles[axis_n] ], dataFrame[ titles[axis_m] ], args )
 
@@ -2608,20 +2617,21 @@ def Multi_LLM_Correlation(dataFrame, titles, axis_n, axis_m, include_hist = True
                 # Plot the Histogram of axis_m
                 args.x_label = titles[axis_m]
                 args.y_label = 'Frequency'
-                args.plt_title = '%(v1)s %(v2)0.3f +/- %(v3)0.3f, K = %(v4)0.3f'%{"v1":titles[axis_m], "v2":average, "v3":errorRange, "v4":KK}
+                args.plt_title = '%(v1)s %(v2)0.3f +/- %(v3)0.3f, K = %(v4)0.3f'%{"v1":titles[axis_m], "v2":average, "v3":(stdev if errorIsstdev else errorRange), "v4":KK}
                 args.fig_name = 'Histogram_%(v1)s'%{"v1":titles[axis_m].replace('/','_')}
                 Plotting.plot_histogram(dataFrame[ titles[axis_m] ], args)
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
 
-def Multi_LLM_Extract_Fit_Params(dataFrame, titles, loud = False):
+def Multi_LLM_Extract_Fit_Params(dataFrame, titles, errorIsstdev = True, loud = False):
 
     # Extract the average of the fitted model parameters from the Multi-LLM data
     # Make a plot showing the model with the average, max, min fitted parameters
     # Use this to estimate LLM at both 3dB and 20dB levels
     # dataFrame contains the data from the Multi-LLM measurement
     # titles contains the names of the columns of data that have been measured
+    # errorIsstdev decides whether or not you want the error to be expressed in terms of the standard deviation or the data range
     # Voigt = True => Plot Voigt model
     # Voigt = False => Plot Lorentz Model
     # Use C++ dll to compute model values
@@ -2644,10 +2654,10 @@ def Multi_LLM_Extract_Fit_Params(dataFrame, titles, loud = False):
             plt_rng = '%(v1)d %(v2)d %(v3)d'%{"v1":flow, "v2":fhigh, "v3":Nsteps}
 
             # Averaged Voigt Model Fit Parameters
-            Vh = columnStatistics(dataFrame, titles, 10) # fitted height
-            Vf0 = columnStatistics(dataFrame, titles, 11) # centre frequency
-            Vgamma = columnStatistics(dataFrame, titles, 12) # Lorentzian HWHM
-            Vsigma = columnStatistics(dataFrame, titles, 13) # Gaussian std. dev.
+            Vh = columnStatistics(dataFrame, titles, 10, errorIsstdev) # fitted height
+            Vf0 = columnStatistics(dataFrame, titles, 11, errorIsstdev) # centre frequency
+            Vgamma = columnStatistics(dataFrame, titles, 12, errorIsstdev) # Lorentzian HWHM
+            Vsigma = columnStatistics(dataFrame, titles, 13, errorIsstdev) # Gaussian std. dev.
 
             # generate the arg-val strings
             Vave = '%(v1)0.5f %(v2)0.5f %(v3)0.5f %(v4)0.5f'%{"v1":Vh['Average'], "v2":Vf0['Average'], 
@@ -2666,9 +2676,9 @@ def Multi_LLM_Extract_Fit_Params(dataFrame, titles, loud = False):
             Vminargs = Vmin + ' ' + plt_rng + ' ' + Vminfile
 
             # Averaged Lorentz Model Fit Parameters
-            Lh = columnStatistics(dataFrame, titles, 14) # fitted height
-            Lf0 = columnStatistics(dataFrame, titles, 15) # centre frequency
-            Lgamma = columnStatistics(dataFrame, titles, 16) # Lorentzian HWHM
+            Lh = columnStatistics(dataFrame, titles, 14, errorIsstdev) # fitted height
+            Lf0 = columnStatistics(dataFrame, titles, 15, errorIsstdev) # centre frequency
+            Lgamma = columnStatistics(dataFrame, titles, 16, errorIsstdev) # Lorentzian HWHM
 
             # generate the arg-val strings
             Lave = '%(v1)0.5f %(v2)0.5f %(v3)0.5f'%{"v1":Lh['Average'], "v2":Lf0['Average'], "v3":Lgamma['Average']}
@@ -2781,11 +2791,12 @@ def Multi_LLM_Extract_Fit_Params(dataFrame, titles, loud = False):
         print(ERR_STATEMENT)
         print(e)
 
-def Multi_LLM_Fit_Params_Report(dataFrame, titles, loud = False):
+def Multi_LLM_Fit_Params_Report(dataFrame, titles, errorIsstdev = True, loud = False):
 
     # Extract the average of the fitted model parameters from the Multi-LLM data
     # dataFrame contains the data from the Multi-LLM measurement
     # titles contains the names of the columns of data that have been measured
+    # errorIsstdev decides whether or not you want the error to be expressed in terms of the standard deviation or the data range
     # LLest = 6, LLVfit = 7, LLLfit = 8
     # Voigt params V_{h} = 10, f_{0} = 11, V_{g} = 12, V_{s} = 13
     # Lorentz params L_{h} = 14, f_{0} = 15, L_{g} = 16
@@ -2812,32 +2823,32 @@ def Multi_LLM_Fit_Params_Report(dataFrame, titles, loud = False):
             print("No. Measurements: %(v1)d"%{"v1":Nmeas})
             print("Total Time Taken / min: %(v1)0.2f"%{"v1":totalTime/60.0})
             print("Average Time per Meas / sec: %(v1)0.2f\n"%{"v1":singleTime})
-            columnStatistics(dataFrame, titles, 4, loud) # Pmax
-            columnStatistics(dataFrame, titles, 6, loud) # LL estimate from data
-            columnStatistics(dataFrame, titles, 7, loud) # LL from Voigt Fit
-            columnStatistics(dataFrame, titles, 8, loud) # LL from Lorentz Fit
-            columnStatistics(dataFrame, titles, 9, loud) # LL from Lorentz Fit
+            columnStatistics(dataFrame, titles, 4, errorIsstdev, loud) # Pmax
+            columnStatistics(dataFrame, titles, 6, errorIsstdev, loud) # LL estimate from data
+            columnStatistics(dataFrame, titles, 7, errorIsstdev, loud) # LL from Voigt Fit
+            columnStatistics(dataFrame, titles, 8, errorIsstdev, loud) # LL from Lorentz Fit
+            columnStatistics(dataFrame, titles, 9, errorIsstdev, loud) # LL from Lorentz Fit
             
             print("\nVoigt Fit Parameters") # Averaged Voigt Model Fit Parameters
-            columnStatistics(dataFrame, titles, 10, loud) # fitted height
-            columnStatistics(dataFrame, titles, 11, loud) # centre frequency
-            columnStatistics(dataFrame, titles, 12, loud) # Lorentzian HWHM
-            columnStatistics(dataFrame, titles, 13, loud) # Gaussian std. dev.
+            columnStatistics(dataFrame, titles, 10, errorIsstdev, loud) # fitted height
+            columnStatistics(dataFrame, titles, 11, errorIsstdev, loud) # centre frequency
+            columnStatistics(dataFrame, titles, 12, errorIsstdev, loud) # Lorentzian HWHM
+            columnStatistics(dataFrame, titles, 13, errorIsstdev, loud) # Gaussian std. dev.
             
             print("\nLorentz Fit Parameters") # Averaged Lorentz Model Fit Parameters
-            columnStatistics(dataFrame, titles, 14, loud) # fitted height
-            columnStatistics(dataFrame, titles, 15, loud) # centre frequency
-            columnStatistics(dataFrame, titles, 16, loud) # Lorentzian HWHM
+            columnStatistics(dataFrame, titles, 14, errorIsstdev, loud) # fitted height
+            columnStatistics(dataFrame, titles, 15, errorIsstdev, loud) # centre frequency
+            columnStatistics(dataFrame, titles, 16, errorIsstdev, loud) # Lorentzian HWHM
             
             print("\nAOM Temperature Statistics") # AOM Temperature Statistics
-            columnStatistics(dataFrame, titles, 1, loud) # Air Temperature
-            columnStatistics(dataFrame, titles, 2, loud) # AOM Temperature
-            columnStatistics(dataFrame, titles, 3, loud) # AOM Driver Temperature
+            columnStatistics(dataFrame, titles, 1, errorIsstdev, loud) # Air Temperature
+            columnStatistics(dataFrame, titles, 2, errorIsstdev, loud) # AOM Temperature
+            columnStatistics(dataFrame, titles, 3, errorIsstdev, loud) # AOM Driver Temperature
 
             print("\nLoop Power Statistics") # Loop Power Statistics
-            columnStatistics(dataFrame, titles, 17, loud) # Input Power @ P1
-            columnStatistics(dataFrame, titles, 18, loud) # Loop Power @ P2
-            columnStatistics(dataFrame, titles, 19, loud) # Power Ratio P2 / P1
+            columnStatistics(dataFrame, titles, 17, errorIsstdev, loud) # Input Power @ P1
+            columnStatistics(dataFrame, titles, 18, errorIsstdev, loud) # Loop Power @ P2
+            columnStatistics(dataFrame, titles, 19, errorIsstdev, loud) # Power Ratio P2 / P1
 
             sys.stdout = old_target # return to the usual stdout
 
@@ -2847,12 +2858,13 @@ def Multi_LLM_Fit_Params_Report(dataFrame, titles, loud = False):
         print(ERR_STATEMENT)
         print(e)
 
-def columnStatistics(dataFrame, titles, axisNo, loud = False):
+def columnStatistics(dataFrame, titles, axisNo, errorIsstdev = True, loud = False):
 
     # extract the basic statistics from a given column / axis of data
     # dataFrame is the dataset being analysed
     # titles is the list of names of the items in the dataFrame
     # axisNo is the index of the column of data being analysed
+    # errorIsstdev decides whether or not you want the error to be expressed in terms of the standard deviation or the data range
     # return a dictionary containing the data and a formatted string
     # R. Sheehan 21 - 11 - 2022
 
@@ -2876,7 +2888,7 @@ def columnStatistics(dataFrame, titles, axisNo, loud = False):
                 maxval = dataFrame[titles[axisNo]].max()
                 minval = dataFrame[titles[axisNo]].min()
                 errorRange = 0.5*( math.fabs(maxval) - math.fabs(minval) )
-                relErr = 100*(errorRange/average)
+                relErr = 100*(stdev/average) if errorIsstdev else 100*(errorRange/average)
 
                 # create the dictionary for storing the values
                 labels = []; values = []; 

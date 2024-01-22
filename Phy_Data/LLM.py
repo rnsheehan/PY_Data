@@ -2520,13 +2520,15 @@ def Multi_LLM_Analysis(DATA_HOME):
                 ERRORISSTDEV = True
 
                 # Start publilshing the results
-                if not glob.glob('ResultsSummary.txt'): Multi_LLM_Fit_Params_Report(data, titles, ERRORISSTDEV, LOUD)
+                #if not glob.glob('ResultsSummary.txt'): 
+                
+                Multi_LLM_Fit_Params_Report(data, titles, ERRORISSTDEV, LOUD)
 
                 LOUD = False      
                 
                 # Perform Correlation calculations of the variables
                 RUN_CORRELATIONS = True
-                RUN_TAOM_CORRELATIONS = True
+                RUN_TAOM_CORRELATIONS = False # No need to check this, T_{AOM} is constant
 
                 if RUN_CORRELATIONS:
                     # Correlations with Time
@@ -2564,7 +2566,8 @@ def Multi_LLM_Analysis(DATA_HOME):
 
                 # Make a plot of the spectra with max/min fitted params
                 LOUD = True
-                if not glob.glob('Fitted*dBm.png'): Multi_LLM_Extract_Fit_Params(data, titles, ERRORISSTDEV, LOUD)
+                if not glob.glob('Fitted*dBm.png'): 
+                    Multi_LLM_Extract_Fit_Params(data, titles, ERRORISSTDEV, LOUD)
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
             raise Exception
@@ -2598,7 +2601,7 @@ def Multi_LLM_Correlation(dataFrame, titles, axis_n, axis_m, include_hist = True
             maxval = dataFrame[titles[axis_m]].max()
             minval = dataFrame[titles[axis_m]].min()
             errorRange = 0.5*( math.fabs(maxval) - math.fabs(minval) )
-            KK = dataFrame[ titles[axis_m] ].kurt()
+            KK = dataFrame[ titles[axis_m] ].kurt() # compute the kurtosis of the distribution
             rcoeff = dataFrame[ titles[axis_m] ].corr(dataFrame[ titles[axis_n] ])
             #LLrcoeff = numpy.corrcoef( numpy.asarray( dataFrame[ titles[axis_n] ] ), numpy.asarray( dataFrame[ titles[axis_m] ] ) ) # compute the correlation coefficient for the data pair                        
 
@@ -2617,7 +2620,8 @@ def Multi_LLM_Correlation(dataFrame, titles, axis_n, axis_m, include_hist = True
                 # Plot the Histogram of axis_m
                 args.x_label = titles[axis_m]
                 args.y_label = 'Frequency'
-                args.plt_title = '%(v1)s %(v2)0.3f +/- %(v3)0.3f, K = %(v4)0.3f'%{"v1":titles[axis_m], "v2":average, "v3":(stdev if errorIsstdev else errorRange), "v4":KK}
+                #args.plt_title = '%(v1)s %(v2)0.3f +/- %(v3)0.3f, K = %(v4)0.3f'%{"v1":titles[axis_m], "v2":average, "v3":(stdev if errorIsstdev else errorRange), "v4":KK}
+                args.plt_title = '%(v1)s %(v2)0.3f +/- %(v3)0.3f'%{"v1":titles[axis_m], "v2":average, "v3":(stdev if errorIsstdev else errorRange)}
                 args.fig_name = 'Histogram_%(v1)s'%{"v1":titles[axis_m].replace('/','_')}
                 Plotting.plot_histogram(dataFrame[ titles[axis_m] ], args)
     except Exception as e:
@@ -2639,6 +2643,10 @@ def Multi_LLM_Extract_Fit_Params(dataFrame, titles, errorIsstdev = True, loud = 
     # Voigt params V_{h} = 10, f_{0} = 11, V_{g} = 12, V_{s} = 13
     # Lorentz params L_{h} = 14, f_{0} = 15, L_{g} = 16
     # R. Sheehan 21 - 11 - 2022
+
+    # I think this needs some work,  what exactly is going on here? 
+    # How does the computed average fit compare with the measured data? 
+    # R. Sheehan 22 - 1 - 2024
 
     FUNC_NAME = ".Multi_LLM_Extract_Fit_Params()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
@@ -3596,12 +3604,21 @@ def NKT_LCR_DSHI_Test():
         print(ERR_STATEMENT)
         print(e)
 
-def Plot_Multiple_Spectra(DATA_HOME, RBW_Val = 500, Tmeas = 20, theXUnits = 'kHz', theYUnits = 'Hz'):
+def Plot_Multiple_Spectra(DATA_HOME, RBW_Val = 500, Tmeas = 20, theXUnits = 'kHz', theYUnits = 'Hz', Deff = 400, Pin = 0, VVOA = 3.5):
 
     # Generate a plot of all the measured spectra from a Multi-LLM measurement
+    # DATA_HOME is the name of the directory in which the files 'LLM_Meas_*.txt' are stored
+    # RBW_Val is the value of the resolution BW used to perform the measurement
+    # Tmeas is the approximate time that was needed to perform the measurement
+    # theXunits are the Frequency units that you want displayed along the x-axis
+    # theYUnits are the Frequency units of the RBW value that you want displayed along the y-axis
+    # Deff is the effective loop length used to perform the measurement, units of km
+    # Pin is the output power from the laser / input power to the LCR-DSHI loop, units of dBm
+    # VVOA is the VOA bias that was applied at the time of the measurement, unit of V
     # R. Sheehan 30 - 5 - 2023
+    # Updated R. Sheehan 22 - 1 - 2024
 
-    FUNC_NAME = ".NKT_LCR_DSHI_Test()" # use this in exception handling messages
+    FUNC_NAME = ".Plot_Multiple_Spectra()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
@@ -3617,7 +3634,8 @@ def Plot_Multiple_Spectra(DATA_HOME, RBW_Val = 500, Tmeas = 20, theXUnits = 'kHz
             hv_data = []; marks = []; labels = []; 
             deltaT = Tmeas / 60.0 # measurement time in mins
             xlow = 0.0; xhigh = 0.0; 
-            for i in range(0, len(files), 5):
+            nskip = 8 # only plot every nskip measurements
+            for i in range(0, len(files), nskip):
                 values = Common.extract_values_from_string(files[i])
                 theTime = float(values[0])*deltaT
                 data = numpy.loadtxt(files[i], delimiter = '\t')
@@ -3633,8 +3651,9 @@ def Plot_Multiple_Spectra(DATA_HOME, RBW_Val = 500, Tmeas = 20, theXUnits = 'kHz
             args.mrk_list = marks
             args.x_label = 'Frequency / %(v1)s'%{"v1":theXUnits}
             args.y_label = 'Power / dBm / %(v1)d%(v2)s'%{"v1":RBW_Val, "v2":theYUnits}
-            args.plt_range = [xlow, xhigh, -80, -45]
+            args.plt_range = [xlow, xhigh, -90, -20]
             args.fig_name = 'Measured_Spectra'
+            args.plt_title = 'D$_{eff}$ = %(v1)d km, P$_{in}$ = %(v2)0.1f dBm, V$_{VOA}$ = %(v3)0.1f V'%{"v1":Deff, "v2":Pin, "v3":VVOA}
 
             Plotting.plot_multiple_curves(hv_data, args)
 
@@ -3644,11 +3663,17 @@ def Plot_Multiple_Spectra(DATA_HOME, RBW_Val = 500, Tmeas = 20, theXUnits = 'kHz
         print(ERR_STATEMENT)
         print(e)
 
-def Power_Variation_Multi_LLM_Analysis():
+def Multi_Multi_LLM_Analysis():
 
     # Perform the multi-llm analysis calculations for multiple sets of measurements
     # i.e. Analyse the Multi-LLM data as a function of voa bias / loop power ratio and Input Power
     # R. Sheehan 6 - 6 - 2023
+
+    # Update 22 - 1 - 2024
+    # Split the script in two, one part performs the multi-multi-llm analysis
+    # another generates the plots for the power variation analysis
+    # can you generalise this to look at measurements as a function of Fspan / RBW? 
+    # Do you even want to? 
 
     FUNC_NAME = ".Power_Variation_Multi_LLM_Analysis()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
@@ -3664,34 +3689,44 @@ def Power_Variation_Multi_LLM_Analysis():
             print(os.getcwd())
 
             # Make a directory for storing the results
-            resDir = 'Loop_Power_Variation_FSpan_100/'
+            resDir = 'Loop_Power_Variation/'
+            #resDir = 'Loop_Power_Variation_FSpan_100/'
             if not os.path.isdir(resDir): os.mkdir(resDir)
 
             # Generate the list of directories to be analysed
             #Ival = 100; Day = '19';  
             #Ival = 200; Day = '20';
             Ival = 300; Day = '21';
-            Month = '06'; RBW = 100; Tmeas = 28.5;
+            Month = '06'; 
             dir_list = glob.glob('LLM_Data_Nmeas_200_I_%(v1)d_%(v3)s_%(v2)s_*/'%{"v1":Ival, "v3":Day, "v2":Month})
             #dir_list = dir_list[2:len(dir_list)]
 
-            PARSE_ESA_FILES = False
-            esaResFileName = 'ESA_Results_I_%(v1)d.txt'%{"v1":Ival}
+            # Some measurement parameters
+            RBW = 100; theYunits = 'Hz' # RBW and its units
+            Tmeas = 28.5; # Approximate measurement time in seconds
+            Deff = 400 # Effective loop length in km
+            theXunits = 'kHz' # Frequency units along X-axis            
+
+            # Obtain the loop power data from all the measurements
+            PARSE_ESA_FILES = True
+            LoopPowerFileName = 'Loop_Power_Values_I_%(v1)d.txt'%{"v1":Ival}
 
             # Create files for storing the accumulated data
+            # Create a file for storing the loop power data values
             if os.path.isdir(resDir) and PARSE_ESA_FILES:
                 os.chdir(resDir)
-                if not glob.glob(esaResFileName): 
-                    esaFile = open(esaResFileName,'x') # create the file to be written to
+                if not glob.glob(LoopPowerFileName): 
+                    esaFile = open(LoopPowerFileName,'x') # create the file to be written to
                     esaFile.write('VOA Bias ( V )\tInput Power (dBm)\tLoop Power (dBm)\tPower Ratio P2 / P1\n') # write the file header
                     esaFile.close()
                 os.chdir(DATA_HOME)
 
-            PARSE_RES_FILES = False
+            # I think this is meant to be a second pass type analysis, once all the multi-LLM are complete
+            PARSE_RES_FILES = False # Mut be false until all Multi-LLM results are obtained
             esaResFileName = 'Measurement_Results_I_%(v1)d.txt'%{"v1":Ival}
             esaErrFileName = 'Measurement_Errors_I_%(v1)d.txt'%{"v1":Ival}
 
-            # Create files for storing the accumulated data
+            # Create files for storing the accumulated data from multuple Multi-LLM runs
             # Output is of the form ['Pmax/dBm', 'LLest', 'LL_Vfit', 'LL_Lfit', 'LLest_-20', 'Voigt_Lor_HWHM', 'Voigt_Gau_Stdev', 'P1/dBm', 'P2/dBm', 'P2/P1']
             if os.path.isdir(resDir) and PARSE_RES_FILES:
                 os.chdir(resDir)
@@ -3705,25 +3740,33 @@ def Power_Variation_Multi_LLM_Analysis():
                     esaFile.close()
                 os.chdir(DATA_HOME)
 
-            PLOT_SPECTRA = False
-
-            PERFORM_MULTI_LLM = False
+            PLOT_SPECTRA = False # Tells the code to generate a combined plot of the stored measured lineshapes for a given Multi-LLM
+            
+            PERFORM_MULTI_LLM = True #  Tells the code to ...
             
             if len(dir_list) > 0:
+
                 for i in range(0, len(dir_list), 1): 
-                    # Extract the Power versus VOA data
+                    # Extract the Power versus VOA data, store the results in LoopPowerFileName
                     if PARSE_ESA_FILES:
+                        
                         theVals = Parse_ESA_Settings(dir_list[i])
+                        
+                        VVOA = theVals['VVoa']
+                        Pin = theVals['P1']
+
                         print(theVals['VVoa'],' , ',theVals['P2/P1'] )
+                        
                         os.chdir(DATA_HOME)
                         os.chdir(resDir)
-                        esaFile = open(esaResFileName,'a')
+                        esaFile = open(LoopPowerFileName,'a')
                         esaFile.write('%(v1)0.3f\t%(v2)0.3f\t%(v3)0.3f\t%(v4)0.3f\n'%{"v1":theVals['VVoa'], "v2":theVals['P1'], "v3":theVals['P2'], "v4":theVals['P2/P1']})
                         esaFile.close()
                         os.chdir(DATA_HOME)
 
                     # Extract the Measurement Results
                     # Output is of the form ['Pmax/dBm', 'LLest', 'LL_Vfit', 'LL_Lfit', 'LLest_-20', 'Voigt_Lor_HWHM', 'Voigt_Gau_Stdev', 'P1/dBm', 'P2/dBm', 'P2/P1']
+                    # This can only run once Multi-LLm is complete
                     if PARSE_RES_FILES:
                         theVals, theErrs = Parse_Results_Summary(dir_list[i])
                         #print(theVals['VVoa'],' , ',theVals['P2/P1'] )
@@ -3745,7 +3788,7 @@ def Power_Variation_Multi_LLM_Analysis():
                     
                     # Plot the Measured Spectra
                     if PLOT_SPECTRA:
-                        Plot_Multiple_Spectra(dir_list[i], RBW, Tmeas)
+                        Plot_Multiple_Spectra(dir_list[i], RBW, Tmeas, theXunits, theYunits, Deff, Pin, VVOA)
                         os.chdir(DATA_HOME)
                     
                     # Do the Multi-LLM Analysis on each measured data
@@ -3757,6 +3800,7 @@ def Power_Variation_Multi_LLM_Analysis():
                 raise Exception
 
             # Make a plot of the ESA file Data
+            # What does this mean? 
             PLOT_ESA_FILES = False
 
             if PLOT_ESA_FILES:
@@ -3795,7 +3839,8 @@ def Power_Variation_Multi_LLM_Analysis():
 
                 Plotting.plot_multiple_curves(hv_data2, args)
 
-            PLOT_RES_FILES = True
+            # What does this mean? 
+            PLOT_RES_FILES = False
 
             if PLOT_RES_FILES:
                 os.chdir(resDir)
@@ -3891,6 +3936,20 @@ def Power_Variation_Multi_LLM_Analysis():
 
         else:
             raise Exception        
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Summarise_Multi_LLM_Analysis():
+
+    # Generate a summary of the data obtained from multiple Multi-LLM Measurements
+    # R. Sheehan 22 - 1 - 2024
+
+    FUNC_NAME = ".Summarise_Multi_LLM_Analysis()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        pass
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
@@ -4148,6 +4207,8 @@ def Span_Variation_Multi_LLM_Analysis():
 def Repeated_Multi_LLM_Analysis():
 
     # Loop over multiple Multi-LLM Measurements
+    # What is the purpose of this script? 
+    # R. Sheehan 22 - 1 - 2024? 
 
     FUNC_NAME = ".Repeated_Multi_LLM_Analysis()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
@@ -4155,8 +4216,10 @@ def Repeated_Multi_LLM_Analysis():
     try:
         # loop the Multi-LLM Analysis calculations over a list of directories
         
-        theLaser = 'CoBriteTLS'
-        temperature = 25
+        theLaser = 'NKT'
+        temperature = 35
+        #theLaser = 'CoBriteTLS'
+        #temperature = 25
         loopLength = 400
         DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v1)s_T_%(v2)d_D_%(v3)d/'%{"v1":theLaser, "v2":temperature, "v3":loopLength}
 
@@ -4164,14 +4227,23 @@ def Repeated_Multi_LLM_Analysis():
             os.chdir(DATA_HOME)
             print(os.getcwd())
 
+            # Generate the list of directories to be analysed
+            Ival = 100; Day = '19';  
+            #Ival = 200; Day = '20';
+            #Ival = 300; Day = '21';
+            Month = '06'; RBW = 100; Tmeas = 28.5;
+            dir_list = glob.glob('LLM_Data_Nmeas_200_I_%(v1)d_%(v3)s_%(v2)s_*/'%{"v1":Ival, "v3":Day, "v2":Month})
+            #dir_list = dir_list[2:len(dir_list)]
+
             # Make a directory for storing the results
+            # Why? 
             resDir = '%(v1)s_D_%(v3)d_MultiLLM_Results/'%{"v1":theLaser, "v3":loopLength}
             if not os.path.isdir(resDir): os.mkdir(resDir)
 
             # Generate the list of directories to be analysed
             #dir_list = ['LLM_Data_Nmeas_200_I_100_29_05_2023_14_20_Span_500k/', 'LLM_Data_Nmeas_200_I_100_29_05_2023_15_34_Span_250k/', 
             #            'LLM_Data_Nmeas_200_I_100_08_06_2023_12_57_Span_100k/', 'LLM_Data_Nmeas_200_I_100_09_06_2023_09_42_Span_50k/']
-            dir_list = ['LLM_Data_Nmeas_200_I_100_05_07_2023_13_37', 'LLM_Data_Nmeas_200_I_200_05_07_2023_11_00', 'LLM_Data_Nmeas_200_I_300_05_07_2023_09_58']
+            #dir_list = ['LLM_Data_Nmeas_200_I_100_05_07_2023_13_37', 'LLM_Data_Nmeas_200_I_200_05_07_2023_11_00', 'LLM_Data_Nmeas_200_I_300_05_07_2023_09_58']
             RBW_list = [5, 5, 5] # list of the RBW used in each measurement 
             Tmeas_list = [15, 15, 15] # list of the single LLM measurement times in units of seconds
 

@@ -3694,9 +3694,9 @@ def Multi_Multi_LLM_Analysis():
             if not os.path.isdir(resDir): os.mkdir(resDir)
 
             # Generate the list of directories to be analysed
-            #Ival = 100; Day = '19';  
+            Ival = 100; Day = '19';  
             #Ival = 200; Day = '20';
-            Ival = 300; Day = '21';
+            #Ival = 300; Day = '21';
             Month = '06'; 
             dir_list = glob.glob('LLM_Data_Nmeas_200_I_%(v1)d_%(v3)s_%(v2)s_*/'%{"v1":Ival, "v3":Day, "v2":Month})
             #dir_list = dir_list[2:len(dir_list)]
@@ -3721,28 +3721,9 @@ def Multi_Multi_LLM_Analysis():
                     esaFile.close()
                 os.chdir(DATA_HOME)
 
-            # I think this is meant to be a second pass type analysis, once all the multi-LLM are complete
-            PARSE_RES_FILES = False # Mut be false until all Multi-LLM results are obtained
-            esaResFileName = 'Measurement_Results_I_%(v1)d.txt'%{"v1":Ival}
-            esaErrFileName = 'Measurement_Errors_I_%(v1)d.txt'%{"v1":Ival}
-
-            # Create files for storing the accumulated data from multuple Multi-LLM runs
-            # Output is of the form ['Pmax/dBm', 'LLest', 'LL_Vfit', 'LL_Lfit', 'LLest_-20', 'Voigt_Lor_HWHM', 'Voigt_Gau_Stdev', 'P1/dBm', 'P2/dBm', 'P2/P1']
-            if os.path.isdir(resDir) and PARSE_RES_FILES:
-                os.chdir(resDir)
-                if not glob.glob(esaResFileName): 
-                    esaFile = open(esaResFileName,'x') # create the file to be written to
-                    esaFile.write('Input Power (dBm)\tLoop Power (dBm)\tPower Ratio P2 / P1\tPmax (dBm)\tLLest\tLL_Vfit\tLL_Lfit\tLLest_-20\tVoigt_Lor_HWHM\tVoigt_Gau_Stdev\n') # write the file header
-                    esaFile.close()
-                if not glob.glob(esaErrFileName): 
-                    esaFile = open(esaErrFileName,'x') # create the file to be written to
-                    esaFile.write('Input Power (dBm)\tLoop Power (dBm)\tPower Ratio P2 / P1\tPmax (dBm)\tLLest\tLL_Vfit\tLL_Lfit\tLLest_-20\tVoigt_Lor_HWHM\tVoigt_Gau_Stdev\n') # write the file header
-                    esaFile.close()
-                os.chdir(DATA_HOME)
-
             PLOT_SPECTRA = False # Tells the code to generate a combined plot of the stored measured lineshapes for a given Multi-LLM
             
-            PERFORM_MULTI_LLM = True #  Tells the code to ...
+            PERFORM_MULTI_LLM = True #  Tells the code to run the Multi-LLM analysis on the data contained in the directory
             
             if len(dir_list) > 0:
 
@@ -3763,28 +3744,6 @@ def Multi_Multi_LLM_Analysis():
                         esaFile.write('%(v1)0.3f\t%(v2)0.3f\t%(v3)0.3f\t%(v4)0.3f\n'%{"v1":theVals['VVoa'], "v2":theVals['P1'], "v3":theVals['P2'], "v4":theVals['P2/P1']})
                         esaFile.close()
                         os.chdir(DATA_HOME)
-
-                    # Extract the Measurement Results
-                    # Output is of the form ['Pmax/dBm', 'LLest', 'LL_Vfit', 'LL_Lfit', 'LLest_-20', 'Voigt_Lor_HWHM', 'Voigt_Gau_Stdev', 'P1/dBm', 'P2/dBm', 'P2/P1']
-                    # This can only run once Multi-LLm is complete
-                    if PARSE_RES_FILES:
-                        theVals, theErrs = Parse_Results_Summary(dir_list[i])
-                        #print(theVals['VVoa'],' , ',theVals['P2/P1'] )
-                        os.chdir(DATA_HOME)
-                        os.chdir(resDir)
-
-                        esaFile = open(esaResFileName,'a')
-                        esaFile.write('%(v1)0.5f\t%(v2)0.5f\t%(v3)0.5f\t%(v4)0.5f\t%(v5)0.5f\t%(v6)0.5f\t%(v7)0.5f\t%(v8)0.5f\t%(v9)0.5f\t%(v10)0.5f\n'%{"v1":theVals['P1/dBm'], "v2":theVals['P2/dBm'], "v3":theVals['P2/P1'], "v4":theVals['Pmax/dBm'], 
-                                                                                                                                                         "v5":theVals['LLest'], "v6":theVals['LL_Vfit'], "v7":theVals['LL_Lfit'], "v8":theVals['LLest_-20'], 
-                                                                                                                                                         "v9":theVals['Voigt_Lor_HWHM'], "v10":theVals['Voigt_Gau_Stdev'] } )
-                        esaFile.close()
-
-                        esaFile = open(esaErrFileName,'a')
-                        esaFile.write('%(v1)0.5f\t%(v2)0.5f\t%(v3)0.5f\t%(v4)0.5f\t%(v5)0.5f\t%(v6)0.5f\t%(v7)0.5f\t%(v8)0.5f\t%(v9)0.5f\t%(v10)0.5f\n'%{"v1":theErrs['P1/dBm'], "v2":theErrs['P2/dBm'], "v3":theErrs['P2/P1'], "v4":theErrs['Pmax/dBm'], 
-                                                                                                                                                         "v5":theErrs['LLest'], "v6":theErrs['LL_Vfit'], "v7":theErrs['LL_Lfit'], "v8":theErrs['LLest_-20'], 
-                                                                                                                                                         "v9":theErrs['Voigt_Lor_HWHM'], "v10":theErrs['Voigt_Gau_Stdev'] } )
-                        esaFile.close()
-                        os.chdir(DATA_HOME)
                     
                     # Plot the Measured Spectra
                     if PLOT_SPECTRA:
@@ -3798,12 +3757,96 @@ def Multi_Multi_LLM_Analysis():
             else:
                 ERR_STATEMENT = ERR_STATEMENT + '\ndir_list is empty'
                 raise Exception
+        else:
+            raise Exception        
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
 
-            # Make a plot of the ESA file Data
-            # What does this mean? 
-            PLOT_ESA_FILES = False
+def Summarise_Multi_LLM_Analysis():
 
-            if PLOT_ESA_FILES:
+    # Generate a summary of the data obtained from multiple Multi-LLM Measurements
+    # R. Sheehan 22 - 1 - 2024
+
+    FUNC_NAME = ".Summarise_Multi_LLM_Analysis()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        # loop the Multi-LLM directories gather the averaged data
+        # In this case as a function of VOA bias / loop power Ratio
+
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
+
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+
+            # Make a directory for storing the results
+            resDir = 'Loop_Power_Variation/'
+            #resDir = 'Loop_Power_Variation_FSpan_100/'
+            if not os.path.isdir(resDir): os.mkdir(resDir)
+
+            # Generate the list of directories to be analysed
+            #Ival = 100; Day = '19';  
+            #Ival = 200; Day = '20';
+            Ival = 300; Day = '21';
+            Month = '06'; 
+            dir_list = glob.glob('LLM_Data_Nmeas_200_I_%(v1)d_%(v3)s_%(v2)s_*/'%{"v1":Ival, "v3":Day, "v2":Month})
+            #dir_list = dir_list[2:len(dir_list)]
+
+            # I think this is meant to be a second pass type analysis, once all the multi-LLM are complete
+            PARSE_RES_FILES = False # Must be false until all Multi-LLM results are obtained
+            esaResFileName = 'Measurement_Results_I_%(v1)d.txt'%{"v1":Ival}
+            esaErrFileName = 'Measurement_Errors_I_%(v1)d.txt'%{"v1":Ival}
+
+            # Create files for storing the accumulated data from multuple Multi-LLM runs
+            # Output is of the form ['Pmax/dBm', 'LLest', 'LL_Vfit', 'LL_Lfit', 'LLest_-20', 'Voigt_Lor_HWHM', 'Voigt_Gau_Stdev', 'P1/dBm', 'P2/dBm', 'P2/P1']
+            if os.path.isdir(resDir) and PARSE_RES_FILES:
+                os.chdir(resDir)
+                if not glob.glob(esaResFileName): 
+                    esaFile = open(esaResFileName,'x') # create the file to be written to
+                    esaFile.write('Input Power (dBm)\tLoop Power (dBm)\tPower Ratio P2 / P1\tPmax (dBm)\tLLest\tLL_Vfit\tLL_Lfit\tLLest_-20\tVoigt_Lor_HWHM\tVoigt_Gau_Stdev\n') # write the file header
+                    esaFile.close()
+                if not glob.glob(esaErrFileName): 
+                    esaFile = open(esaErrFileName,'x') # create the file to be written to
+                    esaFile.write('Input Power (dBm)\tLoop Power (dBm)\tPower Ratio P2 / P1\tPmax (dBm)\tLLest\tLL_Vfit\tLL_Lfit\tLLest_-20\tVoigt_Lor_HWHM\tVoigt_Gau_Stdev\n') # write the file header
+                    esaFile.close()
+                os.chdir(DATA_HOME)
+
+            if len(dir_list) > 0:
+                if PARSE_RES_FILES:
+                    for i in range(0, len(dir_list), 1): 
+                        # Extract the Measurement Results
+                        # Output is of the form ['Pmax/dBm', 'LLest', 'LL_Vfit', 'LL_Lfit', 'LLest_-20', 'Voigt_Lor_HWHM', 'Voigt_Gau_Stdev', 'P1/dBm', 'P2/dBm', 'P2/P1']
+                        # This can only run once Multi-LLm is complete
+                        theVals, theErrs = Parse_Results_Summary(dir_list[i])
+                        #print(theVals['VVoa'],' , ',theVals['P2/P1'] )
+                        os.chdir(DATA_HOME)
+                        os.chdir(resDir)
+
+                        esaFile = open(esaResFileName,'a')
+                        esaFile.write('%(v1)0.5f\t%(v2)0.5f\t%(v3)0.5f\t%(v4)0.5f\t%(v5)0.5f\t%(v6)0.5f\t%(v7)0.5f\t%(v8)0.5f\t%(v9)0.5f\t%(v10)0.5f\n'%{"v1":theVals['P1/dBm'], "v2":theVals['P2/dBm'], "v3":theVals['P2/P1'], "v4":theVals['Pmax/dBm'], 
+                                                                                                                                                            "v5":theVals['LLest'], "v6":theVals['LL_Vfit'], "v7":theVals['LL_Lfit'], "v8":theVals['LLest_-20'], 
+                                                                                                                                                            "v9":theVals['Voigt_Lor_HWHM'], "v10":theVals['Voigt_Gau_Stdev'] } )
+                        esaFile.close()
+
+                        esaFile = open(esaErrFileName,'a')
+                        esaFile.write('%(v1)0.5f\t%(v2)0.5f\t%(v3)0.5f\t%(v4)0.5f\t%(v5)0.5f\t%(v6)0.5f\t%(v7)0.5f\t%(v8)0.5f\t%(v9)0.5f\t%(v10)0.5f\n'%{"v1":theErrs['P1/dBm'], "v2":theErrs['P2/dBm'], "v3":theErrs['P2/P1'], "v4":theErrs['Pmax/dBm'], 
+                                                                                                                                                            "v5":theErrs['LLest'], "v6":theErrs['LL_Vfit'], "v7":theErrs['LL_Lfit'], "v8":theErrs['LLest_-20'], 
+                                                                                                                                                            "v9":theErrs['Voigt_Lor_HWHM'], "v10":theErrs['Voigt_Gau_Stdev'] } )
+                        esaFile.close()
+                        os.chdir(DATA_HOME)
+            else:
+                ERR_STATEMENT = ERR_STATEMENT + '\ndir_list is empty'
+                raise Exception
+
+            # Make a plot of the loop power value data as function of VVOA
+            PLOT_LOOP_POWER_VALUES = False
+
+            if PLOT_LOOP_POWER_VALUES:
                 os.chdir(resDir)
                 hv_data1 = []; labels1 = []; marks1 = []
                 hv_data2 = []; labels2 = []; marks2 = []
@@ -3838,9 +3881,9 @@ def Multi_Multi_LLM_Analysis():
                 args.fig_name = 'Input_Loop_Power_Ratio'
 
                 Plotting.plot_multiple_curves(hv_data2, args)
-
-            # What does this mean? 
-            PLOT_RES_FILES = False
+            
+            # Make plots of the gathered summarised data
+            PLOT_RES_FILES = True
 
             if PLOT_RES_FILES:
                 os.chdir(resDir)
@@ -3867,22 +3910,27 @@ def Multi_Multi_LLM_Analysis():
                     dataErr = numpy.loadtxt(esaErrFileName, delimiter = '\t', unpack = True, skiprows = 1)
 
                     print('Average Input Power I = ',Ivals[i], ': ',numpy.mean(data[0]), ' +/- ', 0.5*( numpy.max(data[0]) - numpy.min(data[0]) ), ' ( dBm )')
+                    print(numpy.size(data[2]))
 
-                    hv_data1.append([data[2], data[3], numpy.absolute( dataErr[3] ) ] ); labels1.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks1.append(Plotting.labs_lins[i%(len(Plotting.labs))])
+                    endVal = -1 + numpy.size(data[2]) # ignore the results of the V_{VOA} = 4V measurement, attenuation is too high, error bars too large, obscuring the result
 
-                    hv_data2.append([data[2], data[0], dataErr[0]]); labels2.append('P$_{1}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs_lins[i%(len(Plotting.labs))])
-                    hv_data2.append([data[2], data[1], numpy.absolute( dataErr[1] ) ]  ); labels2.append('P$_{2}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs_dashed[i%(len(Plotting.labs))])
+                    hv_data1.append([data[2][:endVal], data[3][:endVal], numpy.absolute( dataErr[3][:endVal] ) ] ); labels1.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks1.append(Plotting.labs_lins[i%(len(Plotting.labs))])
 
-                    hv_data3.append([data[2], data[4], dataErr[4]]); labels3.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks3.append(Plotting.labs[i%(len(Plotting.labs))])
+                    hv_data2.append([data[2][:endVal], data[0][:endVal], dataErr[0][:endVal]]); labels2.append('P$_{1}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs_lins[i%(len(Plotting.labs))])
+                    hv_data2.append([data[2][:endVal], data[1][:endVal], numpy.absolute( dataErr[1][:endVal] ) ]  ); labels2.append('P$_{2}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs_dashed[i%(len(Plotting.labs))])
 
-                    hv_data4.append([data[2], data[7], dataErr[7]]); labels4.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks4.append(Plotting.labs[i%(len(Plotting.labs))])
+                    hv_data3.append([data[2][:endVal], data[4][:endVal], dataErr[4][:endVal]]); labels3.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks3.append(Plotting.labs[i%(len(Plotting.labs))])
 
-                    hv_data5.append([data[2], data[5], dataErr[5]]); labels5.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks5.append(Plotting.labs[i%(len(Plotting.labs))])
+                    hv_data4.append([data[2][:endVal], data[7][:endVal], dataErr[7][:endVal]]); labels4.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks4.append(Plotting.labs[i%(len(Plotting.labs))])
+
+                    hv_data5.append([data[2][:endVal], data[5][:endVal], dataErr[5][:endVal]]); labels5.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks5.append(Plotting.labs[i%(len(Plotting.labs))])
+
+                DRAW_FULL_PLOT = False
 
                 # 1. Pmax versus Power Ratio with Errors
                 args = Plotting.plot_arg_multiple()
 
-                args.loud = True
+                args.loud = False
                 args.crv_lab_list = labels1
                 args.mrk_list = marks1
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
@@ -3892,7 +3940,7 @@ def Multi_Multi_LLM_Analysis():
                 Plotting.plot_multiple_curves_with_errors(hv_data1, args)
 
                 # 2. P1, P2 versus Power Ratio with Errors
-                args.loud = True
+                args.loud = False
                 args.crv_lab_list = labels2
                 args.mrk_list = marks2
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
@@ -3907,8 +3955,8 @@ def Multi_Multi_LLM_Analysis():
                 args.mrk_list = marks3
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
                 args.y_label = 'Laser Linewidth ( kHz )'
-                args.fig_name = 'Laser_Linewidth'
-                args.plt_range = [0, 1.5, 1.5, 3.5]
+                args.fig_name = 'Laser_Linewidth' if DRAW_FULL_PLOT else 'Laser_Linewidth_Zoom'
+                args.plt_range = [0, 1.5, 1.5, 3.25] if DRAW_FULL_PLOT else [0, 0.4, 1.5, 3.25]
 
                 Plotting.plot_multiple_curves_with_errors(hv_data3, args)
 
@@ -3918,8 +3966,8 @@ def Multi_Multi_LLM_Analysis():
                 args.mrk_list = marks4
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
                 args.y_label = 'Laser Linewidth at -20 dB ( kHz )'
-                args.fig_name = 'Laser_Linewidth_20'
-                args.plt_range = [0, 1.5, 7, 14]
+                args.fig_name = 'Laser_Linewidth_20' if DRAW_FULL_PLOT else 'Laser_Linewidth_20_Zoom'
+                args.plt_range = [0, 1.5, 8, 14] if DRAW_FULL_PLOT else [0, 0.4, 8, 14]
 
                 Plotting.plot_multiple_curves_with_errors(hv_data4, args)
 
@@ -3929,27 +3977,13 @@ def Multi_Multi_LLM_Analysis():
                 args.mrk_list = marks5
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
                 args.y_label = 'Laser Linewidth Voigt Fit ( kHz )'
-                args.fig_name = 'Laser_Linewidth_Voigt'
-                args.plt_range = [0, 1.5, 1.5, 3.5]
+                args.fig_name = 'Laser_Linewidth_Voigt'if DRAW_FULL_PLOT else 'Laser_Linewidth_Voigt_Zoom'
+                args.plt_range = [0, 1.5, 1.5, 3.25] if DRAW_FULL_PLOT else [0, 0.4, 1.5, 3.25]
 
                 Plotting.plot_multiple_curves_with_errors(hv_data5, args)
 
         else:
-            raise Exception        
-    except Exception as e:
-        print(ERR_STATEMENT)
-        print(e)
-
-def Summarise_Multi_LLM_Analysis():
-
-    # Generate a summary of the data obtained from multiple Multi-LLM Measurements
-    # R. Sheehan 22 - 1 - 2024
-
-    FUNC_NAME = ".Summarise_Multi_LLM_Analysis()" # use this in exception handling messages
-    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
-
-    try:
-        pass
+            raise Exception
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
@@ -4514,9 +4548,10 @@ def Parse_ESA_Settings(DATA_HOME, loud = False):
         print(ERR_STATEMENT)
         print(e)
 
-def Parse_Results_Summary(DATA_HOME, loud = False):
+def Parse_Results_Summary(DATA_HOME, errorIsstdev = True, loud = False):
 
     # Read the Results Summary files and extract various values
+    # errorIsstdev decides whether or not you want the error to be expressed in terms of the standard deviation or the data range
     # Output is two dictionaries one for the values, one for the errors
     # Output is of the form ['Pmax/dBm', 'LLest', 'LL_Vfit', 'LL_Lfit', 'LLest_-20', 'Voigt_Lor_HWHM', 'Voigt_Gau_Stdev', 'P1/dBm', 'P2/dBm', 'P2/P1']
     # R. Sheehan 6 - 6 - 2023
@@ -4540,15 +4575,25 @@ def Parse_Results_Summary(DATA_HOME, loud = False):
                     if count in line_list:
                         if loud: print(Common.extract_values_from_string(lines))
                         
+                        # Extract the mean value of the parameter
                         if count == 9 or count == 28 or count == 29: pos = 1
                         elif count == 30: pos = 2
                         else: pos = 0
                         theVals.append( float ( Common.extract_values_from_string(lines)[pos] ) )
                         
-                        if count == 9 or count == 28 or count == 29: pos = 5
-                        elif count == 30: pos = 6
-                        else: pos = 4
+                        if errorIsstdev:
+                            # Use standard deviation of measured distribution as the error estimate, massive overestimation of error
+                            if count == 9 or count == 28 or count == 29: pos = 2
+                            elif count == 30: pos = 3
+                            else: pos = 1
+                        else:
+                            # Use data range as the error estimate, massive overestimation of error
+                            if count == 9 or count == 28 or count == 29: pos = 5
+                            elif count == 30: pos = 6
+                            else: pos = 4
+                            
                         theErrs.append( float ( Common.extract_values_from_string(lines)[pos] ) )
+
                     count = count + 1
                 resDict = dict( zip( theLabels, theVals ) ) # make the dictionary for the values
                 errDict = dict( zip( theLabels, theErrs ) ) # make the dictionary for the errors

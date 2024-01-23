@@ -2529,6 +2529,8 @@ def Multi_LLM_Analysis(DATA_HOME):
                 # Perform Correlation calculations of the variables
                 RUN_CORRELATIONS = True
                 RUN_TAOM_CORRELATIONS = False # No need to check this, T_{AOM} is constant
+                RUN_PMAX_CORRELATIONS = False
+                RUN_LLEST_CORRELATIONS = False
 
                 if RUN_CORRELATIONS:
                     # Correlations with Time
@@ -2539,11 +2541,12 @@ def Multi_LLM_Analysis(DATA_HOME):
                         Multi_LLM_Correlation(data, titles, axis_n, axis_m, INCLUDEHIST, ERRORISSTDEV, LOUD)
 
                     # Correlations with Pmax
-                    axis_n = 4
-                    axes = [6, 7, 8, 9, 10, 14, 17, 18]
-                    INCLUDEHIST = False
-                    for axis_m in axes:
-                        Multi_LLM_Correlation(data, titles, axis_n, axis_m, INCLUDEHIST, ERRORISSTDEV, LOUD)
+                    if RUN_PMAX_CORRELATIONS:
+                        axis_n = 4
+                        axes = [6, 7, 8, 9, 10, 14, 17, 18]
+                        INCLUDEHIST = False
+                        for axis_m in axes:
+                            Multi_LLM_Correlation(data, titles, axis_n, axis_m, INCLUDEHIST, ERRORISSTDEV, LOUD)
 
                     # Correlations with AOM-Temperature
                     # T_{AOM} = constant, no need to check for correlations here
@@ -2554,15 +2557,16 @@ def Multi_LLM_Analysis(DATA_HOME):
                             Multi_LLM_Correlation(data, titles, axis_n, axis_m, INCLUDEHIST, ERRORISSTDEV, LOUD)
 
                     # Correlations with LL-Est
-                    axis_n = 6
-                    axes = [7, 8, 9, 17, 18]
-                    for axis_m in axes:
-                        Multi_LLM_Correlation(data, titles, axis_n, axis_m, INCLUDEHIST, ERRORISSTDEV, LOUD)
+                    if RUN_LLEST_CORRELATIONS:
+                        axis_n = 6
+                        axes = [7, 8, 9, 17, 18]
+                        for axis_m in axes:
+                            Multi_LLM_Correlation(data, titles, axis_n, axis_m, INCLUDEHIST, ERRORISSTDEV, LOUD)
 
-                    # Correlation of LL-Vfit with LL-Lfit
-                    axis_n = 7
-                    axis_m = 8
-                    Multi_LLM_Correlation(data, titles, axis_n, axis_m, INCLUDEHIST, ERRORISSTDEV, LOUD)
+                        # Correlation of LL-Vfit with LL-Lfit
+                        axis_n = 7
+                        axis_m = 8
+                        Multi_LLM_Correlation(data, titles, axis_n, axis_m, INCLUDEHIST, ERRORISSTDEV, LOUD)
 
                 # Make a plot of the spectra with max/min fitted params
                 LOUD = True
@@ -3634,7 +3638,7 @@ def Plot_Multiple_Spectra(DATA_HOME, RBW_Val = 500, Tmeas = 20, theXUnits = 'kHz
             hv_data = []; marks = []; labels = []; 
             deltaT = Tmeas / 60.0 # measurement time in mins
             xlow = 0.0; xhigh = 0.0; 
-            nskip = 8 # only plot every nskip measurements
+            nskip = 5 # only plot every nskip measurements
             for i in range(0, len(files), nskip):
                 values = Common.extract_values_from_string(files[i])
                 theTime = float(values[0])*deltaT
@@ -3682,7 +3686,8 @@ def Multi_Multi_LLM_Analysis():
         # loop the Multi-LLM Analysis calculations over a list of directories
         # gather the averaged data as a function of VOA bias / loop power Ratio
 
-        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
+        #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_CoBriteTLS_T_25_D_400/'
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
@@ -3694,21 +3699,40 @@ def Multi_Multi_LLM_Analysis():
             if not os.path.isdir(resDir): os.mkdir(resDir)
 
             # Generate the list of directories to be analysed
-            Ival = 100; Day = '19';  
+            
+            # Parameters for the NKT measurement
+            #Ival = 100; Day = '19';  
             #Ival = 200; Day = '20';
             #Ival = 300; Day = '21';
-            Month = '06'; 
-            dir_list = glob.glob('LLM_Data_Nmeas_200_I_%(v1)d_%(v3)s_%(v2)s_*/'%{"v1":Ival, "v3":Day, "v2":Month})
+            #Month = '06'; 
+            #Nmeas = 200
+            
+            # Parameters for the CoBrite measurement
+            Ival = 100; Day = '07';  
+            #Ival = 200; Day = '10';
+            #Ival = 300; Day = '10';
+            Month = '07'; 
+            Nmeas = 100
+            
+            dir_list = glob.glob('LLM_Data_Nmeas_%(v4)d_I_%(v1)d_%(v3)s_%(v2)s_*/'%{"v4":Nmeas, "v1":Ival, "v3":Day, "v2":Month})
             #dir_list = dir_list[2:len(dir_list)]
 
             # Some measurement parameters
-            RBW = 100; theYunits = 'Hz' # RBW and its units
-            Tmeas = 28.5; # Approximate measurement time in seconds
+            
+            # NKT parameters
+            #RBW = 100; theYunits = 'Hz' # RBW and its units for the NKT measurement
+            #Tmeas = 28.5; # Approximate measurement time in seconds for the NKT measurement
+            #Deff = 400 # Effective loop length in km
+            #theXunits = 'kHz' # Frequency units along X-axis
+
+            # CoBrite Parameters
+            RBW = 5; theYunits = 'kHz' # RBW and its units for the CoBrite measurement
+            Tmeas = 15; # Approximate measurement time in seconds for the CoBrite measurement
             Deff = 400 # Effective loop length in km
-            theXunits = 'kHz' # Frequency units along X-axis            
+            theXunits = 'MHz' # Frequency units along X-axis            
 
             # Obtain the loop power data from all the measurements
-            PARSE_ESA_FILES = True
+            PARSE_ESA_FILES = False
             LoopPowerFileName = 'Loop_Power_Values_I_%(v1)d.txt'%{"v1":Ival}
 
             # Create files for storing the accumulated data
@@ -3775,7 +3799,8 @@ def Summarise_Multi_LLM_Analysis():
         # loop the Multi-LLM directories gather the averaged data
         # In this case as a function of VOA bias / loop power Ratio
 
-        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
+        #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_CoBriteTLS_T_25_D_400/'
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
@@ -3790,11 +3815,22 @@ def Summarise_Multi_LLM_Analysis():
             if not os.path.isdir(resDir): os.mkdir(resDir)
 
             # Generate the list of directories to be analysed
+            
+            # Parameters for the NKT measurement
             #Ival = 100; Day = '19';  
             #Ival = 200; Day = '20';
-            Ival = 300; Day = '21';
-            Month = '06'; 
-            dir_list = glob.glob('LLM_Data_Nmeas_200_I_%(v1)d_%(v3)s_%(v2)s_*/'%{"v1":Ival, "v3":Day, "v2":Month})
+            #Ival = 300; Day = '21';
+            #Month = '06'; 
+            #Nmeas = 200
+            
+            # Parameters for the CoBrite measurement
+            #Ival = 100; Day = '07';  
+            #Ival = 200; Day = '10';
+            Ival = 300; Day = '10';
+            Month = '07'; 
+            Nmeas = 100
+            
+            dir_list = glob.glob('LLM_Data_Nmeas_%(v4)d_I_%(v1)d_%(v3)s_%(v2)s_*/'%{"v4":Nmeas, "v1":Ival, "v3":Day, "v2":Month})
             #dir_list = dir_list[2:len(dir_list)]
 
             # I think this is meant to be a second pass type analysis, once all the multi-LLM are complete
@@ -3851,21 +3887,28 @@ def Summarise_Multi_LLM_Analysis():
                 hv_data1 = []; labels1 = []; marks1 = []
                 hv_data2 = []; labels2 = []; marks2 = []
                 Ivals = [100, 200, 300]
-                Pvals = [3.356, 9.313, 11.767]
-                Perr = [0.016, 0.015, 0.013]
+                
+                # Input powers for the NKT data set
+                #Pvals = [3.356, 9.313, 11.767]
+                #Perr = [0.016, 0.015, 0.013]
+
+                # Input powers for the CoBrite data set
+                Pvals = [4.365, 5.512, 6.539]
+                Perr = [0.066, 0.011, 0.018]
+
                 for i in range(0, len(Ivals), 1):
-                    esaResFileName = 'ESA_Results_I_%(v1)d.txt'%{"v1":Ivals[i]}
-                    data = numpy.loadtxt(esaResFileName, delimiter = '\t', unpack = True, skiprows = 1)
+                    LoopPowerFileName = 'Loop_Power_Values_I_%(v1)d.txt'%{"v1":Ivals[i]}
+                    data = numpy.loadtxt(LoopPowerFileName, delimiter = '\t', unpack = True, skiprows = 1)
                     print('Average Input Power I = ',Ivals[i], ': ',numpy.mean(data[1]), ' +/- ', 0.5*( numpy.max(data[1]) - numpy.min(data[1]) ), ' ( dBm )')
                     hv_data1.append([data[0], data[1]]); labels1.append('P$_{1}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks1.append(Plotting.labs_dashed[i]); 
                     hv_data1.append([data[0], data[2]]); labels1.append('P$_{2}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks1.append(Plotting.labs[i]); 
                     
-                    hv_data2.append([data[0], data[3]]); labels2.append('I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs[i]); 
+                    hv_data2.append([data[0], data[3]]); labels2.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks2.append(Plotting.labs[i]); 
 
                 # Make the Plot
                 args = Plotting.plot_arg_multiple()
 
-                args.loud = True
+                args.loud = False
                 args.crv_lab_list = labels1
                 args.mrk_list = marks1
                 args.x_label = 'VOA Bias (V)'
@@ -3883,7 +3926,8 @@ def Summarise_Multi_LLM_Analysis():
                 Plotting.plot_multiple_curves(hv_data2, args)
             
             # Make plots of the gathered summarised data
-            PLOT_RES_FILES = True
+            PLOT_RES_FILES = True # Generate the plots of the summarised data files
+            PLOT_VS_PRAT = False # Generate the plot with Power Ratio along the x-axis, other wise plot versus V_{VOA}
 
             if PLOT_RES_FILES:
                 os.chdir(resDir)
@@ -3895,9 +3939,24 @@ def Summarise_Multi_LLM_Analysis():
                 # 3. LLest versus Power Ratio with Errors
                 # 4. LL-20 versus Power Ratio with Errors
                 # 5. LLVfit versus Power Ratio with Errors
+                
                 Ivals = [100, 200, 300]
-                Pvals = [3.356, 9.312, 11.765]
-                Perr = [0.013, 0.014, 0.012]
+
+                # Input powers for the NKT data set
+                #Pvals = [3.356, 9.313, 11.767]
+                #Perr = [0.016, 0.015, 0.013]
+                #RBWstr = '100Hz'
+                #LLMunitstr = 'kHz'
+
+                # Input powers for the CoBrite data set
+                Pvals = [4.365, 5.512, 6.539]
+                Perr = [0.066, 0.011, 0.018]
+                RBWstr = '5kHz'
+                LLMunitstr = 'MHz'
+                
+                VVOA = numpy.arange(2.8, 4.0, 0.2)
+                Xvals = []
+                print(VVOA)
                 hv_data1 = []; labels1 = []; marks1 = []
                 hv_data2 = []; labels2 = []; marks2 = []
                 hv_data3 = []; labels3 = []; marks3 = []
@@ -3910,22 +3969,28 @@ def Summarise_Multi_LLM_Analysis():
                     dataErr = numpy.loadtxt(esaErrFileName, delimiter = '\t', unpack = True, skiprows = 1)
 
                     print('Average Input Power I = ',Ivals[i], ': ',numpy.mean(data[0]), ' +/- ', 0.5*( numpy.max(data[0]) - numpy.min(data[0]) ), ' ( dBm )')
-                    print(numpy.size(data[2]))
+
+                    Xvals = data[2] if PLOT_VS_PRAT else VVOA
 
                     endVal = -1 + numpy.size(data[2]) # ignore the results of the V_{VOA} = 4V measurement, attenuation is too high, error bars too large, obscuring the result
 
-                    hv_data1.append([data[2][:endVal], data[3][:endVal], numpy.absolute( dataErr[3][:endVal] ) ] ); labels1.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks1.append(Plotting.labs_lins[i%(len(Plotting.labs))])
+                    # 1. Pmax versus Power Ratio with Errors
+                    hv_data1.append([Xvals[:endVal], data[3][:endVal], numpy.absolute( dataErr[3][:endVal] ) ] ); labels1.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks1.append(Plotting.labs_lins[i%(len(Plotting.labs))])
 
-                    hv_data2.append([data[2][:endVal], data[0][:endVal], dataErr[0][:endVal]]); labels2.append('P$_{1}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs_lins[i%(len(Plotting.labs))])
-                    hv_data2.append([data[2][:endVal], data[1][:endVal], numpy.absolute( dataErr[1][:endVal] ) ]  ); labels2.append('P$_{2}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs_dashed[i%(len(Plotting.labs))])
+                    # 2. P1, P2 versus Power Ratio with Errors
+                    hv_data2.append([Xvals[:endVal], data[0][:endVal], dataErr[0][:endVal]]); labels2.append('P$_{1}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs_lins[i%(len(Plotting.labs))])
+                    hv_data2.append([Xvals[:endVal], data[1][:endVal], numpy.absolute( dataErr[1][:endVal] ) ]  ); labels2.append('P$_{2}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs_dashed[i%(len(Plotting.labs))])
 
-                    hv_data3.append([data[2][:endVal], data[4][:endVal], dataErr[4][:endVal]]); labels3.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks3.append(Plotting.labs[i%(len(Plotting.labs))])
+                    # 3. LLest versus Power Ratio with Errors
+                    hv_data3.append([Xvals[:endVal], data[4][:endVal], dataErr[4][:endVal]]); labels3.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks3.append(Plotting.labs[i%(len(Plotting.labs))])
 
-                    hv_data4.append([data[2][:endVal], data[7][:endVal], dataErr[7][:endVal]]); labels4.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks4.append(Plotting.labs[i%(len(Plotting.labs))])
+                    # 4. LL-20 versus Power Ratio with Errors
+                    hv_data4.append([Xvals[:endVal], data[7][:endVal], dataErr[7][:endVal]]); labels4.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks4.append(Plotting.labs[i%(len(Plotting.labs))])
 
-                    hv_data5.append([data[2][:endVal], data[5][:endVal], dataErr[5][:endVal]]); labels5.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks5.append(Plotting.labs[i%(len(Plotting.labs))])
+                    # 5. LLVfit versus Power Ratio with Errors
+                    hv_data5.append([Xvals[:endVal], data[5][:endVal], dataErr[5][:endVal]]); labels5.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks5.append(Plotting.labs[i%(len(Plotting.labs))])
 
-                DRAW_FULL_PLOT = False
+                DRAW_FULL_PLOT = True # Draw the figure over the whole range, otherwise draw the figure on the zoomed range
 
                 # 1. Pmax versus Power Ratio with Errors
                 args = Plotting.plot_arg_multiple()
@@ -3933,8 +3998,8 @@ def Summarise_Multi_LLM_Analysis():
                 args.loud = False
                 args.crv_lab_list = labels1
                 args.mrk_list = marks1
-                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
-                args.y_label = 'Spectral Peak Value (dBm / 100Hz)'
+                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                args.y_label = 'Spectral Peak Value (dBm / %(v1)s )'%{"v1":RBWstr}
                 args.fig_name = 'Spectral_Peak_Value'
 
                 Plotting.plot_multiple_curves_with_errors(hv_data1, args)
@@ -3943,7 +4008,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.loud = False
                 args.crv_lab_list = labels2
                 args.mrk_list = marks2
-                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
+                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
                 args.y_label = 'Optical Power ( dBm )'
                 args.fig_name = 'Optical_Power'
 
@@ -3953,10 +4018,13 @@ def Summarise_Multi_LLM_Analysis():
                 args.loud = True
                 args.crv_lab_list = labels3
                 args.mrk_list = marks3
-                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
-                args.y_label = 'Laser Linewidth ( kHz )'
+                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                args.y_label = 'Laser Linewidth ( %(v1)s )'%{"v1":LLMunitstr}
                 args.fig_name = 'Laser_Linewidth' if DRAW_FULL_PLOT else 'Laser_Linewidth_Zoom'
-                args.plt_range = [0, 1.5, 1.5, 3.25] if DRAW_FULL_PLOT else [0, 0.4, 1.5, 3.25]
+                #if PLOT_VS_PRAT:
+                #    args.plt_range = [0, 1.5, 1.5, 3.25] if DRAW_FULL_PLOT else [0, 0.4, 1.5, 3.25]
+                #else:
+                #    args.plt_range = [2.7, 3.9, 1.5, 3.25]
 
                 Plotting.plot_multiple_curves_with_errors(hv_data3, args)
 
@@ -3964,23 +4032,38 @@ def Summarise_Multi_LLM_Analysis():
                 args.loud = True
                 args.crv_lab_list = labels4
                 args.mrk_list = marks4
-                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
-                args.y_label = 'Laser Linewidth at -20 dB ( kHz )'
+                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                args.y_label = 'Laser Linewidth at -20 dB ( %(v1)s )'%{"v1":LLMunitstr}
                 args.fig_name = 'Laser_Linewidth_20' if DRAW_FULL_PLOT else 'Laser_Linewidth_20_Zoom'
-                args.plt_range = [0, 1.5, 8, 14] if DRAW_FULL_PLOT else [0, 0.4, 8, 14]
+                #if PLOT_VS_PRAT:
+                #    args.plt_range = [0, 1.5, 8, 14] if DRAW_FULL_PLOT else [0, 0.4, 8, 14]
+                #else:
+                #    args.plt_range = [2.7, 3.9, 8, 14]
 
                 Plotting.plot_multiple_curves_with_errors(hv_data4, args)
 
-                # 5. LLVfit, LLGau, LLLor versus Power Ratio with Errors
+                # 5. LLVfit versus Power Ratio with Errors
                 args.loud = True
                 args.crv_lab_list = labels5
                 args.mrk_list = marks5
-                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$'
-                args.y_label = 'Laser Linewidth Voigt Fit ( kHz )'
+                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                args.y_label = 'Laser Linewidth Voigt Fit ( %(v1)s )'%{"v1":LLMunitstr}
                 args.fig_name = 'Laser_Linewidth_Voigt'if DRAW_FULL_PLOT else 'Laser_Linewidth_Voigt_Zoom'
-                args.plt_range = [0, 1.5, 1.5, 3.25] if DRAW_FULL_PLOT else [0, 0.4, 1.5, 3.25]
+                #if PLOT_VS_PRAT:
+                #    args.plt_range = [0, 1.5, 1.5, 3.25] if DRAW_FULL_PLOT else [0, 0.4, 1.5, 3.25]
+                #else:
+                #    args.plt_range = [2.7, 3.9, 1.5, 3.25]
 
                 Plotting.plot_multiple_curves_with_errors(hv_data5, args)
+
+                args.fig_name = 'Laser_Linewidth_Voigt_Lin_Fit'
+
+                Plotting.plot_multiple_linear_fit_curves(hv_data5, args)
+
+                # Linear fit to the LLVfit versus VVOA data sets
+                # Is the slope the same in each case? No, not really
+                for i in range(0, len(hv_data5), 1):
+                    Common.linear_fit(hv_data5[i][0], hv_data5[i][1], [2.5, 2.5], True)
 
         else:
             raise Exception

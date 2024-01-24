@@ -2444,7 +2444,7 @@ def Plot_Spectra():
         print(ERR_STATEMENT)
         print(e)
 
-def Multi_LLM_Analysis(DATA_HOME):
+def Multi_LLM_Analysis(DATA_HOME, RBW_Val = 500, Tmeas = 20, theXUnits = 'kHz', theYUnits = 'Hz', Deff = 400, Pin = 0, VVOA = 3.5):
 
     # Generate all the plots from the Multi-LLM Measurements
     # R. Sheehan 21 - 11 - 2022
@@ -2522,7 +2522,7 @@ def Multi_LLM_Analysis(DATA_HOME):
                 LOUD = False      
                 
                 # Perform Correlation calculations of the variables
-                RUN_CORRELATIONS = True
+                RUN_CORRELATIONS = False
                 RUN_TAOM_CORRELATIONS = False # No need to check this, T_{AOM} is constant
                 RUN_PMAX_CORRELATIONS = False
                 RUN_LLEST_CORRELATIONS = False
@@ -2564,9 +2564,8 @@ def Multi_LLM_Analysis(DATA_HOME):
                         Multi_LLM_Correlation(data, titles, axis_n, axis_m, INCLUDEHIST, ERRORISSTDEV, LOUD)
 
                 # Make a plot of the spectra with max/min fitted params
-                LOUD = True
-                if not glob.glob('Fitted*dBm.png'): 
-                    Multi_LLM_Extract_Fit_Params(data, titles, ERRORISSTDEV, LOUD)
+                Plot_Fitted_Lineshape_with_Data(data, titles, RBW_Val, Tmeas, theXUnits, theYUnits, Deff, Pin, VVOA, ERRORISSTDEV, LOUD)
+                
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
             raise Exception
@@ -2842,7 +2841,6 @@ def Plot_Fitted_Lineshape_with_Data(dataFrame, titles, RBW_Val = 500, Tmeas = 20
             ERR_STATEMENT = ERR_STATEMENT + '\ndataFrame is empty\n'
             raise Exception
         else:
-            
             # Import the measured lineshape data
             LINESHAPE_DATA_EXISTS = False # If no measured LLM files exist then just plot the computed Voigt and Lorentz lineshapes together
             xlow = 0.0; xhigh = 0.0; # variables for storing the enpoints of the frequency plot range
@@ -3843,7 +3841,7 @@ def Multi_Multi_LLM_Analysis():
     # can you generalise this to look at measurements as a function of Fspan / RBW? 
     # Do you even want to? 
 
-    FUNC_NAME = ".Power_Variation_Multi_LLM_Analysis()" # use this in exception handling messages
+    FUNC_NAME = ".Multi_LLM_Analysis()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
@@ -3909,38 +3907,30 @@ def Multi_Multi_LLM_Analysis():
                     esaFile.close()
                 os.chdir(DATA_HOME)
 
-            PLOT_SPECTRA = True # Tells the code to generate a combined plot of the stored measured lineshapes for a given Multi-LLM
+            PLOT_SPECTRA = False # Tells the code to generate a combined plot of the stored measured lineshapes for a given Multi-LLM
             
-            PERFORM_MULTI_LLM = False #  Tells the code to run the Multi-LLM analysis on the data contained in the directory
+            PERFORM_MULTI_LLM = True # Tells the code to run the Multi-LLM analysis on the data contained in the directory
             
             if len(dir_list) > 0:
 
                 for i in range(0, len(dir_list), 1): 
                     # Extract the Power versus VOA data, store the results in LoopPowerFileName
-                    if PARSE_ESA_FILES:
-                        
-                        theVals = Parse_ESA_Settings(dir_list[i])
-                        
-                        VVOA = theVals['VVoa']
-                        Pin = theVals['P1']
+                    theVals = Parse_ESA_Settings(dir_list[i])                        
+                    VVOA = theVals['VVoa']
+                    Pin = theVals['P1']
+                    print(theVals['VVoa'],' , ',theVals['P2/P1'] )
+                    os.chdir(DATA_HOME)
 
-                        print(theVals['VVoa'],' , ',theVals['P2/P1'] )
-                        
-                        os.chdir(DATA_HOME)
+                    if PARSE_ESA_FILES:                        
                         os.chdir(resDir)
                         esaFile = open(LoopPowerFileName,'a')
                         esaFile.write('%(v1)0.3f\t%(v2)0.3f\t%(v3)0.3f\t%(v4)0.3f\n'%{"v1":theVals['VVoa'], "v2":theVals['P1'], "v3":theVals['P2'], "v4":theVals['P2/P1']})
                         esaFile.close()
                         os.chdir(DATA_HOME)
                     
-                    # Plot the Measured Spectra
-                    if PLOT_SPECTRA:
-                        Plot_Multiple_Spectra(dir_list[i], RBW, Tmeas, theXunits, theYunits, Deff, Pin, VVOA)
-                        os.chdir(DATA_HOME)
-                    
                     # Do the Multi-LLM Analysis on each measured data
                     if PERFORM_MULTI_LLM:
-                        Multi_LLM_Analysis(dir_list[i])
+                        Multi_LLM_Analysis(dir_list[i], RBW, Tmeas, theXunits, theYunits, Deff, Pin, VVOA)
                         os.chdir(DATA_HOME)
             else:
                 ERR_STATEMENT = ERR_STATEMENT + '\ndir_list is empty'

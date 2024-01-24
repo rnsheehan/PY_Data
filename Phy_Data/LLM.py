@@ -3882,16 +3882,16 @@ def Multi_Multi_LLM_Analysis():
             # Some measurement parameters
             
             # NKT parameters
-            #RBW = 100; theYunits = 'Hz' # RBW and its units for the NKT measurement
-            #Tmeas = 28.5; # Approximate measurement time in seconds for the NKT measurement
-            #Deff = 400 # Effective loop length in km
-            #theXunits = 'kHz' # Frequency units along X-axis
+            RBW = 100; theYunits = 'Hz' # RBW and its units for the NKT measurement
+            Tmeas = 28.5; # Approximate measurement time in seconds for the NKT measurement
+            Deff = 400 # Effective loop length in km
+            theXunits = 'kHz' # Frequency units along X-axis
 
             # CoBrite Parameters
-            RBW = 5; theYunits = 'kHz' # RBW and its units for the CoBrite measurement
-            Tmeas = 15; # Approximate measurement time in seconds for the CoBrite measurement
-            Deff = 400 # Effective loop length in km
-            theXunits = 'MHz' # Frequency units along X-axis            
+            #RBW = 5; theYunits = 'kHz' # RBW and its units for the CoBrite measurement
+            #Tmeas = 15; # Approximate measurement time in seconds for the CoBrite measurement
+            #Deff = 400 # Effective loop length in km
+            #theXunits = 'MHz' # Frequency units along X-axis            
 
             # Obtain the loop power data from all the measurements
             PARSE_ESA_FILES = False

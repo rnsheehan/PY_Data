@@ -2511,11 +2511,6 @@ def Multi_LLM_Analysis(DATA_HOME):
                 #print(titles, ", len(titles) = ", len(titles), ", len(data) = ", data.shape[1])
                 #print('')
 
-                # Create a directory for storing the results
-                #resDir = thefile.replace('.txt','_Results')
-                #if not os.path.isdir(resDir):os.mkdir(resDir)
-                #os.chdir(resDir)
-
                 LOUD = True
                 ERRORISSTDEV = True
 
@@ -2632,7 +2627,11 @@ def Multi_LLM_Correlation(dataFrame, titles, axis_n, axis_m, include_hist = True
         print(ERR_STATEMENT)
         print(e)
 
-def Multi_LLM_Extract_Fit_Params(dataFrame, titles, errorIsstdev = True, loud = False):
+def Multi_LLM_Extract_Fit_Params_Old_Deprecated(dataFrame, titles, errorIsstdev = True, loud = False):
+
+    # DO NOT USE!!!!
+    # Code Deprecated New Version Improved Version Available
+    # R. Sheehan 24 - 1 - 2024
 
     # Extract the average of the fitted model parameters from the Multi-LLM data
     # Make a plot showing the model with the average, max, min fitted parameters
@@ -2652,11 +2651,15 @@ def Multi_LLM_Extract_Fit_Params(dataFrame, titles, errorIsstdev = True, loud = 
     # How does the computed average fit compare with the measured data? 
     # R. Sheehan 22 - 1 - 2024
 
-    FUNC_NAME = ".Multi_LLM_Extract_Fit_Params()" # use this in exception handling messages
+    FUNC_NAME = ".Multi_LLM_Extract_Fit_Params_Old_Deprecated()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        if dataFrame.empty:
+        ATTEMPTING_TO_USE = True
+        if ATTEMPTING_TO_USE:
+            ERR_STATEMENT = ERR_STATEMENT + '\nDO NOT USE!!!\nThis version of the code has been deprecated\n'
+            raise Exception
+        elif dataFrame.empty:
             ERR_STATEMENT = ERR_STATEMENT + '\ndataFrame is empty\n'
             raise Exception
         else:
@@ -2798,7 +2801,139 @@ def Multi_LLM_Extract_Fit_Params(dataFrame, titles, errorIsstdev = True, loud = 
             args.fig_name = 'Fitted_Lorentz_Spectrum_dBm' if PLOT_IN_DBM else 'Fitted_Lorentz_Spectrum_nW'
 
             Plotting.plot_multiple_curves(hv_data[3:6], args)
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
 
+def Plot_Fitted_Lineshape_with_Data(dataFrame, titles, RBW_Val = 500, Tmeas = 20, theXUnits = 'kHz', theYUnits = 'Hz', Deff = 400, Pin = 0, VVOA = 3.5, errorIsstdev = True, loud = False):
+
+    # Extract the average of the fitted model parameters from the Multi-LLM data
+    # Make a plot showing the model with the average fitted parameters along with the measured data
+
+    # dataFrame contains the data from the Multi-LLM measurement
+    # titles contains the names of the columns of data that have been measured
+    # RBW_Val is the value of the resolution BW used to perform the measurement
+    # Tmeas is the approximate time that was needed to perform the measurement
+    # theXunits are the Frequency units that you want displayed along the x-axis
+    # theYUnits are the Frequency units of the RBW value that you want displayed along the y-axis
+    # Deff is the effective loop length used to perform the measurement, units of km
+    # Pin is the output power from the laser / input power to the LCR-DSHI loop, units of dBm
+    # VVOA is the VOA bias that was applied at the time of the measurement, unit of V
+    # errorIsstdev decides whether or not you want the error to be expressed in terms of the standard deviation or the data range
+        
+    # Use C++ executable to compute model values
+    # Voigt = True => Plot Voigt model
+    # Voigt = False => Plot Lorentz Model
+
+    # LLest = 6, LLVfit = 7, LLLfit = 8 # axes of the dataFrame which may be of interest
+    # Voigt params V_{h} = 10, f_{0} = 11, V_{g} = 12, V_{s} = 13
+    # Lorentz params L_{h} = 14, f_{0} = 15, L_{g} = 16
+    
+    # R. Sheehan 21 - 11 - 2022
+
+    # Updated R. Sheehan 24 - 1 - 2024
+    # The updated method combines Multi_LLM_Extract_Fit_Params_Old_Deprecated with Plot_Multiple_Spectra_Old_Deprecated
+
+    FUNC_NAME = ".Plot_Fitted_Lineshape_with_Data()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        if dataFrame.empty:
+            ERR_STATEMENT = ERR_STATEMENT + '\ndataFrame is empty\n'
+            raise Exception
+        else:
+            
+            # Import the measured lineshape data
+            LINESHAPE_DATA_EXISTS = False # If no measured LLM files exist then just plot the computed Voigt and Lorentz lineshapes together
+            xlow = 0.0; xhigh = 0.0; # variables for storing the enpoints of the frequency plot range
+            hv_data = []; marks = []; labels = []; # variables for storing imported data
+            files = glob.glob('LLM_Meas_*.txt')
+            if files:
+                LINESHAPE_DATA_EXISTS = True
+                files.sort(key=lambda f: int(re.sub('\D', '', f))) # sort the filenames in place using the number within the string, assumes single digit in string
+
+                deltaT = Tmeas / 60.0 # measurement time in mins
+                 
+                #nskip = 8 # only plot every nskip measurements, NKT
+                nskip = 5 # only plot every nskip measurements, CoBrite
+                for i in range(0, len(files), nskip):
+                    values = Common.extract_values_from_string(files[i])
+                    theTime = float(values[0])*deltaT
+                    data = numpy.loadtxt(files[i], delimiter = '\t')
+                    if xlow == 0.0 and xhigh == 0.0:
+                        xlow = data[0][0]; xhigh = data[0][-1];
+                    hv_data.append(data); marks.append(Plotting.labs_dotdash[i%len(Plotting.labs_dotdash)]); labels.append('T = %(v1)0.1f mins'%{"v1":theTime})
+
+            # Define the titles from the dataFrame
+            if titles is None: titles = list(dataFrame)            
+
+            # Averaged Voigt Model Fit Parameters
+            Vh = columnStatistics(dataFrame, titles, 10, errorIsstdev) # fitted height
+            Vf0 = columnStatistics(dataFrame, titles, 11, errorIsstdev) # centre frequency
+            Vgamma = columnStatistics(dataFrame, titles, 12, errorIsstdev) # Lorentzian HWHM
+            Vsigma = columnStatistics(dataFrame, titles, 13, errorIsstdev) # Gaussian std. dev.
+
+            # define the plot range string based on the endpoints of the measured data sets
+            Nsteps = 500; 
+
+            # In the event of no lineshape data being available just plot the lineshapes about the central frequency
+            if LINESHAPE_DATA_EXISTS is False: 
+                xlow = Vf0['Average'] - 50
+                xhigh = Vf0['Average'] + 50
+
+            plt_rng = '%(v1)d %(v2)d %(v3)d'%{"v1":xlow, "v2":xhigh, "v3":Nsteps}
+
+            # generate the arg-val strings for the Voigt lineshape calculation
+            Vave = '%(v1)0.5f %(v2)0.5f %(v3)0.5f %(v4)0.5f'%{"v1":Vh['Average'], "v2":Vf0['Average'], "v3":Vgamma['Average'], "v4":Vsigma['Average']}
+            Vavefile = 'Voigt_Average.txt'
+            Vaveargs = Vave + ' ' + plt_rng + ' ' + Vavefile
+
+            # Averaged Lorentz Model Fit Parameters
+            Lh = columnStatistics(dataFrame, titles, 14, errorIsstdev) # fitted height
+            Lf0 = columnStatistics(dataFrame, titles, 15, errorIsstdev) # centre frequency
+            Lgamma = columnStatistics(dataFrame, titles, 16, errorIsstdev) # Lorentzian HWHM
+
+            # generate the arg-val strings
+            Lave = '%(v1)0.5f %(v2)0.5f %(v3)0.5f'%{"v1":Lh['Average'], "v2":Lf0['Average'], "v3":Lgamma['Average']}
+            Lavefile = 'Lorentz_Average.txt'
+            Laveargs = Lave + ' ' + plt_rng + ' ' + Lavefile            
+
+            # Call the executable with aveparams to generate data fitted Voigt and Lorentz lineshapes
+            PLOT_IN_DBM = True # Always plot in DBM since the measured data is output in units of dBm
+            
+            # Compute the Voigt lineshape spectrum
+            # Method Compute_Spectrum sends the computed data to the file named in the arg_string, in this case Vavefile
+            Compute_Spectrum(True, Vaveargs)
+            spctr_data = numpy.loadtxt(Vavefile, delimiter = ',', unpack = True)
+            if PLOT_IN_DBM:
+                spctr_data[1] = spctr_data[1] / 1e+6 # convert nW -> mW
+                spctr_data[1] = Common.list_convert_mW_dBm(spctr_data[1]) # convert mW -> dBm
+            hv_data.append(spctr_data); labels.append('V$_{ave}$'); marks.append(Plotting.labs_lins[0])
+
+            # Compute the Lorentz lineshape spectrum
+            # Method Compute_Spectrum sends the computed data to the file named in the arg_string, in this case Lavefile
+            Compute_Spectrum(False, Laveargs)
+            spctr_data = numpy.loadtxt(Lavefile, delimiter = ',', unpack = True)            
+            if PLOT_IN_DBM:
+                spctr_data[1] = spctr_data[1] / 1e+6 # convert uW -> mW
+                spctr_data[1] = Common.list_convert_mW_dBm(spctr_data[1]) # convert mW -> dBm
+            hv_data.append(spctr_data); labels.append('L$_{ave}$'); marks.append(Plotting.labs_lins[1])
+
+            # make a plot of the measured lineshape data
+            args = Plotting.plot_arg_multiple()
+
+            args.loud = True
+            args.crv_lab_list = labels
+            args.mrk_list = marks
+            args.x_label = 'Frequency / %(v1)s'%{"v1":theXUnits}
+            args.y_label = 'Power / dBm / %(v1)d%(v2)s'%{"v1":RBW_Val, "v2":theYUnits}
+            args.plt_range = [xlow, xhigh, -90, -20]
+            args.fig_name = 'Measured_Spectra'
+            args.plt_title = 'D$_{eff}$ = %(v1)d km, P$_{in}$ = %(v2)0.1f dBm, V$_{VOA}$ = %(v3)0.1f V'%{"v1":Deff, "v2":Pin, "v3":VVOA}
+
+            Plotting.plot_multiple_curves(hv_data, args)
+
+            del hv_data; del labels; del marks; del spctr_data; 
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
@@ -3629,7 +3764,11 @@ def NKT_LCR_DSHI_Test():
         print(ERR_STATEMENT)
         print(e)
 
-def Plot_Multiple_Spectra(DATA_HOME, RBW_Val = 500, Tmeas = 20, theXUnits = 'kHz', theYUnits = 'Hz', Deff = 400, Pin = 0, VVOA = 3.5):
+def Plot_Multiple_Spectra_Old_Deprecated(DATA_HOME, RBW_Val = 500, Tmeas = 20, theXUnits = 'kHz', theYUnits = 'Hz', Deff = 400, Pin = 0, VVOA = 3.5):
+
+    # DO NOT USE!!!!
+    # Code Deprecated New Version Improved Version Available
+    # R. Sheehan 24 - 1 - 2024
 
     # Generate a plot of all the measured spectra from a Multi-LLM measurement
     # DATA_HOME is the name of the directory in which the files 'LLM_Meas_*.txt' are stored
@@ -3643,14 +3782,18 @@ def Plot_Multiple_Spectra(DATA_HOME, RBW_Val = 500, Tmeas = 20, theXUnits = 'kHz
     # R. Sheehan 30 - 5 - 2023
     # Updated R. Sheehan 22 - 1 - 2024
 
-    FUNC_NAME = ".Plot_Multiple_Spectra()" # use this in exception handling messages
+    FUNC_NAME = ".Plot_Multiple_Spectra_Old_Deprecated()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
         #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/LLM_Data_Nmeas_200_I_100_29_05_2023_14_20_Span_500k/'
         #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/LLM_Data_Nmeas_200_I_200_31_05_2023_10_12/'
-
-        if os.path.isdir(DATA_HOME):
+        
+        ATTEMPTING_TO_USE = True
+        if ATTEMPTING_TO_USE:
+            ERR_STATEMENT = ERR_STATEMENT + '\nDO NOT USE!!!\nThis version of the code has been deprecated\n'
+            raise Exception
+        elif os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
 
             files = glob.glob('LLM_Meas_*.txt')
@@ -3682,7 +3825,6 @@ def Plot_Multiple_Spectra(DATA_HOME, RBW_Val = 500, Tmeas = 20, theXUnits = 'kHz
             args.plt_title = 'D$_{eff}$ = %(v1)d km, P$_{in}$ = %(v2)0.1f dBm, V$_{VOA}$ = %(v3)0.1f V'%{"v1":Deff, "v2":Pin, "v3":VVOA}
 
             Plotting.plot_multiple_curves(hv_data, args)
-
         else:
             raise Exception
     except Exception as e:
@@ -3767,9 +3909,9 @@ def Multi_Multi_LLM_Analysis():
                     esaFile.close()
                 os.chdir(DATA_HOME)
 
-            PLOT_SPECTRA = False # Tells the code to generate a combined plot of the stored measured lineshapes for a given Multi-LLM
+            PLOT_SPECTRA = True # Tells the code to generate a combined plot of the stored measured lineshapes for a given Multi-LLM
             
-            PERFORM_MULTI_LLM = True #  Tells the code to run the Multi-LLM analysis on the data contained in the directory
+            PERFORM_MULTI_LLM = False #  Tells the code to run the Multi-LLM analysis on the data contained in the directory
             
             if len(dir_list) > 0:
 
@@ -4089,256 +4231,6 @@ def Summarise_Multi_LLM_Analysis():
 
         else:
             raise Exception
-    except Exception as e:
-        print(ERR_STATEMENT)
-        print(e)
-
-def Span_Variation_Multi_LLM_Analysis():
-
-    # Perform the multi-llm analysis calculations for multiple sets of measurements
-    # i.e. Analyse the Multi-LLM data as a function of Fspan
-    # R. Sheehan 9 - 6 - 2023
-
-    FUNC_NAME = ".Span_Variation_Multi_LLM_Analysis()" # use this in exception handling messages
-    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
-
-    try:
-        # loop the Multi-LLM Analysis calculations over a list of directories
-        # gather the averaged data as a function of VOA bias / loop power Ratio
-
-        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
-
-        if os.path.isdir(DATA_HOME):
-            os.chdir(DATA_HOME)
-            print(os.getcwd())
-
-            # Make a directory for storing the results
-            resDir = 'FSpan_Variation/'
-            if not os.path.isdir(resDir): os.mkdir(resDir)
-
-            # Generate the list of directories to be analysed
-            dir_list = ['LLM_Data_Nmeas_200_I_100_29_05_2023_14_20_Span_500k/', 'LLM_Data_Nmeas_200_I_100_29_05_2023_15_34_Span_250k/', 
-                        'LLM_Data_Nmeas_200_I_100_08_06_2023_12_57_Span_100k/', 'LLM_Data_Nmeas_200_I_100_09_06_2023_09_42_Span_50k/']
-            RBW_list = [500, 500, 100, 50]
-            Tmeas_list = [20, 20, 30, 40]
-
-            PARSE_ESA_FILES = False
-            Ival = 100
-            esaResFileName = 'ESA_Results_I_%(v1)d.txt'%{"v1":Ival}
-
-            # Create files for storing the accumulated data
-            if os.path.isdir(resDir) and PARSE_ESA_FILES:
-                os.chdir(resDir)
-                if not glob.glob(esaResFileName): 
-                    esaFile = open(esaResFileName,'x') # create the file to be written to
-                    esaFile.write('VOA Bias ( V )\tInput Power (dBm)\tLoop Power (dBm)\tPower Ratio P2 / P1\tFSpan (Hz)\tRBW (Hz)\n') # write the file header
-                    esaFile.close()
-                os.chdir(DATA_HOME)
-
-            PARSE_RES_FILES = False
-            esaResFileName = 'Measurement_Results_I_%(v1)d.txt'%{"v1":Ival}
-            esaErrFileName = 'Measurement_Errors_I_%(v1)d.txt'%{"v1":Ival}
-
-            # Create files for storing the accumulated data
-            # Output is of the form ['Pmax/dBm', 'LLest', 'LL_Vfit', 'LL_Lfit', 'LLest_-20', 'Voigt_Lor_HWHM', 'Voigt_Gau_Stdev', 'P1/dBm', 'P2/dBm', 'P2/P1']
-            if os.path.isdir(resDir) and PARSE_RES_FILES:
-                os.chdir(resDir)
-                if not glob.glob(esaResFileName): 
-                    esaFile = open(esaResFileName,'x') # create the file to be written to
-                    esaFile.write('Input Power (dBm)\tLoop Power (dBm)\tPower Ratio P2 / P1\tPmax (dBm)\tLLest\tLL_Vfit\tLL_Lfit\tLLest_-20\tVoigt_Lor_HWHM\tVoigt_Gau_Stdev\n') # write the file header
-                    esaFile.close()
-                if not glob.glob(esaErrFileName): 
-                    esaFile = open(esaErrFileName,'x') # create the file to be written to
-                    esaFile.write('Input Power (dBm)\tLoop Power (dBm)\tPower Ratio P2 / P1\tPmax (dBm)\tLLest\tLL_Vfit\tLL_Lfit\tLLest_-20\tVoigt_Lor_HWHM\tVoigt_Gau_Stdev\n') # write the file header
-                    esaFile.close()
-                os.chdir(DATA_HOME)
-
-            PLOT_SPECTRA = False
-
-            PERFORM_MULTI_LLM = False
-            
-            if len(dir_list) > 0:
-                for i in range(0, len(dir_list), 1): 
-                    # Extract the Power versus VOA data
-                    if PARSE_ESA_FILES:
-                        theVals = Parse_ESA_Settings(dir_list[i])
-                        print(theVals['VVoa'],' , ',theVals['P2/P1'] )
-                        os.chdir(DATA_HOME)
-                        os.chdir(resDir)
-                        esaFile = open(esaResFileName,'a')
-                        esaFile.write('%(v1)0.3f\t%(v2)0.3f\t%(v3)0.3f\t%(v4)0.3f\t%(v5)0.3f\t%(v6)0.3f\n'%{"v1":theVals['VVoa'], "v2":theVals['P1'], "v3":theVals['P2'], "v4":theVals['P2/P1'], 
-                                                                                                            "v5":theVals['FSpan'], "v6":theVals['RBW']})
-                        esaFile.close()
-                        os.chdir(DATA_HOME)
-
-                    # Extract the Measurement Results
-                    # Output is of the form ['Pmax/dBm', 'LLest', 'LL_Vfit', 'LL_Lfit', 'LLest_-20', 'Voigt_Lor_HWHM', 'Voigt_Gau_Stdev', 'P1/dBm', 'P2/dBm', 'P2/P1']
-                    if PARSE_RES_FILES:
-                        theVals, theErrs = Parse_Results_Summary(dir_list[i])
-                        #print(theVals['VVoa'],' , ',theVals['P2/P1'] )
-                        os.chdir(DATA_HOME)
-                        os.chdir(resDir)
-
-                        esaFile = open(esaResFileName,'a')
-                        esaFile.write('%(v1)0.5f\t%(v2)0.5f\t%(v3)0.5f\t%(v4)0.5f\t%(v5)0.5f\t%(v6)0.5f\t%(v7)0.5f\t%(v8)0.5f\t%(v9)0.5f\t%(v10)0.5f\n'%{"v1":theVals['P1/dBm'], "v2":theVals['P2/dBm'], "v3":theVals['P2/P1'], "v4":theVals['Pmax/dBm'], 
-                                                                                                                                                         "v5":theVals['LLest'], "v6":theVals['LL_Vfit'], "v7":theVals['LL_Lfit'], "v8":theVals['LLest_-20'], 
-                                                                                                                                                         "v9":theVals['Voigt_Lor_HWHM'], "v10":theVals['Voigt_Gau_Stdev'] } )
-                        esaFile.close()
-
-                        esaFile = open(esaErrFileName,'a')
-                        esaFile.write('%(v1)0.5f\t%(v2)0.5f\t%(v3)0.5f\t%(v4)0.5f\t%(v5)0.5f\t%(v6)0.5f\t%(v7)0.5f\t%(v8)0.5f\t%(v9)0.5f\t%(v10)0.5f\n'%{"v1":theErrs['P1/dBm'], "v2":theErrs['P2/dBm'], "v3":theErrs['P2/P1'], "v4":theErrs['Pmax/dBm'], 
-                                                                                                                                                         "v5":theErrs['LLest'], "v6":theErrs['LL_Vfit'], "v7":theErrs['LL_Lfit'], "v8":theErrs['LLest_-20'], 
-                                                                                                                                                         "v9":theErrs['Voigt_Lor_HWHM'], "v10":theErrs['Voigt_Gau_Stdev'] } )
-                        esaFile.close()
-                        os.chdir(DATA_HOME)
-                    
-                    # Plot the Measured Spectra
-                    if PLOT_SPECTRA:
-                        Plot_Multiple_Spectra(dir_list[i], RBW_list[i], Tmeas_list[i])
-                        os.chdir(DATA_HOME)
-                    
-                    # Do the Multi-LLM Analysis on each measured data
-                    if PERFORM_MULTI_LLM:
-                        Multi_LLM_Analysis(dir_list[i])
-                        os.chdir(DATA_HOME)
-            else:
-                ERR_STATEMENT = ERR_STATEMENT + '\ndir_list is empty'
-                raise Exception
-
-            # Make a plot of the ESA file Data
-            PLOT_ESA_FILES = False
-
-            if PLOT_ESA_FILES:
-                os.chdir(resDir)
-                hv_data1 = []; labels1 = []; marks1 = []
-                hv_data2 = []; labels2 = []; marks2 = []
-                Ivals = [100]
-                Pvals = [3.354]
-                Perr = [0.179]
-                for i in range(0, len(Ivals), 1):
-                    esaResFileName = 'ESA_Results_I_%(v1)d.txt'%{"v1":Ivals[i]}
-                    data = numpy.loadtxt(esaResFileName, delimiter = '\t', unpack = True, skiprows = 1)
-                    print('Average Input Power I = ',Ivals[i], ': ',numpy.mean(data[1]), ' +/- ', 0.5*( numpy.max(data[1]) - numpy.min(data[1]) ), ' ( dBm )')
-                    hv_data1.append([data[4]/1000.0, data[1]]); labels1.append('P$_{1}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks1.append(Plotting.labs_dashed[i]); 
-                    hv_data1.append([data[4]/1000.0, data[2]]); labels1.append('P$_{2}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks1.append(Plotting.labs[i]); 
-                    
-                    hv_data2.append([data[4]/1000.0, data[3]]); labels2.append('I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs[i]); 
-
-                # Make the Plot
-
-                args = Plotting.plot_arg_multiple()
-
-                args.loud = True
-                args.crv_lab_list = labels1
-                args.mrk_list = marks1
-                args.x_label = 'Frequency Span (kHz)'
-                args.y_label = 'Power (dBm)'
-                args.fig_name = 'Input_Loop_Power'
-
-                Plotting.plot_multiple_curves(hv_data1, args)
-
-                args.crv_lab_list = labels2
-                args.mrk_list = marks2
-                args.x_label = 'Frequency Span (kHz)'
-                args.y_label = 'Power Ratio P$_{2}$ / P$_{1}$'
-                args.fig_name = 'Input_Loop_Power_Ratio'
-
-                Plotting.plot_multiple_curves(hv_data2, args)
-
-            PLOT_RES_FILES = True
-
-            if PLOT_RES_FILES:
-                os.chdir(resDir)
-                print(os.getcwd())
-                # make a plot of various measured values versus Power Ratio
-                # col 0: P1 / dBm col 1: P2 / dBm col 2: P2 / P1 col 3: Pmax / dBm col 4: LLest / units col 5: LLVfit / units col 6: LLLfit / units col 7: LL-20 / units col 8: LLVGau / units col 9: LLVLor / units
-                # 2. P1, P2 versus Power Ratio with Errors
-                # 1. Pmax versus Power Ratio with Errors
-                # 3. LLest versus Power Ratio with Errors
-                # 4. LL-20 versus Power Ratio with Errors
-                # 5. LLVfit versus Power Ratio with Errors
-                Ivals = [100]
-                Pvals = [3.354]
-                Perr = [0.179]
-                FSpan = [500, 250, 100, 50]
-                hv_data1 = []; labels1 = []; marks1 = []
-                hv_data2 = []; labels2 = []; marks2 = []
-                hv_data3 = []; labels3 = []; marks3 = []
-                hv_data4 = []; labels4 = []; marks4 = []
-                hv_data5 = []; labels5 = []; marks5 = []
-                for i in range(0, len(Ivals), 1):
-                    esaResFileName = 'Measurement_Results_I_%(v1)d.txt'%{"v1":Ivals[i]}
-                    esaErrFileName = 'Measurement_Errors_I_%(v1)d.txt'%{"v1":Ivals[i]}
-                    data = numpy.loadtxt(esaResFileName, delimiter = '\t', unpack = True, skiprows = 1)
-                    dataErr = numpy.loadtxt(esaErrFileName, delimiter = '\t', unpack = True, skiprows = 1)
-
-                    print('Average Input Power I = ',Ivals[i], ': ',numpy.mean(data[0]), ' +/- ', 0.5*( numpy.max(data[0]) - numpy.min(data[0]) ), ' ( dBm )')
-
-                    hv_data1.append([FSpan, data[3], numpy.absolute( dataErr[3] ) ] ); labels1.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks1.append(Plotting.labs_lins[i%(len(Plotting.labs))])
-
-                    hv_data2.append([FSpan, data[0], dataErr[0]]); labels2.append('P$_{1}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs_lins[i%(len(Plotting.labs))])
-                    hv_data2.append([FSpan, data[1], numpy.absolute( dataErr[1] ) ]  ); labels2.append('P$_{2}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs_dashed[i%(len(Plotting.labs))])
-
-                    hv_data3.append([FSpan, data[4], dataErr[4]]); labels3.append('LL Estimate'); marks3.append(Plotting.labs[i%(len(Plotting.labs))])
-                    hv_data3.append([FSpan, data[5], dataErr[5]]); labels3.append('LL Fitted'); marks3.append(Plotting.labs[(i+1)%(len(Plotting.labs))])
-
-                    hv_data4.append([FSpan, data[7], dataErr[7]]); labels4.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks4.append(Plotting.labs[i%(len(Plotting.labs))])
-
-                    hv_data5.append([FSpan, data[5], dataErr[5]]); labels5.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks5.append(Plotting.labs[i%(len(Plotting.labs))])
-
-                # 1. Pmax versus FSpan with Errors
-                args = Plotting.plot_arg_multiple()
-
-                args.loud = False
-                args.crv_lab_list = labels1
-                args.mrk_list = marks1
-                args.x_label = 'Frequency Span (kHz)'
-                args.y_label = 'Spectral Peak Value (dBm / 500Hz)'
-                args.fig_name = 'Spectral_Peak_Value'
-
-                Plotting.plot_multiple_curves_with_errors(hv_data1, args)
-
-                # 2. P1, P2 versus Power Ratio with Errors
-                args.loud = False
-                args.crv_lab_list = labels2
-                args.mrk_list = marks2
-                args.y_label = 'Optical Power ( dBm )'
-                args.fig_name = 'Optical_Power'
-
-                Plotting.plot_multiple_curves_with_errors(hv_data2, args)
-
-                # 3. LLest versus Power Ratio with Errors
-                args.loud = True
-                args.crv_lab_list = labels3
-                args.mrk_list = marks3
-                args.y_label = 'Laser Linewidth ( kHz )'
-                args.fig_name = 'Laser_Linewidth'
-                args.plt_range = [0, 510, 1, 4]
-
-                Plotting.plot_multiple_curves_with_errors(hv_data3, args)
-
-                # 4. LL-20 versus Power Ratio with Errors
-                args.loud = False
-                args.crv_lab_list = labels4
-                args.mrk_list = marks4
-                args.y_label = 'Laser Linewidth at -20 dB ( kHz )'
-                args.fig_name = 'Laser_Linewidth_20'
-                args.plt_range = [0, 510, 5, 15]
-
-                Plotting.plot_multiple_curves_with_errors(hv_data4, args)
-
-                # 5. LLVfit, LLGau, LLLor versus Power Ratio with Errors
-                args.loud = False
-                args.crv_lab_list = labels5
-                args.mrk_list = marks5
-                args.y_label = 'Laser Linewidth Voigt Fit ( kHz )'
-                args.fig_name = 'Laser_Linewidth_Voigt'
-                args.plt_range = [0, 510, 1, 4]
-
-                Plotting.plot_multiple_curves_with_errors(hv_data5, args)
-
-        else:
-            raise Exception        
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)

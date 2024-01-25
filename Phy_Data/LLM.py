@@ -2522,7 +2522,8 @@ def Multi_LLM_Analysis(DATA_HOME, RBW_Val = 500, Tmeas = 20, theXUnits = 'kHz', 
                 LOUD = False      
                 
                 # Perform Correlation calculations of the variables
-                RUN_CORRELATIONS = False
+                RUN_CORRELATIONS = True
+
                 RUN_TAOM_CORRELATIONS = False # No need to check this, T_{AOM} is constant
                 RUN_PMAX_CORRELATIONS = False
                 RUN_LLEST_CORRELATIONS = False
@@ -2852,9 +2853,9 @@ def Plot_Fitted_Lineshape_with_Data(dataFrame, titles, RBW_Val = 500, Tmeas = 20
 
                 deltaT = Tmeas / 60.0 # measurement time in mins
                  
-                nskip = 8 # only plot every nskip measurements, NKT
+                #nskip = 8 # only plot every nskip measurements, NKT
                 count_mrk = 0
-                #nskip = 5 # only plot every nskip measurements, CoBrite
+                nskip = 5 # only plot every nskip measurements, CoBrite
                 for i in range(0, len(files), nskip):
                     values = Common.extract_values_from_string(files[i])
                     theTime = float(values[0])*deltaT
@@ -2924,7 +2925,7 @@ def Plot_Fitted_Lineshape_with_Data(dataFrame, titles, RBW_Val = 500, Tmeas = 20
             # make a plot of the measured lineshape data
             args = Plotting.plot_arg_multiple()
 
-            args.loud = True
+            args.loud = loud
             args.crv_lab_list = labels
             args.mrk_list = marks
             args.x_label = 'Frequency / %(v1)s'%{"v1":theXUnits}
@@ -3881,21 +3882,22 @@ def Multi_Multi_LLM_Analysis():
             #Nmeas = 100
             
             dir_list = glob.glob('LLM_Data_Nmeas_%(v4)d_I_%(v1)d_%(v3)s_%(v2)s_*/'%{"v4":Nmeas, "v1":Ival, "v3":Day, "v2":Month})
+            #dir_list = ['LLM_Data_Nmeas_200_I_100_05_07_2023_13_37/', 'LLM_Data_Nmeas_200_I_200_05_07_2023_11_00/', 'LLM_Data_Nmeas_200_I_300_05_07_2023_09_58/']
             #dir_list = dir_list[2:len(dir_list)]
 
             # Some measurement parameters
             
             # NKT parameters
-            RBW = 100; theYunits = 'Hz' # RBW and its units for the NKT measurement
-            Tmeas = 28.5; # Approximate measurement time in seconds for the NKT measurement
-            Deff = 400 # Effective loop length in km
-            theXunits = 'kHz' # Frequency units along X-axis
+            #RBW = 100; theYunits = 'Hz' # RBW and its units for the NKT measurement
+            #Tmeas = 28.5; # Approximate measurement time in seconds for the NKT measurement
+            #Deff = 400 # Effective loop length in km
+            #theXunits = 'kHz' # Frequency units along X-axis
 
             # CoBrite Parameters
-            #RBW = 5; theYunits = 'kHz' # RBW and its units for the CoBrite measurement
-            #Tmeas = 15; # Approximate measurement time in seconds for the CoBrite measurement
-            #Deff = 400 # Effective loop length in km
-            #theXunits = 'MHz' # Frequency units along X-axis            
+            RBW = 5; theYunits = 'kHz' # RBW and its units for the CoBrite measurement
+            Tmeas = 15; # Approximate measurement time in seconds for the CoBrite measurement
+            Deff = 400 # Effective loop length in km
+            theXunits = 'MHz' # Frequency units along X-axis            
 
             # Obtain the loop power data from all the measurements
             PARSE_ESA_FILES = False
@@ -3910,8 +3912,6 @@ def Multi_Multi_LLM_Analysis():
                     esaFile.write('VOA Bias ( V )\tInput Power (dBm)\tLoop Power (dBm)\tPower Ratio P2 / P1\n') # write the file header
                     esaFile.close()
                 os.chdir(DATA_HOME)
-
-            PLOT_SPECTRA = False # Tells the code to generate a combined plot of the stored measured lineshapes for a given Multi-LLM
             
             PERFORM_MULTI_LLM = True # Tells the code to run the Multi-LLM analysis on the data contained in the directory
             
@@ -3976,8 +3976,8 @@ def Summarise_Multi_LLM_Analysis():
             
             # Parameters for the NKT measurement
             Ival = 100; Day = '19';  
-            Ival = 200; Day = '20';
-            Ival = 300; Day = '21';
+            #Ival = 200; Day = '20';
+            #Ival = 300; Day = '21';
             Month = '06'; 
             Nmeas = 200
             
@@ -4047,12 +4047,12 @@ def Summarise_Multi_LLM_Analysis():
                 Ivals = [100, 200, 300]
                 
                 # Input powers for the NKT data set
-                Pvals = [3.356, 9.313, 11.767]
-                Perr = [0.016, 0.015, 0.013]
+                #Pvals = [3.356, 9.313, 11.767]
+                #Perr = [0.016, 0.015, 0.013]
 
                 # Input powers for the CoBrite data set
-                #Pvals = [4.365, 5.512, 6.539]
-                #Perr = [0.066, 0.011, 0.018]
+                Pvals = [4.365, 5.512, 6.539]
+                Perr = [0.066, 0.011, 0.018]
 
                 for i in range(0, len(Ivals), 1):
                     LoopPowerFileName = 'Loop_Power_Values_I_%(v1)d.txt'%{"v1":Ivals[i]}
@@ -4082,6 +4082,8 @@ def Summarise_Multi_LLM_Analysis():
                 args.fig_name = 'Input_Loop_Power_Ratio'
 
                 Plotting.plot_multiple_curves(hv_data2, args)
+
+                os.chdir(DATA_HOME)
             
             # Make plots of the gathered summarised data
             PLOT_RES_FILES = True # Generate the plots of the summarised data files
@@ -4179,6 +4181,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
                 args.y_label = 'Laser Linewidth ( %(v1)s )'%{"v1":LLMunitstr}
                 args.fig_name = 'Laser_Linewidth' if DRAW_FULL_PLOT else 'Laser_Linewidth_Zoom'
+                args.plt_range = [2.7, 3.9, 1.5, 3.25]
                 #if PLOT_VS_PRAT:
                 #    args.plt_range = [0, 1.5, 1.5, 3.25] if DRAW_FULL_PLOT else [0, 0.4, 1.5, 3.25]
                 #else:
@@ -4193,6 +4196,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
                 args.y_label = 'Laser Linewidth at -20 dB ( %(v1)s )'%{"v1":LLMunitstr}
                 args.fig_name = 'Laser_Linewidth_20' if DRAW_FULL_PLOT else 'Laser_Linewidth_20_Zoom'
+                args.plt_range = [2.7, 3.9, 8, 14]
                 #if PLOT_VS_PRAT:
                 #    args.plt_range = [0, 1.5, 8, 14] if DRAW_FULL_PLOT else [0, 0.4, 8, 14]
                 #else:
@@ -4207,6 +4211,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
                 args.y_label = 'Laser Linewidth Voigt Fit ( %(v1)s )'%{"v1":LLMunitstr}
                 args.fig_name = 'Laser_Linewidth_Voigt'if DRAW_FULL_PLOT else 'Laser_Linewidth_Voigt_Zoom'
+                args.plt_range = [2.7, 3.9, 1.5, 3.25]
                 #if PLOT_VS_PRAT:
                 #    args.plt_range = [0, 1.5, 1.5, 3.25] if DRAW_FULL_PLOT else [0, 0.4, 1.5, 3.25]
                 #else:

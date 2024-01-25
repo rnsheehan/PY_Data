@@ -2852,15 +2852,19 @@ def Plot_Fitted_Lineshape_with_Data(dataFrame, titles, RBW_Val = 500, Tmeas = 20
 
                 deltaT = Tmeas / 60.0 # measurement time in mins
                  
-                #nskip = 8 # only plot every nskip measurements, NKT
-                nskip = 5 # only plot every nskip measurements, CoBrite
+                nskip = 8 # only plot every nskip measurements, NKT
+                count_mrk = 0
+                #nskip = 5 # only plot every nskip measurements, CoBrite
                 for i in range(0, len(files), nskip):
                     values = Common.extract_values_from_string(files[i])
                     theTime = float(values[0])*deltaT
                     data = numpy.loadtxt(files[i], delimiter = '\t')
                     if xlow == 0.0 and xhigh == 0.0:
                         xlow = data[0][0]; xhigh = data[0][-1];
-                    hv_data.append(data); marks.append(Plotting.labs_dotdash[i%len(Plotting.labs_dotdash)]); labels.append('T = %(v1)0.1f mins'%{"v1":theTime})
+                    hv_data.append(data); marks.append(Plotting.labs_dotted[count_mrk%len(Plotting.labs_dotted)]); labels.append('T = %(v1)0.1f mins'%{"v1":theTime})
+                    #hv_data.append(data); marks.append(Plotting.labs_line_only[count_mrk%len(Plotting.labs_line_only)]); labels.append('T = %(v1)0.1f mins'%{"v1":theTime})
+                    #hv_data.append(data); marks.append(Plotting.labs_mrk_only[count_mrk%len(Plotting.labs_mrk_only)]); #labels.append('T = %(v1)0.1f mins'%{"v1":theTime})
+                    count_mrk = count_mrk + 1
 
             # Define the titles from the dataFrame
             if titles is None: titles = list(dataFrame)            
@@ -3848,8 +3852,8 @@ def Multi_Multi_LLM_Analysis():
         # loop the Multi-LLM Analysis calculations over a list of directories
         # gather the averaged data as a function of VOA bias / loop power Ratio
 
-        #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
-        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_CoBriteTLS_T_25_D_400/'
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
+        #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_CoBriteTLS_T_25_D_400/'
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
@@ -3865,16 +3869,16 @@ def Multi_Multi_LLM_Analysis():
             # Parameters for the NKT measurement
             #Ival = 100; Day = '19';  
             #Ival = 200; Day = '20';
-            #Ival = 300; Day = '21';
-            #Month = '06'; 
-            #Nmeas = 200
+            Ival = 300; Day = '21';
+            Month = '06'; 
+            Nmeas = 200
             
             # Parameters for the CoBrite measurement
-            Ival = 100; Day = '07';  
+            #Ival = 100; Day = '07';  
             #Ival = 200; Day = '10';
             #Ival = 300; Day = '10';
-            Month = '07'; 
-            Nmeas = 100
+            #Month = '07'; 
+            #Nmeas = 100
             
             dir_list = glob.glob('LLM_Data_Nmeas_%(v4)d_I_%(v1)d_%(v3)s_%(v2)s_*/'%{"v4":Nmeas, "v1":Ival, "v3":Day, "v2":Month})
             #dir_list = dir_list[2:len(dir_list)]
@@ -3953,8 +3957,8 @@ def Summarise_Multi_LLM_Analysis():
         # loop the Multi-LLM directories gather the averaged data
         # In this case as a function of VOA bias / loop power Ratio
 
-        #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
-        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_CoBriteTLS_T_25_D_400/'
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
+        #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_CoBriteTLS_T_25_D_400/'
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
@@ -3971,18 +3975,18 @@ def Summarise_Multi_LLM_Analysis():
             # Generate the list of directories to be analysed
             
             # Parameters for the NKT measurement
-            #Ival = 100; Day = '19';  
-            #Ival = 200; Day = '20';
-            #Ival = 300; Day = '21';
-            #Month = '06'; 
-            #Nmeas = 200
+            Ival = 100; Day = '19';  
+            Ival = 200; Day = '20';
+            Ival = 300; Day = '21';
+            Month = '06'; 
+            Nmeas = 200
             
             # Parameters for the CoBrite measurement
             #Ival = 100; Day = '07';  
             #Ival = 200; Day = '10';
-            Ival = 300; Day = '10';
-            Month = '07'; 
-            Nmeas = 100
+            #Ival = 300; Day = '10';
+            #Month = '07'; 
+            #Nmeas = 100
             
             dir_list = glob.glob('LLM_Data_Nmeas_%(v4)d_I_%(v1)d_%(v3)s_%(v2)s_*/'%{"v4":Nmeas, "v1":Ival, "v3":Day, "v2":Month})
             #dir_list = dir_list[2:len(dir_list)]
@@ -4043,12 +4047,12 @@ def Summarise_Multi_LLM_Analysis():
                 Ivals = [100, 200, 300]
                 
                 # Input powers for the NKT data set
-                #Pvals = [3.356, 9.313, 11.767]
-                #Perr = [0.016, 0.015, 0.013]
+                Pvals = [3.356, 9.313, 11.767]
+                Perr = [0.016, 0.015, 0.013]
 
                 # Input powers for the CoBrite data set
-                Pvals = [4.365, 5.512, 6.539]
-                Perr = [0.066, 0.011, 0.018]
+                #Pvals = [4.365, 5.512, 6.539]
+                #Perr = [0.066, 0.011, 0.018]
 
                 for i in range(0, len(Ivals), 1):
                     LoopPowerFileName = 'Loop_Power_Values_I_%(v1)d.txt'%{"v1":Ivals[i]}
@@ -4097,16 +4101,16 @@ def Summarise_Multi_LLM_Analysis():
                 Ivals = [100, 200, 300]
 
                 # Input powers for the NKT data set
-                #Pvals = [3.356, 9.313, 11.767]
-                #Perr = [0.016, 0.015, 0.013]
-                #RBWstr = '100Hz'
-                #LLMunitstr = 'kHz'
+                Pvals = [3.356, 9.313, 11.767]
+                Perr = [0.016, 0.015, 0.013]
+                RBWstr = '100Hz'
+                LLMunitstr = 'kHz'
 
                 # Input powers for the CoBrite data set
-                Pvals = [4.365, 5.512, 6.539]
-                Perr = [0.066, 0.011, 0.018]
-                RBWstr = '5kHz'
-                LLMunitstr = 'MHz'
+                #Pvals = [4.365, 5.512, 6.539]
+                #Perr = [0.066, 0.011, 0.018]
+                #RBWstr = '5kHz'
+                #LLMunitstr = 'MHz'
                 
                 VVOA = numpy.arange(2.8, 4.0, 0.2)
                 Xvals = []
@@ -4216,9 +4220,8 @@ def Summarise_Multi_LLM_Analysis():
 
                 # Linear fit to the LLVfit versus VVOA data sets
                 # Is the slope the same in each case? No, not really
-                for i in range(0, len(hv_data5), 1):
-                    Common.linear_fit(hv_data5[i][0], hv_data5[i][1], [2.5, 2.5], True)
-
+                #for i in range(0, len(hv_data5), 1):
+                #    Common.linear_fit(hv_data5[i][0], hv_data5[i][1], [2.5, 2.5], True)
         else:
             raise Exception
     except Exception as e:

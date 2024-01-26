@@ -3863,16 +3863,22 @@ def Multi_Multi_LLM_Analysis():
             # Make a directory for storing the results
             resDir = 'Loop_Power_Variation/'
             #resDir = 'Loop_Power_Variation_FSpan_100/'
+            #resDir = 'Loop_RBW_Variation/'
             if not os.path.isdir(resDir): os.mkdir(resDir)
 
             # Generate the list of directories to be analysed
             
             # Parameters for the NKT measurement
-            #Ival = 100; Day = '19';  
+            Ival = 100; Day = '19';  
             #Ival = 200; Day = '20';
-            Ival = 300; Day = '21';
+            #Ival = 300; Day = '21';
             Month = '06'; 
             Nmeas = 200
+             # NKT parameters
+            RBW = 100; theYunits = 'Hz' # RBW and its units for the NKT measurement
+            Tmeas = 28.5; # Approximate measurement time in seconds for the NKT measurement
+            Deff = 400 # Effective loop length in km
+            theXunits = 'kHz' # Frequency units along X-axis
             
             # Parameters for the CoBrite measurement
             #Ival = 100; Day = '07';  
@@ -3880,24 +3886,17 @@ def Multi_Multi_LLM_Analysis():
             #Ival = 300; Day = '10';
             #Month = '07'; 
             #Nmeas = 100
+            ## CoBrite Parameters
+            #RBW = 5; theYunits = 'kHz' # RBW and its units for the CoBrite measurement
+            #Tmeas = 15; # Approximate measurement time in seconds for the CoBrite measurement
+            #Deff = 400 # Effective loop length in km
+            #theXunits = 'MHz' # Frequency units along X-axis       
             
             dir_list = glob.glob('LLM_Data_Nmeas_%(v4)d_I_%(v1)d_%(v3)s_%(v2)s_*/'%{"v4":Nmeas, "v1":Ival, "v3":Day, "v2":Month})
             #dir_list = ['LLM_Data_Nmeas_200_I_100_05_07_2023_13_37/', 'LLM_Data_Nmeas_200_I_200_05_07_2023_11_00/', 'LLM_Data_Nmeas_200_I_300_05_07_2023_09_58/']
+            #dir_list = ['LLM_Data_Nmeas_200_I_100_09_06_2023_09_42_Span_50k/', 'LLM_Data_Nmeas_200_I_100_08_06_2023_12_57_Span_100k/', 'LLM_Data_Nmeas_200_I_100_29_05_2023_15_34_Span_250k/', 'LLM_Data_Nmeas_200_I_100_29_05_2023_14_20_Span_500k/']
+            #TmeasVals = [39, 29, 19, 20] # measurement time varies depending on the RBW value and the Freq. Span
             #dir_list = dir_list[2:len(dir_list)]
-
-            # Some measurement parameters
-            
-            # NKT parameters
-            #RBW = 100; theYunits = 'Hz' # RBW and its units for the NKT measurement
-            #Tmeas = 28.5; # Approximate measurement time in seconds for the NKT measurement
-            #Deff = 400 # Effective loop length in km
-            #theXunits = 'kHz' # Frequency units along X-axis
-
-            # CoBrite Parameters
-            RBW = 5; theYunits = 'kHz' # RBW and its units for the CoBrite measurement
-            Tmeas = 15; # Approximate measurement time in seconds for the CoBrite measurement
-            Deff = 400 # Effective loop length in km
-            theXunits = 'MHz' # Frequency units along X-axis            
 
             # Obtain the loop power data from all the measurements
             PARSE_ESA_FILES = False
@@ -3909,7 +3908,7 @@ def Multi_Multi_LLM_Analysis():
                 os.chdir(resDir)
                 if not glob.glob(LoopPowerFileName): 
                     esaFile = open(LoopPowerFileName,'x') # create the file to be written to
-                    esaFile.write('VOA Bias ( V )\tInput Power (dBm)\tLoop Power (dBm)\tPower Ratio P2 / P1\n') # write the file header
+                    esaFile.write('VOA Bias ( V )\tInput Power (dBm)\tLoop Power (dBm)\tPower Ratio P2 / P1\tFspan (Hz)\tRBW (Hz)\n') # write the file header
                     esaFile.close()
                 os.chdir(DATA_HOME)
             
@@ -3922,13 +3921,14 @@ def Multi_Multi_LLM_Analysis():
                     theVals = Parse_ESA_Settings(dir_list[i])                        
                     VVOA = theVals['VVoa']
                     Pin = theVals['P1']
-                    print(theVals['VVoa'],' , ',theVals['P2/P1'] )
+                    RBW = theVals['RBW']
+                    print(theVals['VVoa'],' , ',theVals['P2/P1'], ',', theVals['FSpan'], ',', theVals['RBW'])
                     os.chdir(DATA_HOME)
 
                     if PARSE_ESA_FILES:                        
                         os.chdir(resDir)
                         esaFile = open(LoopPowerFileName,'a')
-                        esaFile.write('%(v1)0.3f\t%(v2)0.3f\t%(v3)0.3f\t%(v4)0.3f\n'%{"v1":theVals['VVoa'], "v2":theVals['P1'], "v3":theVals['P2'], "v4":theVals['P2/P1']})
+                        esaFile.write('%(v1)0.3f\t%(v2)0.3f\t%(v3)0.3f\t%(v4)0.3f\t%(v5)0.3f\t%(v6)0.3f\n'%{"v1":theVals['VVoa'], "v2":theVals['P1'], "v3":theVals['P2'], "v4":theVals['P2/P1'], "v5":theVals['FSpan'], "v6":theVals['RBW']})
                         esaFile.close()
                         os.chdir(DATA_HOME)
                     
@@ -3957,8 +3957,8 @@ def Summarise_Multi_LLM_Analysis():
         # loop the Multi-LLM directories gather the averaged data
         # In this case as a function of VOA bias / loop power Ratio
 
-        #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
-        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_CoBriteTLS_T_25_D_400/'
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
+        #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_CoBriteTLS_T_25_D_400/'
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
@@ -3968,42 +3968,46 @@ def Summarise_Multi_LLM_Analysis():
             print(os.getcwd())
 
             # Make a directory for storing the results
-            resDir = 'Loop_Power_Variation/'
+            #resDir = 'Loop_Power_Variation/'
             #resDir = 'Loop_Power_Variation_FSpan_100/'
+            resDir = 'Loop_RBW_Variation/'
             if not os.path.isdir(resDir): os.mkdir(resDir)
 
-            # Generate the list of directories to be analysed
             
             # Parameters for the NKT measurement
-            #Ival = 100; Day = '19';  Pin = 3.356; 
+            Ival = 100; Day = '19';  Pin = 3.356; 
             #Ival = 200; Day = '20'; Pin = 9.313; 
             #Ival = 300; Day = '21'; Pin = 11.767; 
-            #Month = '06'; Nmeas = 200; 
+            Month = '06'; Nmeas = 200; 
             ## Input powers for the NKT data set
-            #Pvals = [3.356, 9.313, 11.767]
-            #Perr = [0.016, 0.015, 0.013]
-            #RBWstr = '100Hz'; LLMunitstr = 'kHz'; Deff = 400; 
+            Pvals = [3.356, 9.313, 11.767]
+            Perr = [0.016, 0.015, 0.013]
+            RBWstr = '100Hz'; LLMunitstr = 'kHz'; Deff = 400; 
             
             # Parameters for the CoBrite measurement
             #Ival = 100; Day = '07'; Pin = 4.365; 
             #Ival = 200; Day = '10'; Pin = 5.512; 
-            Ival = 300; Day = '10'; Pin = 6.539; 
-            Month = '07'; Nmeas = 100; 
+            #Ival = 300; Day = '10'; Pin = 6.539; 
+            #Month = '07'; Nmeas = 100; 
             ## Input powers for the CoBrite data set
-            Pvals = [4.365, 5.512, 6.539]
-            Perr = [0.066, 0.011, 0.018]
-            RBWstr = '5kHz'; LLMunitstr = 'MHz'; Deff = 400; 
+            #Pvals = [4.365, 5.512, 6.539]
+            #Perr = [0.066, 0.011, 0.018]
+            #RBWstr = '5kHz'; LLMunitstr = 'MHz'; Deff = 400; 
             
-            dir_list = glob.glob('LLM_Data_Nmeas_%(v4)d_I_%(v1)d_%(v3)s_%(v2)s_*/'%{"v4":Nmeas, "v1":Ival, "v3":Day, "v2":Month})
+            #dir_list = glob.glob('LLM_Data_Nmeas_%(v4)d_I_%(v1)d_%(v3)s_%(v2)s_*/'%{"v4":Nmeas, "v1":Ival, "v3":Day, "v2":Month})
             #dir_list = dir_list[2:len(dir_list)]
-
+            dir_list = ['LLM_Data_Nmeas_200_I_100_09_06_2023_09_42_Span_50k/', 'LLM_Data_Nmeas_200_I_100_08_06_2023_12_57_Span_100k/', 'LLM_Data_Nmeas_200_I_100_29_05_2023_15_34_Span_250k/', 'LLM_Data_Nmeas_200_I_100_29_05_2023_14_20_Span_500k/']
+            TmeasVals = [39, 29, 19, 20] # measurement time varies depending on the RBW value and the Freq. Span
+            RBWVals = [50, 100, 250, 500]
+            Pin = 3
+            
             # I think this is meant to be a second pass type analysis, once all the multi-LLM are complete
             PARSE_RES_FILES = False # Must be false until all Multi-LLM results are obtained
             esaResFileName = 'Measurement_Results_I_%(v1)d.txt'%{"v1":Ival}
             esaErrFileName = 'Measurement_Errors_I_%(v1)d.txt'%{"v1":Ival}
 
             # Make a plot of the fitted lineshape spectra versus for each Pin value
-            PLOT_FITTED_SPECTRA = True
+            PLOT_FITTED_SPECTRA = False
 
             # Create files for storing the accumulated data from multuple Multi-LLM runs
             # Output is of the form ['Pmax/dBm', 'LLest', 'LL_Vfit', 'LL_Lfit', 'LLest_-20', 'Voigt_Lor_HWHM', 'Voigt_Gau_Stdev', 'P1/dBm', 'P2/dBm', 'P2/P1']
@@ -4011,11 +4015,11 @@ def Summarise_Multi_LLM_Analysis():
                 os.chdir(resDir)
                 if not glob.glob(esaResFileName): 
                     esaFile = open(esaResFileName,'x') # create the file to be written to
-                    esaFile.write('Input Power (dBm)\tLoop Power (dBm)\tPower Ratio P2 / P1\tPmax (dBm)\tLLest\tLL_Vfit\tLL_Lfit\tLLest_-20\tVoigt_Lor_HWHM\tVoigt_Gau_Stdev\n') # write the file header
+                    esaFile.write('Input Power (dBm)\tLoop Power (dBm)\tPower Ratio P2 / P1\tPmax (dBm)\tLLest\tLL_Vfit\tLL_Lfit\tLLest_-20\tVoigt_Lor_HWHM\tVoigt_Gau_Stdev\tRBW\n') # write the file header
                     esaFile.close()
                 if not glob.glob(esaErrFileName): 
                     esaFile = open(esaErrFileName,'x') # create the file to be written to
-                    esaFile.write('Input Power (dBm)\tLoop Power (dBm)\tPower Ratio P2 / P1\tPmax (dBm)\tLLest\tLL_Vfit\tLL_Lfit\tLLest_-20\tVoigt_Lor_HWHM\tVoigt_Gau_Stdev\n') # write the file header
+                    esaFile.write('Input Power (dBm)\tLoop Power (dBm)\tPower Ratio P2 / P1\tPmax (dBm)\tLLest\tLL_Vfit\tLL_Lfit\tLLest_-20\tVoigt_Lor_HWHM\tVoigt_Gau_Stdev\tRBW\n') # write the file header
                     esaFile.close()
                 os.chdir(DATA_HOME)
 
@@ -4031,15 +4035,15 @@ def Summarise_Multi_LLM_Analysis():
                         os.chdir(resDir)
 
                         esaFile = open(esaResFileName,'a')
-                        esaFile.write('%(v1)0.5f\t%(v2)0.5f\t%(v3)0.5f\t%(v4)0.5f\t%(v5)0.5f\t%(v6)0.5f\t%(v7)0.5f\t%(v8)0.5f\t%(v9)0.5f\t%(v10)0.5f\n'%{"v1":theVals['P1/dBm'], "v2":theVals['P2/dBm'], "v3":theVals['P2/P1'], "v4":theVals['Pmax/dBm'], 
+                        esaFile.write('%(v1)0.5f\t%(v2)0.5f\t%(v3)0.5f\t%(v4)0.5f\t%(v5)0.5f\t%(v6)0.5f\t%(v7)0.5f\t%(v8)0.5f\t%(v9)0.5f\t%(v10)0.5f\t%(v11)0.1f\n'%{"v1":theVals['P1/dBm'], "v2":theVals['P2/dBm'], "v3":theVals['P2/P1'], "v4":theVals['Pmax/dBm'], 
                                                                                                                                                             "v5":theVals['LLest'], "v6":theVals['LL_Vfit'], "v7":theVals['LL_Lfit'], "v8":theVals['LLest_-20'], 
-                                                                                                                                                            "v9":theVals['Voigt_Lor_HWHM'], "v10":theVals['Voigt_Gau_Stdev'] } )
+                                                                                                                                                            "v9":theVals['Voigt_Lor_HWHM'], "v10":theVals['Voigt_Gau_Stdev'], "v11":RBWVals[i] } )
                         esaFile.close()
 
                         esaFile = open(esaErrFileName,'a')
-                        esaFile.write('%(v1)0.5f\t%(v2)0.5f\t%(v3)0.5f\t%(v4)0.5f\t%(v5)0.5f\t%(v6)0.5f\t%(v7)0.5f\t%(v8)0.5f\t%(v9)0.5f\t%(v10)0.5f\n'%{"v1":theErrs['P1/dBm'], "v2":theErrs['P2/dBm'], "v3":theErrs['P2/P1'], "v4":theErrs['Pmax/dBm'], 
+                        esaFile.write('%(v1)0.5f\t%(v2)0.5f\t%(v3)0.5f\t%(v4)0.5f\t%(v5)0.5f\t%(v6)0.5f\t%(v7)0.5f\t%(v8)0.5f\t%(v9)0.5f\t%(v10)0.5f\t%(v11)0.1f\n'%{"v1":theErrs['P1/dBm'], "v2":theErrs['P2/dBm'], "v3":theErrs['P2/P1'], "v4":theErrs['Pmax/dBm'], 
                                                                                                                                                             "v5":theErrs['LLest'], "v6":theErrs['LL_Vfit'], "v7":theErrs['LL_Lfit'], "v8":theErrs['LLest_-20'], 
-                                                                                                                                                            "v9":theErrs['Voigt_Lor_HWHM'], "v10":theErrs['Voigt_Gau_Stdev'] } )
+                                                                                                                                                            "v9":theErrs['Voigt_Lor_HWHM'], "v10":theErrs['Voigt_Gau_Stdev'], "v11":RBWVals[i] } )
                         esaFile.close()
                         os.chdir(DATA_HOME)
 
@@ -4053,7 +4057,7 @@ def Summarise_Multi_LLM_Analysis():
                     xlow = 0.0; xhigh = 0.0; # variables for storing the enpoints of the frequency plot range
                     hv_data = []; marks = []; labels = []; 
                     count_mrk = 0
-                    for i in range(0, len(dir_list)-1, 1):
+                    for i in range(0, len(dir_list), 1):
                         os.chdir(dir_list[i])
                         data = numpy.loadtxt("Voigt_Average.txt", delimiter = ',', unpack = True)
                         if xlow == 0.0 and xhigh == 0.0:
@@ -4061,7 +4065,9 @@ def Summarise_Multi_LLM_Analysis():
                         if PLOT_IN_DBM:
                             data[1] = data[1] / 1e+6 # convert uW -> mW
                             data[1] = Common.list_convert_mW_dBm(data[1]) # convert mW -> dBm
-                        hv_data.append(data); marks.append(Plotting.labs_lins[count_mrk%len(Plotting.labs_lins)]); labels.append('V$_{VOA}$ = %(v1)0.1f V'%{"v1":VVOA[i]})
+                        hv_data.append(data); marks.append(Plotting.labs_lins[count_mrk%len(Plotting.labs_lins)]); 
+                        #labels.append('V$_{VOA}$ = %(v1)0.1f V'%{"v1":VVOA[i]})
+                        labels.append('RBW = %(v1)0.1f Hz'%{"v1":RBWVals[i]})
                         count_mrk = count_mrk + 1
                         os.chdir(DATA_HOME)
 
@@ -4073,10 +4079,12 @@ def Summarise_Multi_LLM_Analysis():
                     args.crv_lab_list = labels
                     args.mrk_list = marks
                     args.x_label = 'Frequency / %(v1)s'%{"v1":LLMunitstr}
-                    args.y_label = 'Spectral Power / dBm / %(v1)s'%{"v1":RBWstr}
+                    #args.y_label = 'Spectral Power / dBm / %(v1)s'%{"v1":RBWstr}
+                    args.y_label = 'Spectral Power / dBm'
                     args.fig_name = 'Fitted_Voigt_Lineshapes_I_%(v1)d'%{"v1":Ival}
                     args.plt_title = 'D$_{eff}$ = %(v1)d km, P$_{in}$ = %(v2)0.1f dBm'%{"v1":Deff, "v2":Pin}
-                    args.plt_range = [xlow, xhigh, -90, -20]
+                    #args.plt_range = [xlow, xhigh, -90, -20]
+                    args.plt_range = [-100, 100, -80, -30]
 
                     Plotting.plot_multiple_curves(hv_data, args)
 
@@ -4094,19 +4102,21 @@ def Summarise_Multi_LLM_Analysis():
                 hv_data1 = []; labels1 = []; marks1 = []
                 hv_data2 = []; labels2 = []; marks2 = []
                 Ivals = [100, 200, 300]
+                RBWVals = [50, 100, 250, 500]
                 
                 # Input powers for the NKT data set
                 #Pvals = [3.356, 9.313, 11.767]
                 #Perr = [0.016, 0.015, 0.013]
 
                 # Input powers for the CoBrite data set
-                Pvals = [4.365, 5.512, 6.539]
-                Perr = [0.066, 0.011, 0.018]
+                #Pvals = [4.365, 5.512, 6.539]
+                #Perr = [0.066, 0.011, 0.018]
 
                 for i in range(0, len(Ivals), 1):
                     LoopPowerFileName = 'Loop_Power_Values_I_%(v1)d.txt'%{"v1":Ivals[i]}
                     data = numpy.loadtxt(LoopPowerFileName, delimiter = '\t', unpack = True, skiprows = 1)
                     print('Average Input Power I = ',Ivals[i], ': ',numpy.mean(data[1]), ' +/- ', 0.5*( numpy.max(data[1]) - numpy.min(data[1]) ), ' ( dBm )')
+                    # Plot Loop Power Values versus VVOA
                     hv_data1.append([data[0], data[1]]); labels1.append('P$_{1}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks1.append(Plotting.labs_dashed[i]); 
                     hv_data1.append([data[0], data[2]]); labels1.append('P$_{2}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks1.append(Plotting.labs[i]); 
                     
@@ -4137,7 +4147,7 @@ def Summarise_Multi_LLM_Analysis():
             # Make plots of the gathered summarised data
             PLOT_RES_FILES = False # Generate the plots of the summarised data files
             PLOT_VS_PRAT = False # Generate the plot with Power Ratio along the x-axis, other wise plot versus V_{VOA}
-
+            
             if PLOT_RES_FILES:
                 os.chdir(resDir)
                 print(os.getcwd())
@@ -4149,7 +4159,9 @@ def Summarise_Multi_LLM_Analysis():
                 # 4. LL-20 versus Power Ratio with Errors
                 # 5. LLVfit versus Power Ratio with Errors
                 
-                Ivals = [100, 200, 300]
+                #Ivals = [100, 200, 300]
+                Ivals = [100]
+                RBWVals = [50, 100, 250, 500]
 
                 # Input powers for the NKT data set
                 Pvals = [3.356, 9.313, 11.767]
@@ -4276,6 +4288,100 @@ def Summarise_Multi_LLM_Analysis():
                 # Is the slope the same in each case? No, not really
                 #for i in range(0, len(hv_data5), 1):
                 #    Common.linear_fit(hv_data5[i][0], hv_data5[i][1], [2.5, 2.5], True)
+
+            
+            PLOT_VS_RBW = True # Make the analysis plots of the measured data versus RBW
+
+            if PLOT_VS_RBW:
+                os.chdir(resDir)
+                print(os.getcwd())
+                # make a plot of various measured values versus Power Ratio
+                # col 0: P1 / dBm col 1: P2 / dBm col 2: P2 / P1 col 3: Pmax / dBm col 4: LLest / units col 5: LLVfit / units col 6: LLLfit / units col 7: LL-20 / units col 8: LLVGau / units col 9: LLVLor / units
+                
+                # 1. Pmax versus Power Ratio with Errors
+                # 2. P1, P2 versus Power Ratio with Errors
+                # 3. LLest versus Power Ratio with Errors
+                # 4. LL-20 versus Power Ratio with Errors
+                # 5. LLVfit versus Power Ratio with Errors
+
+                Ival = 100
+                RBWVals = [50, 100, 250, 500]
+                LLMunitstr = 'kHz'
+                
+                # Read in the data
+                esaResFileName = 'Measurement_Results_I_%(v1)d.txt'%{"v1":Ival}
+                esaErrFileName = 'Measurement_Errors_I_%(v1)d.txt'%{"v1":Ival}
+                data = numpy.loadtxt(esaResFileName, delimiter = '\t', unpack = True, skiprows = 1)
+                dataErr = numpy.loadtxt(esaErrFileName, delimiter = '\t', unpack = True, skiprows = 1)
+
+                # Make the Plots
+                args = Plotting.plot_arg_single()
+
+                # 1. Pmax versus Power Ratio with Errors
+
+                # 2. P1, P2 versus Power Ratio with Errors
+                args.loud = False
+                #args.curve_label = ''
+                #args.mrk_list = marks5
+                args.x_label = 'RBW / Hz'
+                args.y_label = 'Spectral Peak Value (dBm)'
+                args.fig_name = 'Spectral_Peak_Value'
+                args.plt_title = 'P$_{in}$ = 3.34 (dBm), P$_{rat}$ = 1.06, V$_{VOA}$ = 3V'
+                args.plt_range = [0, 525, -42, -28]
+                
+                Plotting.plot_single_curve_with_errors(RBWVals, data[3], dataErr[3], args)
+
+                # 3. LLest versus Power Ratio with Errors
+                
+                #args.curve_label = ''
+                #args.mrk_list = marks5
+                args.x_label = 'RBW / Hz'
+                args.y_label = 'Laser Linewidth ( %(v1)s )'%{"v1":LLMunitstr}
+                args.fig_name = 'Laser_Linewidth'
+                args.plt_range = [0, 525, 1.0, 3]
+                
+                Plotting.plot_single_curve_with_errors(RBWVals, data[4], dataErr[4], args)
+
+                # 4. LL-20 versus Power Ratio with Errors
+                
+                #args.curve_label = ''
+                #args.mrk_list = marks5
+                args.x_label = 'RBW / Hz'
+                args.y_label = 'Laser Linewidth at -20 dB ( %(v1)s )'%{"v1":LLMunitstr}
+                args.fig_name = 'Laser_Linewidth_20'
+                args.plt_range = [0, 525, 9, 12]
+                
+                Plotting.plot_single_curve_with_errors(RBWVals, data[7], dataErr[7], args)
+
+                # 5. LLVfit versus RBW with Errors
+                
+                #args.curve_label = ''
+                #args.mrk_list = marks5
+                args.x_label = 'RBW / Hz'
+                args.y_label = 'Laser Linewidth Voigt Fit ( %(v1)s )'%{"v1":LLMunitstr}
+                args.fig_name = 'Laser_Linewidth_Voigt'
+                args.plt_range = [0, 525, 1.0, 3]
+                
+                Plotting.plot_single_curve_with_errors(RBWVals, data[5], dataErr[5], args)
+
+                # Plot the estimated and fitted lineshapes on the same graph
+                hv_data = []; labels = []; marks = []
+                hv_data.append([RBWVals, data[4], dataErr[4]]); labels.append('Estimated'); marks.append(Plotting.labs[0]); 
+                hv_data.append([RBWVals, data[5], dataErr[5]]); labels.append('Voigt Fit'); marks.append(Plotting.labs[1]); 
+
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = 'RBW / Hz'
+                args.y_label = 'Laser Linewidth ( %(v1)s )'%{"v1":LLMunitstr}
+                args.fig_name = 'Laser_Linewidth_Est_Voigt'
+                args.plt_title = 'P$_{in}$ = 3.34 (dBm), P$_{rat}$ = 1.06, V$_{VOA}$ = 3V'
+                args.plt_range = [0, 525, 1.0, 3]
+
+                Plotting.plot_multiple_curves_with_errors(hv_data, args)
+            
         else:
             raise Exception
     except Exception as e:

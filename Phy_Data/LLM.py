@@ -3957,8 +3957,8 @@ def Summarise_Multi_LLM_Analysis():
         # loop the Multi-LLM directories gather the averaged data
         # In this case as a function of VOA bias / loop power Ratio
 
-        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
-        #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_CoBriteTLS_T_25_D_400/'
+        #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_CoBriteTLS_T_25_D_400/'
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
@@ -3975,18 +3975,24 @@ def Summarise_Multi_LLM_Analysis():
             # Generate the list of directories to be analysed
             
             # Parameters for the NKT measurement
-            Ival = 100; Day = '19';  
-            #Ival = 200; Day = '20';
-            #Ival = 300; Day = '21';
-            Month = '06'; 
-            Nmeas = 200
+            #Ival = 100; Day = '19';  Pin = 3.356; 
+            #Ival = 200; Day = '20'; Pin = 9.313; 
+            #Ival = 300; Day = '21'; Pin = 11.767; 
+            #Month = '06'; Nmeas = 200; 
+            ## Input powers for the NKT data set
+            #Pvals = [3.356, 9.313, 11.767]
+            #Perr = [0.016, 0.015, 0.013]
+            #RBWstr = '100Hz'; LLMunitstr = 'kHz'; Deff = 400; 
             
             # Parameters for the CoBrite measurement
-            #Ival = 100; Day = '07';  
-            #Ival = 200; Day = '10';
-            #Ival = 300; Day = '10';
-            #Month = '07'; 
-            #Nmeas = 100
+            #Ival = 100; Day = '07'; Pin = 4.365; 
+            #Ival = 200; Day = '10'; Pin = 5.512; 
+            Ival = 300; Day = '10'; Pin = 6.539; 
+            Month = '07'; Nmeas = 100; 
+            ## Input powers for the CoBrite data set
+            Pvals = [4.365, 5.512, 6.539]
+            Perr = [0.066, 0.011, 0.018]
+            RBWstr = '5kHz'; LLMunitstr = 'MHz'; Deff = 400; 
             
             dir_list = glob.glob('LLM_Data_Nmeas_%(v4)d_I_%(v1)d_%(v3)s_%(v2)s_*/'%{"v4":Nmeas, "v1":Ival, "v3":Day, "v2":Month})
             #dir_list = dir_list[2:len(dir_list)]
@@ -3995,6 +4001,9 @@ def Summarise_Multi_LLM_Analysis():
             PARSE_RES_FILES = False # Must be false until all Multi-LLM results are obtained
             esaResFileName = 'Measurement_Results_I_%(v1)d.txt'%{"v1":Ival}
             esaErrFileName = 'Measurement_Errors_I_%(v1)d.txt'%{"v1":Ival}
+
+            # Make a plot of the fitted lineshape spectra versus for each Pin value
+            PLOT_FITTED_SPECTRA = True
 
             # Create files for storing the accumulated data from multuple Multi-LLM runs
             # Output is of the form ['Pmax/dBm', 'LLest', 'LL_Vfit', 'LL_Lfit', 'LLest_-20', 'Voigt_Lor_HWHM', 'Voigt_Gau_Stdev', 'P1/dBm', 'P2/dBm', 'P2/P1']
@@ -4033,6 +4042,46 @@ def Summarise_Multi_LLM_Analysis():
                                                                                                                                                             "v9":theErrs['Voigt_Lor_HWHM'], "v10":theErrs['Voigt_Gau_Stdev'] } )
                         esaFile.close()
                         os.chdir(DATA_HOME)
+
+                if PLOT_FITTED_SPECTRA:
+                    # Make a plot of the fitted lineshape spectra versus for each Pin value
+
+                    PLOT_IN_DBM = True # Always plot in DBM since the measured data is output in units of dBm
+
+                    # Gather the data for each Pin
+                    VVOA = numpy.arange(2.8, 4.0, 0.2)
+                    xlow = 0.0; xhigh = 0.0; # variables for storing the enpoints of the frequency plot range
+                    hv_data = []; marks = []; labels = []; 
+                    count_mrk = 0
+                    for i in range(0, len(dir_list)-1, 1):
+                        os.chdir(dir_list[i])
+                        data = numpy.loadtxt("Voigt_Average.txt", delimiter = ',', unpack = True)
+                        if xlow == 0.0 and xhigh == 0.0:
+                            xlow = data[0][0]; xhigh = data[0][-1];
+                        if PLOT_IN_DBM:
+                            data[1] = data[1] / 1e+6 # convert uW -> mW
+                            data[1] = Common.list_convert_mW_dBm(data[1]) # convert mW -> dBm
+                        hv_data.append(data); marks.append(Plotting.labs_lins[count_mrk%len(Plotting.labs_lins)]); labels.append('V$_{VOA}$ = %(v1)0.1f V'%{"v1":VVOA[i]})
+                        count_mrk = count_mrk + 1
+                        os.chdir(DATA_HOME)
+
+                    # Make the plot
+                    os.chdir(resDir)
+                    args = Plotting.plot_arg_multiple()
+
+                    args.loud = True
+                    args.crv_lab_list = labels
+                    args.mrk_list = marks
+                    args.x_label = 'Frequency / %(v1)s'%{"v1":LLMunitstr}
+                    args.y_label = 'Spectral Power / dBm / %(v1)s'%{"v1":RBWstr}
+                    args.fig_name = 'Fitted_Voigt_Lineshapes_I_%(v1)d'%{"v1":Ival}
+                    args.plt_title = 'D$_{eff}$ = %(v1)d km, P$_{in}$ = %(v2)0.1f dBm'%{"v1":Deff, "v2":Pin}
+                    args.plt_range = [xlow, xhigh, -90, -20]
+
+                    Plotting.plot_multiple_curves(hv_data, args)
+
+                    del hv_data; del marks; del labels; 
+                    os.chdir(DATA_HOME)
             else:
                 ERR_STATEMENT = ERR_STATEMENT + '\ndir_list is empty'
                 raise Exception
@@ -4086,7 +4135,7 @@ def Summarise_Multi_LLM_Analysis():
                 os.chdir(DATA_HOME)
             
             # Make plots of the gathered summarised data
-            PLOT_RES_FILES = True # Generate the plots of the summarised data files
+            PLOT_RES_FILES = False # Generate the plots of the summarised data files
             PLOT_VS_PRAT = False # Generate the plot with Power Ratio along the x-axis, other wise plot versus V_{VOA}
 
             if PLOT_RES_FILES:

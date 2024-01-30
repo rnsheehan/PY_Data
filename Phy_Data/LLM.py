@@ -3998,8 +3998,9 @@ def Summarise_Multi_LLM_Analysis():
             #dir_list = dir_list[2:len(dir_list)]
             dir_list = ['LLM_Data_Nmeas_200_I_100_09_06_2023_09_42_Span_50k/', 'LLM_Data_Nmeas_200_I_100_08_06_2023_12_57_Span_100k/', 'LLM_Data_Nmeas_200_I_100_29_05_2023_15_34_Span_250k/', 'LLM_Data_Nmeas_200_I_100_29_05_2023_14_20_Span_500k/']
             TmeasVals = [39, 29, 19, 20] # measurement time varies depending on the RBW value and the Freq. Span
-            RBWVals = [50, 100, 250, 500]
-            Pin = 3
+            SpanVals = [50, 100, 250, 500]
+            RBWVals = [50, 100, 500, 500]
+            Pin = 3.34
             
             # I think this is meant to be a second pass type analysis, once all the multi-LLM are complete
             PARSE_RES_FILES = False # Must be false until all Multi-LLM results are obtained
@@ -4007,7 +4008,7 @@ def Summarise_Multi_LLM_Analysis():
             esaErrFileName = 'Measurement_Errors_I_%(v1)d.txt'%{"v1":Ival}
 
             # Make a plot of the fitted lineshape spectra versus for each Pin value
-            PLOT_FITTED_SPECTRA = False
+            PLOT_FITTED_SPECTRA = True
 
             # Create files for storing the accumulated data from multuple Multi-LLM runs
             # Output is of the form ['Pmax/dBm', 'LLest', 'LL_Vfit', 'LL_Lfit', 'LLest_-20', 'Voigt_Lor_HWHM', 'Voigt_Gau_Stdev', 'P1/dBm', 'P2/dBm', 'P2/P1']
@@ -4067,7 +4068,7 @@ def Summarise_Multi_LLM_Analysis():
                             data[1] = Common.list_convert_mW_dBm(data[1]) # convert mW -> dBm
                         hv_data.append(data); marks.append(Plotting.labs_lins[count_mrk%len(Plotting.labs_lins)]); 
                         #labels.append('V$_{VOA}$ = %(v1)0.1f V'%{"v1":VVOA[i]})
-                        labels.append('RBW = %(v1)0.1f Hz'%{"v1":RBWVals[i]})
+                        labels.append('RBW/Spn=%(v2)dHz/%(v1)dkHz'%{"v1":SpanVals[i], "v2":RBWVals[i]})
                         count_mrk = count_mrk + 1
                         os.chdir(DATA_HOME)
 
@@ -4082,9 +4083,10 @@ def Summarise_Multi_LLM_Analysis():
                     #args.y_label = 'Spectral Power / dBm / %(v1)s'%{"v1":RBWstr}
                     args.y_label = 'Spectral Power / dBm'
                     args.fig_name = 'Fitted_Voigt_Lineshapes_I_%(v1)d'%{"v1":Ival}
-                    args.plt_title = 'D$_{eff}$ = %(v1)d km, P$_{in}$ = %(v2)0.1f dBm'%{"v1":Deff, "v2":Pin}
+                    args.plt_title = 'D$_{eff}$ = %(v1)d km, P$_{in}$ = %(v2)0.2f dBm'%{"v1":Deff, "v2":Pin}
                     #args.plt_range = [xlow, xhigh, -90, -20]
-                    args.plt_range = [-100, 100, -80, -30]
+                    #args.plt_range = [-100, 100, -80, -30]
+                    args.plt_range = [-25, 25, -80, -30]
 
                     Plotting.plot_multiple_curves(hv_data, args)
 
@@ -4290,7 +4292,7 @@ def Summarise_Multi_LLM_Analysis():
                 #    Common.linear_fit(hv_data5[i][0], hv_data5[i][1], [2.5, 2.5], True)
 
             
-            PLOT_VS_RBW = True # Make the analysis plots of the measured data versus RBW
+            PLOT_VS_RBW = False # Make the analysis plots of the measured data versus RBW
 
             if PLOT_VS_RBW:
                 os.chdir(resDir)
@@ -4323,7 +4325,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.loud = False
                 #args.curve_label = ''
                 #args.mrk_list = marks5
-                args.x_label = 'RBW / Hz'
+                args.x_label = 'Measurement Span ( kHz )'
                 args.y_label = 'Spectral Peak Value (dBm)'
                 args.fig_name = 'Spectral_Peak_Value'
                 args.plt_title = 'P$_{in}$ = 3.34 (dBm), P$_{rat}$ = 1.06, V$_{VOA}$ = 3V'
@@ -4335,7 +4337,7 @@ def Summarise_Multi_LLM_Analysis():
                 
                 #args.curve_label = ''
                 #args.mrk_list = marks5
-                args.x_label = 'RBW / Hz'
+                args.x_label = 'Measurement Span ( kHz )'
                 args.y_label = 'Laser Linewidth ( %(v1)s )'%{"v1":LLMunitstr}
                 args.fig_name = 'Laser_Linewidth'
                 args.plt_range = [0, 525, 1.0, 3]
@@ -4346,7 +4348,7 @@ def Summarise_Multi_LLM_Analysis():
                 
                 #args.curve_label = ''
                 #args.mrk_list = marks5
-                args.x_label = 'RBW / Hz'
+                args.x_label = 'Measurement Span ( kHz )'
                 args.y_label = 'Laser Linewidth at -20 dB ( %(v1)s )'%{"v1":LLMunitstr}
                 args.fig_name = 'Laser_Linewidth_20'
                 args.plt_range = [0, 525, 9, 12]
@@ -4357,7 +4359,7 @@ def Summarise_Multi_LLM_Analysis():
                 
                 #args.curve_label = ''
                 #args.mrk_list = marks5
-                args.x_label = 'RBW / Hz'
+                args.x_label = 'Measurement Span ( kHz )'
                 args.y_label = 'Laser Linewidth Voigt Fit ( %(v1)s )'%{"v1":LLMunitstr}
                 args.fig_name = 'Laser_Linewidth_Voigt'
                 args.plt_range = [0, 525, 1.0, 3]
@@ -4374,7 +4376,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.loud = True
                 args.crv_lab_list = labels
                 args.mrk_list = marks
-                args.x_label = 'RBW / Hz'
+                args.x_label = 'Measurement Span ( kHz )'
                 args.y_label = 'Laser Linewidth ( %(v1)s )'%{"v1":LLMunitstr}
                 args.fig_name = 'Laser_Linewidth_Est_Voigt'
                 args.plt_title = 'P$_{in}$ = 3.34 (dBm), P$_{rat}$ = 1.06, V$_{VOA}$ = 3V'

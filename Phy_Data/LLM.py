@@ -3166,10 +3166,10 @@ def Beat_Analysis():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        Ival = 300
-        theLaser = 'CoBriteTLS'
-        temperature = 25
-        loopLength = 50
+        Ival = 100
+        theLaser = 'NKT'
+        temperature = 35
+        loopLength = 10
         DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/I_%(v1)d/'%{"v1":Ival, "v2":theLaser, "v3":temperature, "v4":loopLength}
 
         if os.path.isdir(DATA_HOME):
@@ -3235,10 +3235,13 @@ def Beat_Analysis():
 def Extract_Data_From_Beat_File(beatfile, loud = False):
 
     # Extract the data from a single beat measurement file
-    # return a list with data stored as elements of the list
+    # data is stored in the beat file in columns of the form
     # 0: Beat No.   1: Fbeat / MHz  2: Distance / km    3: Time/ s  4: Tair/C   5: Taom/C   6: Taomdrv/C    7: Pmax/dBm 8: Fmax	
     # 9: LLest	10: LL_Vfit	11: LL_Lfit	12: LLest_-20	13: Voigt_h/nW	14: Voigt_c	15: Voigt_Lor_HWHM	16: Voigt_Gau_Stdev	17: Lor_h/nW	
     # 18: Lor_c 19: Lor_HWHM 20: P1/dBm	21: P2/dBm	22: P2/P1
+    # return a list with data stored as elements of the list as follows
+    # 0: Tair/C 1: Taom/C 2: Taomdrv/C 3: Pmax/dBm 4: Fmax 5: LLest	6: LL_Vfit	7: LL_Lfit	8: LLest_-20	
+    # 9: Voigt_h/nW	10: Voigt_Lor_HWHM	11: Voigt_Gau_Stdev	12: Lor_h/nW 13: Lor_HWHM 14: P1/dBm 15: P2/dBm	16: P2/P1
     # R. Sheehan 13 - 12 - 2022
 
     FUNC_NAME = ".Extract_Data_From_Beat_File()" # use this in exception handling messages
@@ -3282,6 +3285,15 @@ def Average_Data_From_Beat_Files(beatfiles):
     # return the data as single array
     # R. Sheehan 13 - 12 - 2022
 
+    # Extract_Data_From_Beat_File returns a list with data stored as elements of the list as follows
+    # 0: Tair/C 1: Taom/C 2: Taomdrv/C 3: Pmax/dBm 4: Fmax 5: LLest	6: LL_Vfit	7: LL_Lfit	8: LLest_-20	
+    # 9: Voigt_h/nW	10: Voigt_Lor_HWHM	11: Voigt_Gau_Stdev	12: Lor_h/nW 13: Lor_HWHM 14: P1/dBm 15: P2/dBm	16: P2/P1
+
+    # ave_data holds the averaged value of each quantity from each beatfile
+    # stdev_data holds the std. deviation value of each quantity from each beatfile
+    # max_data holds the averaged value of each quantity from each beatfile
+    # min_data holds the averaged value of each quantity from each beatfile
+
     # Some notes on copy
     # https://stackoverflow.com/questions/2612802/how-do-i-clone-a-list-so-that-it-doesnt-change-unexpectedly-after-assignment
 
@@ -3292,11 +3304,22 @@ def Average_Data_From_Beat_Files(beatfiles):
 
         if beatfiles is not None:
             # sum the data from each file
-            ave_data = []; max_data = []; min_data = [];
+            ave_data = []; max_data = []; min_data = []; stdev_data = []; 
+
             sub_titles = []; Nbeats_max = -1000; Nfiles = float(len(beatfiles)); 
+
+            # loop over all the files
+            # compute the average by summing the data from each beatfile and then dividing by no. files at the end
+            # search each beatfile for the max value of each quantity over all beat files
+            # search each beatfile for the min value of each quantity over all beat files
+            # outer loop i counts into no. beatfiles, no. beat measurements that were made
+            # inner loop j counts into no. beat notes in each beat file
+            # average is computed over each of the j beat notes
             for i in range(0, len(beatfiles), 1):
-                Nbeats, sub_titles, data = Extract_Data_From_Beat_File(beatfiles[i], False)                
-                if Nbeats > Nbeats_max:Nbeats_max = Nbeats
+
+                Nbeats, sub_titles, data = Extract_Data_From_Beat_File(beatfiles[i], False)         
+                
+                if Nbeats > Nbeats_max: Nbeats_max = Nbeats
 
                 if i == 0:
                     # must use the copy method otherwise python assumes all the arrays are the same
@@ -3308,7 +3331,10 @@ def Average_Data_From_Beat_Files(beatfiles):
                     # add the data from subsequent files to the data from the first file
                     # must account for the fact that different numbers of beats might be measured in each file
                     for j in range(0, len(ave_data), 1):
-                        size_diff = len(ave_data[j]) - len(data[j])                        
+
+                        # Correct the lengths of the arrays holding the data
+                        size_diff = len(ave_data[j]) - len(data[j])                  
+                        
                         if size_diff > 0:
                             data[j] = numpy.append(data[j], numpy.zeros( size_diff ) )
                         elif size_diff < 0:
@@ -3326,14 +3352,43 @@ def Average_Data_From_Beat_Files(beatfiles):
                         # compute the average sum
                         ave_data[j] = ave_data[j] + data[j]
 
-                #print(data[5][0], ',', ave_data[5][0], ',', max_data[5][0], ',', min_data[5][0])
-
             # Average the data obtained from all the files
             # Divde the sum over all the data by the number of Files
             for k in range(0, len(ave_data), 1):
                 ave_data[k] = ave_data[k] / Nfiles
 
-            #print(data[5][0], ',', ave_data[5][0], ',', max_data[5][0], ',', min_data[5][0])
+            # Gather the data required to compute the standard deviation of the data from all the files
+            # outer loop i counts into no. beatfiles, no. beat measurements that were made
+            # inner loop j counts into no. beat notes in each beat file
+            for i in range(0, len(beatfiles), 1):
+
+                Nbeats, sub_titles, data = Extract_Data_From_Beat_File(beatfiles[i], False)
+
+                if i == 0:
+                    # must use the copy method otherwise python assumes all the arrays are the same
+                    # without copy, any manipulations performed on one list is performed on them all
+                    stdev_data = copy.deepcopy(data); 
+                else:
+                    # add the data from subsequent files to the data from the first file
+                    # must account for the fact that different numbers of beats might be measured in each file
+                    for j in range(0, len(stdev_data), 1):
+
+                        # Correct the lengths of the arrays holding the data
+                        size_diff = len(stdev_data[j]) - len(data[j])                  
+                        
+                        if size_diff > 0:
+                            data[j] = numpy.append(data[j], numpy.zeros( size_diff ) )
+                        elif size_diff < 0:
+                            stdev_data[j] = numpy.append(stdev_data[j], numpy.zeros( abs(size_diff) ) )
+                        else:
+                            pass
+
+                        stdev_data[j] = numpy.append(stdev_data[j], data[j])
+
+            # Compute the standard deviation
+            # std. dev. is computed over each of the j beat notes
+            # use the "Corrected Two-Pass Algorithm", NRinC, 14.1, to compute the variance, then std. dev. = sqrt(variance)
+            
 
             return [Nbeats_max, sub_titles, ave_data, max_data, min_data] 
         else:

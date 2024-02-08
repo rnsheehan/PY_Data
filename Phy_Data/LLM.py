@@ -3166,65 +3166,92 @@ def Beat_Analysis():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        Ival = 100
-        theLaser = 'NKT'
-        temperature = 35
-        loopLength = 10
+        Ival = 300
+        loopLength = 50
+
+        # CoBrite Parameters
+        theLaser = 'CoBriteTLS'
+        temperature = 25        
+        RBW = '5kHz' # RBW used in the measurement
+        LWUNits = ' / MHz / ' + RBW
+
+        ## NKT Parameters
+        #theLaser = 'NKT'
+        #temperature = 35        
+        #RBW = '100Hz' # RBW used in the measurement
+        #LWUNits = ' / kHz / ' + RBW
+
         DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/I_%(v1)d/'%{"v1":Ival, "v2":theLaser, "v3":temperature, "v4":loopLength}
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
-            print(os.getcwd())
-
-            f_AOM = 80
-            loop_length = 50
-            f_start = 80; 
-            f_cutoff = 1280; 
+            print(os.getcwd())             
             
             beatfiles = glob.glob('Beat_Data_Nmeas_*_I_%(v1)d*.txt'%{"v1":Ival})
 
-            Nbeats, Titles, averaged_data, max_data, min_data = Average_Data_From_Beat_Files(beatfiles)
+            Nbeats, Titles, averaged_data, delta_data = Aggregate_Data_From_Beat_Files(beatfiles)
             
-            filename = 'Results_Summary_I_%(v1)d.txt'%{"v1":Ival}
-            Beat_Data_Report(Nbeats, f_AOM, loop_length, f_start, f_cutoff, Titles, averaged_data, max_data, min_data, filename)
+            # write the aggregated data to a file
+            # use numpy.savetxt, fucking sweet!
+            # https://numpy.org/doc/stable/reference/generated/numpy.savetxt.html
+            # The data is stored row-wise, but I want the output to match the format of the data from LabVIEW
+            # so I'm going to export the transpose of the data along with the headers            
+            header_str = ''
+            n_titles = len(Titles)
+            for i in range(0, n_titles, 1):
+                if i == n_titles-1:
+                    header_str = header_str + '%(v1)s'%{"v1":Titles[i]}
+                else:
+                    header_str = header_str + '%(v1)s\t'%{"v1":Titles[i]}
+            
+            filename = 'Averaged_Data_I_%(v1)d.txt'%{"v1":Ival}
+            numpy.savetxt(filename, numpy.transpose(averaged_data), fmt = '%0.9f', delimiter = '\t', header = header_str)
 
-            Full = False
-            Cutoff = True
-            Loud = False
-            Plot_Beat_Data(Nbeats, f_AOM, loop_length, f_start, f_cutoff, Titles, averaged_data, max_data, min_data, Full, Cutoff, Loud)
+            filename = 'Delta_Data_I_%(v1)d.txt'%{"v1":Ival}
+            numpy.savetxt(filename, numpy.transpose(delta_data), fmt = '%0.9f', delimiter = '\t', header = header_str)
+
+            filename = 'Results_Summary_I_%(v1)d.txt'%{"v1":Ival}
+            f_AOM = 80
+            f_start = 80; # it may be necessary to skip the first beat due to bad fitting
+            f_cutoff = (17) * f_AOM;
+            Beat_Data_Report(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, averaged_data, delta_data, filename)
+
+            Plot_Beat_Data(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, averaged_data, delta_data)
             
+            # Data is returned as a numpy array with the measured quantities stored as rows of the array as follows
+            # 0: Beat No.   1: Fbeat / MHz  2: Distance / km    3: Time/ s  4: Tair/C   5: Taom/C   6: Taomdrv/C    7: Pmax/dBm 8: Fmax	
+            # 9: LLest	10: LL_Vfit	11: LL_Lfit	12: LLest_-20	13: Voigt_h/nW	14: Voigt_Lor_HWHM	15: Voigt_Gau_Stdev	16: Lor_h/nW	
+            # 17: Lor_HWHM 18: P1/dBm	19: P2/dBm	20: P2/P1
+
             Loud = False
-            Choices = [0, 1, 2] # Plot the temperatures together
+            Choices = [4, 5, 6] # Plot the temperatures together
             TheName = 'Temperature'
             TheUnits = ' / C'
-            Plot_Beat_Data_Combo(Nbeats, f_AOM, loop_length, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, max_data, min_data, Loud)
+            Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, Loud)
 
             Loud = False
-            Choices = [14, 15] # Plot the loop powers together
+            Choices = [18, 19] # Plot the loop powers together
             TheName = 'Power'
             TheUnits = ' / dBm'
-            Plot_Beat_Data_Combo(Nbeats, f_AOM, loop_length, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, max_data, min_data, Loud)
-
-            Loud = False
-            Choices = [5, 6, 7] # Plot the measured + fitted dnu together
-            TheName = 'Linewidth'
-            #TheUnits = ' / kHz / 100 Hz'
-            TheUnits = ' / MHz / 2 kHz'
-            Plot_Beat_Data_Combo(Nbeats, f_AOM, loop_length, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, max_data, min_data, Loud)
+            Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, Loud)
 
             Loud = True
-            Choices = [5, 8] # Plot the estimated dnu together
-            TheName = 'Estimated Linewidth'
-            #TheUnits = ' / kHz / 100 Hz'
-            TheUnits = ' / MHz / 2 kHz'
-            Plot_Beat_Data_Combo(Nbeats, f_AOM, loop_length, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, max_data, min_data, Loud)
+            Choices = [9, 10, 11] # Plot the measured + fitted dnu together
+            TheName = 'Linewidth'
+            TheUnits = LWUNits
+            Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, Loud)
 
             Loud = False
-            Choices = [10, 11] # Plot the Voigt Fit Parameters together
+            Choices = [9, 12] # Plot the estimated dnu together
+            TheName = 'Estimated Linewidth'
+            TheUnits = LWUNits
+            Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, Loud)
+
+            Loud = False
+            Choices = [14, 15] # Plot the Voigt Fit Parameters together
             TheName = 'Voigt Parameters'
-            #TheUnits = ' / kHz / 100 Hz'
-            TheUnits = ' / MHz / 2 kHz'
-            Plot_Beat_Data_Combo(Nbeats, f_AOM, loop_length, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, max_data, min_data, Loud)
+            TheUnits = LWUNits
+            Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, Loud)
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
             raise Exception
@@ -3279,6 +3306,11 @@ def Extract_Data_From_Beat_File(beatfile, loud = False):
 
 def Average_Data_From_Beat_Files(beatfiles):
 
+    # this is now deprecated
+    # use Aggregate_Data_From_Beat_Files instead
+    # There's nothing wrong with it, but the alternate method is more pythonic and flexible
+    # R. Sheehan 8 - 2 - 2024
+
     # look into multiple beat files
     # extract the data from each file
     # average the data obtained from each file
@@ -3301,12 +3333,15 @@ def Average_Data_From_Beat_Files(beatfiles):
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-
-        if beatfiles is not None:
+        ATTEMPTING_TO_USE = True
+        if ATTEMPTING_TO_USE:
+            ERR_STATEMENT = ERR_STATEMENT + '\nDO NOT USE!!!\nThis version of the code has been deprecated\n'
+            raise Exception
+        elif beatfiles is not None:
             # sum the data from each file
-            ave_data = []; max_data = []; min_data = []; stdev_data = []; 
+            ave_data = []; max_data = []; min_data = []; stdev_data = []; stdev_tmp = []; 
 
-            sub_titles = []; Nbeats_max = -1000; Nfiles = float(len(beatfiles)); 
+            sub_titles = []; Nbeats_max = -1000; Nfiles = len(beatfiles); 
 
             # loop over all the files
             # compute the average by summing the data from each beatfile and then dividing by no. files at the end
@@ -3315,7 +3350,7 @@ def Average_Data_From_Beat_Files(beatfiles):
             # outer loop i counts into no. beatfiles, no. beat measurements that were made
             # inner loop j counts into no. beat notes in each beat file
             # average is computed over each of the j beat notes
-            for i in range(0, len(beatfiles), 1):
+            for i in range(0, Nfiles, 1):
 
                 Nbeats, sub_titles, data = Extract_Data_From_Beat_File(beatfiles[i], False)         
                 
@@ -3354,52 +3389,157 @@ def Average_Data_From_Beat_Files(beatfiles):
 
             # Average the data obtained from all the files
             # Divde the sum over all the data by the number of Files
+            Nfiles = float(Nfiles)
             for k in range(0, len(ave_data), 1):
                 ave_data[k] = ave_data[k] / Nfiles
-
-            # Gather the data required to compute the standard deviation of the data from all the files
-            # outer loop i counts into no. beatfiles, no. beat measurements that were made
-            # inner loop j counts into no. beat notes in each beat file
-            for i in range(0, len(beatfiles), 1):
-
-                Nbeats, sub_titles, data = Extract_Data_From_Beat_File(beatfiles[i], False)
-
-                if i == 0:
-                    # must use the copy method otherwise python assumes all the arrays are the same
-                    # without copy, any manipulations performed on one list is performed on them all
-                    stdev_data = copy.deepcopy(data); 
-                else:
-                    # add the data from subsequent files to the data from the first file
-                    # must account for the fact that different numbers of beats might be measured in each file
-                    for j in range(0, len(stdev_data), 1):
-
-                        # Correct the lengths of the arrays holding the data
-                        size_diff = len(stdev_data[j]) - len(data[j])                  
-                        
-                        if size_diff > 0:
-                            data[j] = numpy.append(data[j], numpy.zeros( size_diff ) )
-                        elif size_diff < 0:
-                            stdev_data[j] = numpy.append(stdev_data[j], numpy.zeros( abs(size_diff) ) )
-                        else:
-                            pass
-
-                        stdev_data[j] = numpy.append(stdev_data[j], data[j])
-
-            # Compute the standard deviation
-            # std. dev. is computed over each of the j beat notes
-            # use the "Corrected Two-Pass Algorithm", NRinC, 14.1, to compute the variance, then std. dev. = sqrt(variance)
             
+            del data; 
 
             return [Nbeats_max, sub_titles, ave_data, max_data, min_data] 
         else:
-            ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
+            ERR_STATEMENT = ERR_STATEMENT + '\nList beatfiles is None '
             raise Exception
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
 
-def Plot_Beat_Data_Combo(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, Choices, TheName, TheUnits, Average, Max, Min, loud = False):
+def Aggregate_Data_From_Beat_Files(beatfiles, loud = False):
+
+    # Aggregate the data from multiple beatfiles
+    # Use more sophisticated dataframe methods for computing the mean and std. dev. of the data in the beat files
+    # See here for notes
+    # https://stackoverflow.com/questions/67583994/mean-and-standard-deviation-with-multiple-dataframes
+    # https://stackoverflow.com/questions/29438585/element-wise-average-and-standard-deviation-across-multiple-dataframes
+    # See General.Data_Frame_Aggregation() for implementation
+
+    # look into multiple beat files
+    # extract the data from each file
+    # average the data obtained from each file
+    # determine the variation of each measurement, variation measured by std. dev. 
+    # return the data as single array
+
+    # data is stored in the beat file in columns of the form
+    # 0: Beat No.   1: Fbeat / MHz  2: Distance / km    3: Time/ s  4: Tair/C   5: Taom/C   6: Taomdrv/C    7: Pmax/dBm 8: Fmax	
+    # 9: LLest	10: LL_Vfit	11: LL_Lfit	12: LLest_-20	13: Voigt_h/nW	14: Voigt_c	15: Voigt_Lor_HWHM	16: Voigt_Gau_Stdev	17: Lor_h/nW	
+    # 18: Lor_c 19: Lor_HWHM 20: P1/dBm	21: P2/dBm	22: P2/P1
+
+    # Data is returned as a numpy array with the measured quantities stored as rows of the array as follows
+    # 0: Beat No.   1: Fbeat / MHz  2: Distance / km    3: Time/ s  4: Tair/C   5: Taom/C   6: Taomdrv/C    7: Pmax/dBm 8: Fmax	
+    # 9: LLest	10: LL_Vfit	11: LL_Lfit	12: LLest_-20	13: Voigt_h/nW	14: Voigt_Lor_HWHM	15: Voigt_Gau_Stdev	16: Lor_h/nW	
+    # 17: Lor_HWHM 18: P1/dBm	19: P2/dBm	20: P2/P1
+
+    # ave_data holds the averaged value of each quantity from each beatfile
+    # dela_data holds the std. deviation value of each quantity from each beatfile
+    
+    # it would be easy to add the following should they be required
+    # max_data holds the max value of each quantity from each beatfile
+    # min_data holds the min value of each quantity from each beatfile
+
+    # Some notes on copy
+    # https://stackoverflow.com/questions/2612802/how-do-i-clone-a-list-so-that-it-doesnt-change-unexpectedly-after-assignment
+
+    # R. Sheehan 6 - 2 - 2024       
+
+    FUNC_NAME = ".Aggregate_Data_From_Beat_Files()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        if beatfiles is not None:
+
+            # I've changed my mind on this, keeping the fbeat, time, distance data will allow
+            # for comparison with longer loop length
+            # Generate an array of indices of axes that you're interested in analysing
+            # Don't need to worry about Beat No., Fbeat, Distance, Time
+            dfaxes = numpy.arange(0, 23, 1)
+            dfaxes = numpy.delete(dfaxes, [numpy.argwhere(dfaxes == 14), numpy.argwhere(dfaxes == 18)]) # not interested in Voigt fc (axis 14) or Lorentz fc (axis 18)
+
+            # gather some statistics
+            Nfiles = len(beatfiles); 
+            Nbeats_max = -1000
+            Nbeats_min = +1000
+            the_df = []
+            titles = []
+            sub_titles = []
+
+            # loop over all the files and read the data into memory
+            for i in range(0, Nfiles, 1):
+                if glob.glob(beatfiles[i]):
+                    # to correctly concatenate the df assign a label to each one
+                    # id column identifies the source of the dataframe
+                    df = pandas.read_csv(beatfiles[i], delimiter = '\t').assign( id = 'Mset%(v1)d'%{"v1":i} )
+                    titles = list(df)
+                    Nbeats = df.shape[0]
+                    if Nbeats > Nbeats_max: Nbeats_max = Nbeats
+                    if Nbeats < Nbeats_min: Nbeats_min = Nbeats
+                    the_df.append( df )
+
+            # generate the list of sub-titles
+            for i in range(0, len(dfaxes), 1):
+                sub_titles.append( titles[ dfaxes[i] ] )
+
+            # Concatenate the existing df into a single df
+            # Now you have Nfiles Nrows*Ncols df combined into a single Nrows*Ncols dataframe
+            # id column identifies the source of the dataframe so you haven't lost anything
+            # can use id to access individual df
+            nn_agg_df = len(the_df) # count no. aggregated df
+            agg_df = pandas.concat( the_df )
+
+            del the_df # no need to keep this data in memory
+
+            if loud:
+                print('\nDataFrame Titles, size = ',len(titles))
+                print(titles)
+                print('DataFrame sub-titles, size = ',len(sub_titles))
+                print(sub_titles)
+                print('dfaxes, size = ',len(dfaxes))
+                print(dfaxes)
+                print('No. concatenated df: ',nn_agg_df)
+                print('Max. no. measured beats: ',Nbeats_max)
+                print('Min. no. measured beats: ',Nbeats_min)
+                print('\nConcatenated DataFrame')
+                print(agg_df)
+                print('\nSelect Individual DataFrame')
+                print(agg_df[agg_df['id']=='Mset3'])
+
+            # Make arrays to store the data
+            # You want the measured quantities stored as rows of the array
+            # why not make a data frame of the averaged quantities? 
+            # You're making an array anyway, it's just one extra step to make it a dataframe
+            # When you're making the plots you need direct access to the computed data which is easier to obtain using arrays
+            # Store each measured quantity as a row of the array
+            # Array size N_meas_quant rows * Nbeats_min cols
+            # R. Sheehan 7 - 2 - 2024
+            avg_data = numpy.zeros( ( len(sub_titles), Nbeats_min) ) # array for storing the averages
+            delta_data = numpy.zeros( ( len(sub_titles), Nbeats_min) ) # array for storing the meas. errors
+            
+            # Loop over the concatenated df to extract the average and standard deviation values
+            # See General.Data_Frame_Aggregation() for implementation
+            for i in range(0, len(dfaxes), 1):
+                for j in range(0, Nbeats_min, 1):
+                    avg_data[i , j] = agg_df[ titles[ dfaxes[ i ] ] ][ j ].mean() # compute the average over each of the measurements at position j
+                    delta_data[i , j] =  agg_df[ titles[ dfaxes[ i ] ] ][ j ].std() # compute the std. dev. over each of the measurements at position j
+
+            return [Nbeats_min, sub_titles, avg_data, delta_data]
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nList beatfiles is None'
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Plot_Beat_Data_Combo(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, Choices, TheName, TheUnits, Average, Delta, loud = False):
     # plot combinations of the averaged data with error bars
+    # Nbeats is the no. beat measurements that were made
+    # F_AOM is the AOM phase shift frequency
+    # Loop_Length is the length of the fibre loop in the LCR-DSHI
+    # F_Start is beat frequency at which to start plotting, it can happen that the f_{b} = 80MHz signal may be bad so best to ignore it
+    # F_CUTOFF is beat frequency at which to stop plotting, it usually happens that higher order beat frequencies do not produce good data
+    # Titles is the list of names of the quantities that have been measured
+    # Choices is an array of indices telling you what measured quantities to plot
+    # TheName is a string that gives the figure name
+    # TheUnits is a string that gives the units to be plotted along the y-axis
+    # Average is the numpy array containing the averaged data from the beat measurements
+    # Delta is the numpy array containing the std. dev. of the averaged data from the beat measurements
     # R. Sheehan 3 - 7 - 2023
 
     FUNC_NAME = ".Plot_Beat_Data_Combo()" # use this in exception handling messages
@@ -3415,9 +3555,10 @@ def Plot_Beat_Data_Combo(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, 
         c2 = True if len(Average) > 0 else False
         c3 = True if fstart_indx < fend_indx else False
         c4 = True if len(Choices) > 1 else False
+        c10 = c1 and c2 and c3 and c4
         # must add more conditions here
 
-        if c1 and c2 and c3 and c4:
+        if c10:
             
             # Plot data measured between F_Start and F_CUTOFF Only
             PLOT_WITH_BEATS = False # Makes more sense to plot against distance rather than Beat Frequency
@@ -3429,11 +3570,10 @@ def Plot_Beat_Data_Combo(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, 
 
             count = 0
             for i in Choices:
-                Error = 0.5*(Max[i] - Min[i])
                 avg_val = numpy.mean(Average[i][fstart_indx:fend_indx])
-                avg_error = numpy.mean(Error[fstart_indx:fend_indx])
+                avg_error = numpy.mean(Delta[i][fstart_indx:fend_indx])
 
-                hv_data.append([xvals[fstart_indx:fend_indx], Average[i][fstart_indx:fend_indx], Error[fstart_indx:fend_indx]]); 
+                hv_data.append([xvals[fstart_indx:fend_indx], Average[i][fstart_indx:fend_indx], Delta[i][fstart_indx:fend_indx]]); 
                 labels.append(Titles[i])
                 marks.append(Plotting.labs_pts[count])
                 
@@ -3458,9 +3598,17 @@ def Plot_Beat_Data_Combo(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, 
         print(ERR_STATEMENT)
         print(e)
 
-def Plot_Beat_Data(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, Average, Max, Min, Full_Plots, Cutoff_Plots, loud = False):
+def Plot_Beat_Data(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, Average, Delta, loud = False):
 
     # plot the averaged data with error bars
+    # Nbeats is the no. beat measurements that were made
+    # F_AOM is the AOM phase shift frequency
+    # Loop_Length is the length of the fibre loop in the LCR-DSHI
+    # F_Start is beat frequency at which to start plotting, it can happen that the f_{b} = 80MHz signal may be bad so best to ignore it
+    # F_CUTOFF is beat frequency at which to stop plotting, it usually happens that higher order beat frequencies do not produce good data
+    # Titles is the list of names of the quantities that have been measured
+    # Average is the numpy array containing the averaged data from the beat measurements
+    # Delta is the numpy array containing the std. dev. of the averaged data from the beat measurements
     # R. Sheehan 13 - 12 - 2022
 
     FUNC_NAME = ".Plot_Beat_Data()" # use this in exception handling messages
@@ -3469,66 +3617,35 @@ def Plot_Beat_Data(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, Averag
     try:
         fbeats = numpy.arange(F_AOM, Nbeats*F_AOM + 1, F_AOM)
         distance = numpy.arange(Loop_Length, Nbeats*Loop_Length + 1, Loop_Length )
-        fend_indx = 1 + numpy.where(fbeats == F_CUTOFF)[0][0]
+        fend_indx = numpy.where(fbeats == F_CUTOFF)[0][0]
         fstart_indx = int( -1 + ( F_Start / F_AOM ) )
         
         c1 = True if Nbeats > 0 else False
         c2 = True if len(Average) > 0 else False
         c3 = True if fstart_indx < fend_indx else False
+        c10 = c1 and c2 and c3
         # must add more conditions here
 
-        if c1 and c2 and c3:
+        if c10:
             
-            # Plot all data from all beat notes
-            if Full_Plots:
-                PLOT_WITH_BEATS = False # Makes more sense to plot against distance rather than Beat Frequency
+            PLOT_WITH_BEATS = False # Makes more sense to plot against distance rather than Beat Frequency
 
-                xvals = fbeats if PLOT_WITH_BEATS else distance
-                xlabel = 'Beat Frequency / MHz' if PLOT_WITH_BEATS else 'Loop Length / km'
+            xvals = fbeats if PLOT_WITH_BEATS else distance
+            xlabel = 'Beat Frequency / MHz' if PLOT_WITH_BEATS else 'Loop Length / km'
 
-                labels = ['Max', 'Avg', 'Min']
-                marks = [Plotting.labs_dotdash[0], Plotting.labs_lins[0], Plotting.labs_dotted[0]]
+            for i in range(4, len(Average), 1):
+                avg_val = numpy.mean(Average[i][fstart_indx:fend_indx])
+                avg_error = numpy.mean(Delta[i][fstart_indx:fend_indx])
 
-                for i in range(0, len(Average), 1):
-                    hv_data = []
-                    hv_data.append([xvals, Max[i]]); 
-                    hv_data.append([xvals, Average[i]]); 
-                    hv_data.append([xvals, Min[i]]); 
+                args = Plotting.plot_arg_single()                
 
-                    args = Plotting.plot_arg_multiple()                
-
-                    args.loud = loud
-                    args.x_label = xlabel
-                    args.y_label = Titles[i]
-                    args.crv_lab_list = labels
-                    args.mrk_list = marks
-                    args.fig_name = Titles[i].replace('/','_')
+                args.loud = loud
+                args.x_label = xlabel
+                args.y_label = Titles[i]
+                args.fig_name = Titles[i].replace('/','_') + '_Err'
+                args.plt_title = "Avg = %(v1)0.3f +/- %(v2)0.3f"%{"v1":avg_val, "v2":avg_error}
                 
-                    Plotting.plot_multiple_curves(hv_data, args)
-
-                    del hv_data
-
-            # Plot data measured between F_Start and F_CUTOFF Only
-            if Cutoff_Plots:
-                PLOT_WITH_BEATS = False # Makes more sense to plot against distance rather than Beat Frequency
-
-                xvals = fbeats if PLOT_WITH_BEATS else distance
-                xlabel = 'Beat Frequency / MHz' if PLOT_WITH_BEATS else 'Loop Length / km'
-
-                for i in range(0, len(Average), 1):
-                    Error = 0.5*(Max[i] - Min[i])
-                    avg_val = numpy.mean(Average[i][fstart_indx:fend_indx])
-                    avg_error = numpy.mean(Error[fstart_indx:fend_indx])
-
-                    args = Plotting.plot_arg_single()                
-
-                    args.loud = loud
-                    args.x_label = xlabel
-                    args.y_label = Titles[i]
-                    args.fig_name = Titles[i].replace('/','_') + '_Err'
-                    args.plt_title = "Avg = %(v1)0.3f +/- %(v2)0.3f"%{"v1":avg_val, "v2":avg_error}
-                
-                    Plotting.plot_single_linear_fit_curve_with_errors(xvals[fstart_indx:fend_indx], Average[i][fstart_indx:fend_indx], Error[fstart_indx:fend_indx], args)
+                Plotting.plot_single_linear_fit_curve_with_errors(xvals[fstart_indx:fend_indx], Average[i][fstart_indx:fend_indx], Delta[i][fstart_indx:fend_indx], args)
 
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nError with input values'
@@ -3537,7 +3654,7 @@ def Plot_Beat_Data(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, Averag
         print(ERR_STATEMENT)
         print(e)
 
-def Beat_Data_Report(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, Average, Max, Min, res_filename):
+def Beat_Data_Report(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, Average, Delta, res_filename):
 
     # Print a report on the averaged beat data values
     # R. Sheehan 15 - 12 - 2022
@@ -3554,9 +3671,11 @@ def Beat_Data_Report(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, Aver
         c1 = True if Nbeats > 0 else False
         c2 = True if len(Average) > 0 else False
         c3 = True if fstart_indx < fend_indx else False
-        # must add more conditions here
+        c10 = c1 and c2 and c3
+        # must add more conditions here, I think
+        # R. Sheehan 8 - 2 - 2024
 
-        if c1 and c2 and c3:
+        if c10:
             # Redirect the output to a file
             old_target, sys.stdout = sys.stdout, open(res_filename, 'w')
 
@@ -3569,12 +3688,12 @@ def Beat_Data_Report(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, Aver
             print("Effective Loop Length:",fend_indx*Loop_Length,"km")            
 
             print("\nResults")
+            print("Quantitites reported here are averaged over all the beat measurements")
+            print("e.g. Tair/C = Average(Tair_beat_1 + Tair_beat_2 + ... Tair_beat_n) +/- Average(deltaTair_beat_1 + deltaTair_beat_2 + ... deltaTair_beat_n)\n")
             for i in range(0, len(Average), 1):
-                Error = 0.5*(Max[i] - Min[i])
                 avg_val = numpy.mean(Average[i][fstart_indx:fend_indx])
-                avg_error = numpy.mean(Error[fstart_indx:fend_indx])
-                #print(Titles[i],":",avg_val,"+/-",avg_error)                
-                print("%(v1)s: %(v2)0.3f +/- %(v3)0.3f"%{"v1":Titles[i], "v2":avg_val, "v3":avg_error})
+                avg_delta = numpy.mean(Delta[i][fstart_indx:fend_indx])      
+                print("%(v1)s: %(v2)0.3f +/- %(v3)0.3f"%{"v1":Titles[i], "v2":avg_val, "v3":avg_delta})
 
             sys.stdout = old_target # return to the usual stdout
         else:

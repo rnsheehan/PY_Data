@@ -11,6 +11,9 @@ import matplotlib.pyplot as plt
 import Common
 import Plotting
 
+import pandas
+import pprint
+
 MOD_NAME_STR = "General"
 HOME = False
 USER = 'Robert' if HOME else 'robertsheehan/OneDrive - University College Cork/Documents'
@@ -1313,3 +1316,86 @@ def PDA10CS_Calibration_3():
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
+
+def Data_Frame_Aggregation():
+
+    # Given multiple data frames that contain data from similar measurements of the same quantitie
+    # How do you determine the averages, std. dev. of those data sets
+    # How do you compute the average, std. dev. over multiple data frames? 
+    # R. Sheehan 7 - 2 - 2024
+
+    # Some notes
+    # https://stackoverflow.com/questions/67583994/mean-and-standard-deviation-with-multiple-dataframes
+    # https://stackoverflow.com/questions/29438585/element-wise-average-and-standard-deviation-across-multiple-dataframes
+    
+    # Generate some sample dataFrames, while adding an ID variable to track the original source
+    nn = 4 # no. rows
+    mm = 3 # no. columns
+    df1 = pandas.DataFrame(numpy.random.randn(nn, mm), columns=['A', 'B', 'C']).assign(id='a')
+    df2 = pandas.DataFrame(numpy.random.randn(nn, mm), columns=['A', 'B', 'C']).assign(id='b')
+    df3 = pandas.DataFrame(numpy.random.randn(nn, mm), columns=['A', 'B', 'C']).assign(id='c')
+    
+    print('Sample DataFrame')
+    print(df1)
+
+    # Concatenate the existing df into a single df
+    # Now you have three nn*mm df combined into a single 3*nn*mm dataframe
+    # id column identifies the source of the dataframe so you haven't lost anything
+    # can use id to access individual df
+    df = pandas.concat([df1, df2, df3])
+
+    print('\nConcatenated DataFrame')
+    print(df)
+    print('\nSelect Individual DataFrame')
+    print(df[df['id']=='c'])
+
+    # Use groupby to do any pandas method such as mean() or std() on an element by element basis
+    dfavg = df.groupby('id').mean()
+    print('\nAveraged DataFrame - Averaged in the sense that each column of the datasets is averaged')
+    print("This isn't really what I want")
+    print("Returned value is Average(A0, A1, A2) etc")
+    print(dfavg)
+
+    # Use groupby to do any pandas method such as mean() or std() on an element by element basis
+    #dfavg = df.mean(axis=0)
+    #df = pandas.DataFrame({'a': [1, 2], 'b': [3, 4]}, index=['tiger', 'zebra'])
+    #print(df)
+    #print('\nAveraged DataFrame - Average by Axis')
+    #print('')    
+    #print(df.mean(axis=0))
+    #print(df.mean(axis=1))
+
+    # It seems like it might come down to manipulating the df into the shape you want
+    print('\nAveraged DataFrame - This is what I want')
+    print(df['A'][0].mean(),',',df['B'][0].mean(),',',df['C'][0].mean())
+    print(df['A'][1].mean(),',',df['B'][1].mean(),',',df['C'][1].mean())
+    print(df['A'][2].mean(),',',df['B'][2].mean(),',',df['C'][2].mean())
+    print(df['A'][3].mean(),',',df['B'][3].mean(),',',df['C'][3].mean())
+    
+    #print('\nStd. Dev. DataFrame - This is what I want')
+    #print(df['A'][0].std(),',',df['B'][0].std(),',',df['C'][0].std())
+    #print(df['A'][1].std(),',',df['B'][1].std(),',',df['C'][1].std())
+    #print(df['A'][2].std(),',',df['B'][2].std(),',',df['C'][2].std())
+
+    print('\nGeneral Average - of the type that I want')
+    titles = list(df)
+    # nn = no. rows of the data frame == no. distinct measurements = no. different data frames
+    #for i in range(0, nn, 1):
+    #    for j in range(0, len(titles)-1, 1):
+    #        # this loop only goes to len(titles)-1 because you don't care about the id column
+    #        print(df[ titles[j] ][i].mean(),',')
+    #    print('\n')
+
+    for j in range(0, len(titles)-1, 1):
+        for i in range(0, nn, 1):
+            print(i,',',titles[j],',',df[ titles[j] ][i].mean())
+
+    #print('General Std. Dev.')
+    #titles = list(df)
+    #nn = 3
+    #for i in range(0, nn, 1):
+    #    for j in range(0, len(titles)-1, 1):
+    #        print(df[titles[j]][i].std(),',')
+    #    print('\n')
+    
+    

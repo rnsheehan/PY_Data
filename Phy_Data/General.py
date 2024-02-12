@@ -1397,5 +1397,29 @@ def Data_Frame_Aggregation():
     #    for j in range(0, len(titles)-1, 1):
     #        print(df[titles[j]][i].std(),',')
     #    print('\n')
+
+def Sorting_By_Column():
+
+    # Want to be able to sort the data in an array by column
+    # 
+
+    a = numpy.array([ [1, 5, 9], [4, 0, 2], [2, 6, 7], [3, 3, 0] ])
+    print("The array: ")
+    print(a)
+
+    print("The transposed array: ")
+    print(a.T)
+
+    print("\nSort: axis = None")
+    print(numpy.sort(a, axis = None))
+
+    print("\nSort: axis = 0")
+    print(numpy.sort(a.T, axis = 0))
+
+    print("\nSort: axis = 1")
+    print(numpy.sort(a.T, axis = 1))
+
+    print("\nSorting according to a column")
+    print(a[a[:,0].argsort()])
     
     

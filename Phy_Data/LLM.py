@@ -3166,7 +3166,7 @@ def Beat_Analysis():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        Ival = 300
+        Ival = 100
         loopLength = 50
 
         # CoBrite Parameters
@@ -3175,7 +3175,7 @@ def Beat_Analysis():
         RBW = '5kHz' # RBW used in the measurement
         LWUNits = ' / MHz / ' + RBW
 
-        ## NKT Parameters
+        # NKT Parameters
         #theLaser = 'NKT'
         #temperature = 35        
         #RBW = '100Hz' # RBW used in the measurement
@@ -3213,7 +3213,7 @@ def Beat_Analysis():
             filename = 'Results_Summary_I_%(v1)d.txt'%{"v1":Ival}
             f_AOM = 80
             f_start = 80; # it may be necessary to skip the first beat due to bad fitting
-            f_cutoff = (17) * f_AOM;
+            f_cutoff = (16) * f_AOM;
             Beat_Data_Report(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, averaged_data, delta_data, filename)
 
             Plot_Beat_Data(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, averaged_data, delta_data)
@@ -3252,6 +3252,195 @@ def Beat_Analysis():
             TheName = 'Voigt Parameters'
             TheUnits = LWUNits
             Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, Loud)
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Summarise_Beat_Analysis():
+
+    # Make plots comparing the measured beat results from different measurements
+    # R. Sheehan 12 - 2 - 2024
+
+    FUNC_NAME = ".Summarise_Beat_Analysis()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        loopLength = 50
+
+        # CoBrite Parameters
+        #theLaser = 'CoBriteTLS'
+        #temperature = 25        
+        #RBW = '5kHz' # RBW used in the measurement
+        #LWUNits = ' / MHz / ' + RBW
+        #Pvals = [4.503, 5.478, 6.533]
+        #Dstr = 'Distance / km'
+        #LLstr = 'LL_Vfit/MHz'
+
+        # NKT Parameters
+        theLaser = 'NKT'
+        temperature = 35        
+        RBW = '100Hz' # RBW used in the measurement
+        LWUNits = ' / kHz / ' + RBW
+        Pvals = [3.217, 9.217, 11.682]
+        Dstr = 'Distance / km'
+        LLstr = 'LL_Vfit/kHz'
+
+        #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/I_%(v1)d/'%{"v1":Ival, "v2":theLaser, "v3":temperature, "v4":loopLength}
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/'%{"v2":theLaser, "v3":temperature, "v4":loopLength}
+
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+
+            # Make a directory for storing the comparison plots
+            resDir = 'Comparisons/'
+            if not os.path.isdir(resDir): os.mkdir(resDir)
+
+            hv_data = []; marks = []; labels = []; 
+
+            EXTRACT_DATA = False
+            if EXTRACT_DATA:
+                # Extract the data from each of the summarised beat files
+                Ivals = [100, 200, 300]                
+                count = 0
+                indx_start = 0; 
+                indx_end = 16; 
+                f_AOM = 80
+                f_start = 80; # it may be necessary to skip the first beat due to bad fitting
+                f_cutoff = (16) * f_AOM;
+                for i in range(0, len(Ivals), 1):
+                    data_dir = 'I_%(v1)d/'%{"v1":Ivals[i]}
+                    if os.path.isdir(data_dir):
+                        os.chdir(data_dir)
+                        print(os.getcwd())
+                        # Grab the averaged data
+                        beatfile = 'Averaged_Data_I_%(v1)d.txt'%{"v1":Ivals[i]}
+                        df = pandas.read_csv(beatfile, delimiter = '\t')
+                        titles = list(df)
+
+                        # Grab the error data
+                        errorfile = 'Delta_Data_I_%(v1)d.txt'%{"v1":Ivals[i]}
+                        delta_df = pandas.read_csv(errorfile, delimiter = '\t')
+
+                        # store the data
+                        xdata = df[ Dstr ].to_numpy()
+                        ydata = df[ LLstr ].to_numpy()
+                        deltaydata = delta_df[ LLstr ].to_numpy()
+
+                        hv_data.append([ xdata[indx_start:indx_end], ydata[indx_start:indx_end], deltaydata[indx_start:indx_end] ] )
+                        marks.append(Plotting.labs_pts[count%(len(Plotting.labs_pts))])
+                        labels.append('P$_{in}$ = %(v1)0.2f dBm'%{"v1":Pvals[i]})
+
+                        # dump the data
+                        del df; del delta_df; del titles; del xdata; del ydata; del deltaydata; 
+
+                        count = count + 1
+                        os.chdir(DATA_HOME)
+            
+                print(os.getcwd())
+                os.chdir(resDir)
+                print(os.getcwd())
+
+            WRITE_DATA = False
+            if WRITE_DATA:
+                # write the combined data set to a file
+                the_avg_filename = 'Averaged_Data_D_%(v1)d.txt'%{"v1":loopLength}
+                the_err_filename = 'Delta_Data_D_%(v1)d.txt'%{"v1":loopLength}
+
+                the_avg_file = open(the_avg_filename,'w')
+                the_avg_file.write('%(v1)s\t%(v2)s\t%(v2)s\t%(v2)s\n'%{"v1":Dstr, "v2":LLstr})
+                the_avg_file.close()
+                
+                the_err_file = open(the_err_filename,'w')
+                the_err_file.write('%(v1)s\t%(v2)s\t%(v2)s\t%(v2)s\n'%{"v1":Dstr, "v2":LLstr})
+                the_err_file.close()
+
+                the_avg_file = open(the_avg_filename,'a')
+                the_err_file = open(the_err_filename,'a')
+
+                if loopLength == 10:
+                    for i in range(0, len(hv_data[0][0]), 1):
+                        the_avg_file.write('%(v1)0.2f\t%(v2)0.9f\t%(v3)0.9f\t%(v4)0.9f\n'%{"v1":hv_data[0][0][i], "v2":hv_data[0][1][i], "v3":hv_data[1][1][i] if i<13 else 0.0, "v4":hv_data[2][1][i] if i<11 else 0.0 })
+                        the_err_file.write('%(v1)0.2f\t%(v2)0.9f\t%(v3)0.9f\t%(v4)0.9f\n'%{"v1":hv_data[0][0][i], "v2":hv_data[0][2][i], "v3":hv_data[1][2][i] if i<13 else 0.0, "v4":hv_data[2][2][i] if i<11 else 0.0})
+
+                if loopLength == 50:
+                    for i in range(0, len(hv_data[0][0]), 1):
+                        the_avg_file.write('%(v1)0.2f\t%(v2)0.9f\t%(v3)0.9f\t%(v4)0.9f\n'%{"v1":hv_data[0][0][i], "v2":hv_data[0][1][i], "v3":hv_data[1][1][i], "v4":hv_data[2][1][i]})
+                        the_err_file.write('%(v1)0.2f\t%(v2)0.9f\t%(v3)0.9f\t%(v4)0.9f\n'%{"v1":hv_data[0][0][i], "v2":hv_data[0][2][i], "v3":hv_data[1][2][i], "v4":hv_data[2][2][i]})
+
+                the_avg_file.close()
+                the_err_file.close()
+
+            PLOT_DATA = False
+            if PLOT_DATA:
+                # Make a plot of the comparison data
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = 'Loop Length / km'
+                TheName = 'Linewidth'
+                TheUnits = LWUNits
+                args.y_label = TheName + TheUnits
+                args.plt_range = [0, 165, 0, 3]
+                args.fig_name = theLaser + '_' + TheName + '_D_' + '%(v1)d'%{"v1":loopLength}
+
+                Plotting.plot_multiple_curves_with_errors(hv_data, args)
+
+            del hv_data; del marks; del labels; 
+
+            PLOT_COMBINE_DATA = True
+            if PLOT_COMBINE_DATA:
+                os.chdir(resDir)
+                print(os.getcwd())
+                # join the D = 10 data to the D = 50 data and make a plot of the linewidth
+                # Read the D = 10 data
+                D10data = numpy.loadtxt('Averaged_Data_D_10.txt', skiprows = 1, delimiter = '\t', unpack = True)
+                D50data = numpy.loadtxt('Averaged_Data_D_50.txt', skiprows = 1, delimiter = '\t', unpack = True)
+                data = numpy.concatenate((D10data, D50data), axis = 1) # concatenate the data sets
+                
+                # sorting according to distance data not strictly necessary, but nice to know it can be done
+                data = data.T # transpose the data 
+                data = data[data[:,0].argsort()] # sort according to the elements of the distance column
+                data = data.T # undo the transpose
+                
+                D10data = numpy.loadtxt('Delta_Data_D_10.txt', skiprows = 1, delimiter = '\t', unpack = True)
+                D50data = numpy.loadtxt('Delta_Data_D_50.txt', skiprows = 1, delimiter = '\t', unpack = True)
+                deltadata = numpy.concatenate((D10data, D50data), axis = 1) # concatenate the data sets
+
+                # sorting according to distance data not strictly necessary, but nice to know it can be done
+                deltadata = deltadata.T # transpose the data 
+                deltadata = deltadata[deltadata[:,0].argsort()] # sort according to the elements of the distance column
+                deltadata = deltadata.T # undo the transpose
+                
+                # Make a plot of the combined data sets
+                hv_data = []; labels = []; marks = []; 
+
+                hv_data.append([data[0], data[1], deltadata[1]]); marks.append(Plotting.labs_pts[0]); labels.append('P$_{in}$ = %(v1)0.2f dBm'%{"v1":Pvals[0]})
+                hv_data.append([data[0], data[2], deltadata[2]]); marks.append(Plotting.labs_pts[1]); labels.append('P$_{in}$ = %(v1)0.2f dBm'%{"v1":Pvals[1]})
+                hv_data.append([data[0], data[3], deltadata[3]]); marks.append(Plotting.labs_pts[2]); labels.append('P$_{in}$ = %(v1)0.2f dBm'%{"v1":Pvals[2]})
+
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = 'Loop Length / km'
+                TheName = 'Linewidth'
+                TheUnits = LWUNits
+                args.y_label = TheName + TheUnits
+                args.plt_range = [0, 760, 0.1, 2.7]
+                args.fig_name = theLaser + '_' + TheName + '_Combined'
+
+                Plotting.plot_multiple_curves_with_errors(hv_data, args)
+                #Plotting.plot_multiple_curves(hv_data, args)
+
+                del D10data; del D50data; del data; del deltadata; del hv_data; del marks; del labels; 
+
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
             raise Exception

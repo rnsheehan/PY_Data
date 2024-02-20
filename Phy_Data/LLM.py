@@ -4331,9 +4331,9 @@ def Summarise_Multi_LLM_Analysis():
             print(os.getcwd())
 
             # Make a directory for storing the results
-            #resDir = 'Loop_Power_Variation/'
+            resDir = 'Loop_Power_Variation/'
             #resDir = 'Loop_Power_Variation_FSpan_100/'
-            resDir = 'Loop_RBW_Variation/'
+            #resDir = 'Loop_RBW_Variation/'
             if not os.path.isdir(resDir): os.mkdir(resDir)
 
             
@@ -4357,21 +4357,20 @@ def Summarise_Multi_LLM_Analysis():
             #Perr = [0.066, 0.011, 0.018]
             #RBWstr = '5kHz'; LLMunitstr = 'MHz'; Deff = 400; 
             
-            #dir_list = glob.glob('LLM_Data_Nmeas_%(v4)d_I_%(v1)d_%(v3)s_%(v2)s_*/'%{"v4":Nmeas, "v1":Ival, "v3":Day, "v2":Month})
+            dir_list = glob.glob('LLM_Data_Nmeas_%(v4)d_I_%(v1)d_%(v3)s_%(v2)s_*/'%{"v4":Nmeas, "v1":Ival, "v3":Day, "v2":Month})
             #dir_list = dir_list[2:len(dir_list)]
-            dir_list = ['LLM_Data_Nmeas_200_I_100_09_06_2023_09_42_Span_50k/', 'LLM_Data_Nmeas_200_I_100_08_06_2023_12_57_Span_100k/', 'LLM_Data_Nmeas_200_I_100_29_05_2023_15_34_Span_250k/', 'LLM_Data_Nmeas_200_I_100_29_05_2023_14_20_Span_500k/']
-            TmeasVals = [39, 29, 19, 20] # measurement time varies depending on the RBW value and the Freq. Span
-            SpanVals = [50, 100, 250, 500]
-            RBWVals = [50, 100, 500, 500]
-            Pin = 3.34
+            #dir_list = ['LLM_Data_Nmeas_200_I_100_09_06_2023_09_42_Span_50k/', 'LLM_Data_Nmeas_200_I_100_08_06_2023_12_57_Span_100k/', 'LLM_Data_Nmeas_200_I_100_29_05_2023_15_34_Span_250k/', 'LLM_Data_Nmeas_200_I_100_29_05_2023_14_20_Span_500k/']
+            #TmeasVals = [39, 29, 19, 20] # measurement time varies depending on the RBW value and the Freq. Span
+            #SpanVals = [50, 100, 250, 500]
+            #RBWVals = [50, 100, 500, 500]
+            #Pin = 3.34
             
-            # I think this is meant to be a second pass type analysis, once all the multi-LLM are complete
             PARSE_RES_FILES = False # Must be false until all Multi-LLM results are obtained
             esaResFileName = 'Measurement_Results_I_%(v1)d.txt'%{"v1":Ival}
             esaErrFileName = 'Measurement_Errors_I_%(v1)d.txt'%{"v1":Ival}
 
             # Make a plot of the fitted lineshape spectra versus for each Pin value
-            PLOT_FITTED_SPECTRA = True
+            PLOT_FITTED_SPECTRA = False
 
             # Create files for storing the accumulated data from multuple Multi-LLM runs
             # Output is of the form ['Pmax/dBm', 'LLest', 'LL_Vfit', 'LL_Lfit', 'LLest_-20', 'Voigt_Lor_HWHM', 'Voigt_Gau_Stdev', 'P1/dBm', 'P2/dBm', 'P2/P1']
@@ -4510,7 +4509,7 @@ def Summarise_Multi_LLM_Analysis():
                 os.chdir(DATA_HOME)
             
             # Make plots of the gathered summarised data
-            PLOT_RES_FILES = False # Generate the plots of the summarised data files
+            PLOT_RES_FILES = True # Generate the plots of the summarised data files
             PLOT_VS_PRAT = False # Generate the plot with Power Ratio along the x-axis, other wise plot versus V_{VOA}
             
             if PLOT_RES_FILES:
@@ -4524,8 +4523,8 @@ def Summarise_Multi_LLM_Analysis():
                 # 4. LL-20 versus Power Ratio with Errors
                 # 5. LLVfit versus Power Ratio with Errors
                 
-                #Ivals = [100, 200, 300]
-                Ivals = [100]
+                Ivals = [100, 200, 300]
+                #Ivals = [100]
                 RBWVals = [50, 100, 250, 500]
 
                 # Input powers for the NKT data set
@@ -4601,7 +4600,7 @@ def Summarise_Multi_LLM_Analysis():
                 Plotting.plot_multiple_curves_with_errors(hv_data2, args)
 
                 # 3. LLest versus Power Ratio with Errors
-                args.loud = True
+                args.loud = False
                 args.crv_lab_list = labels3
                 args.mrk_list = marks3
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
@@ -4616,7 +4615,7 @@ def Summarise_Multi_LLM_Analysis():
                 Plotting.plot_multiple_curves_with_errors(hv_data3, args)
 
                 # 4. LL-20 versus Power Ratio with Errors
-                args.loud = True
+                args.loud = False
                 args.crv_lab_list = labels4
                 args.mrk_list = marks4
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
@@ -4645,6 +4644,10 @@ def Summarise_Multi_LLM_Analysis():
 
                 Plotting.plot_multiple_curves_with_errors(hv_data5, args)
 
+                print('\nAverage linewidth over all VVOA variation')
+                for i in range(0, len(hv_data5), 1): print('mean: ',numpy.mean(hv_data5[i][1]),' +/- ',0.5*(numpy.max(hv_data5[i][1]) - numpy.min(hv_data5[i][1]) ) )
+
+                args.loud = False
                 args.fig_name = 'Laser_Linewidth_Voigt_Lin_Fit'
 
                 Plotting.plot_multiple_linear_fit_curves(hv_data5, args)
@@ -4670,7 +4673,8 @@ def Summarise_Multi_LLM_Analysis():
                 # 5. LLVfit versus Power Ratio with Errors
 
                 Ival = 100
-                RBWVals = [50, 100, 250, 500]
+                RBWVals = [0.05, 0.1, 0.5, 0.5] # RBW in kHz
+                FspanVals = [50, 100, 250, 500] # Fspan in kHz
                 LLMunitstr = 'kHz'
                 
                 # Read in the data
@@ -4694,7 +4698,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.plt_title = 'P$_{in}$ = 3.34 (dBm), P$_{rat}$ = 1.06, V$_{VOA}$ = 3V'
                 args.plt_range = [0, 525, -42, -28]
                 
-                Plotting.plot_single_curve_with_errors(RBWVals, data[3], dataErr[3], args)
+                Plotting.plot_single_curve_with_errors(FspanVals, data[3], dataErr[3], args)
 
                 # 3. LLest versus Power Ratio with Errors
                 
@@ -4705,7 +4709,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.fig_name = 'Laser_Linewidth'
                 args.plt_range = [0, 525, 1.0, 3]
                 
-                Plotting.plot_single_curve_with_errors(RBWVals, data[4], dataErr[4], args)
+                Plotting.plot_single_curve_with_errors(FspanVals, data[4], dataErr[4], args)
 
                 # 4. LL-20 versus Power Ratio with Errors
                 
@@ -4716,7 +4720,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.fig_name = 'Laser_Linewidth_20'
                 args.plt_range = [0, 525, 9, 12]
                 
-                Plotting.plot_single_curve_with_errors(RBWVals, data[7], dataErr[7], args)
+                Plotting.plot_single_curve_with_errors(FspanVals, data[7], dataErr[7], args)
 
                 # 5. LLVfit versus RBW with Errors
                 
@@ -4727,16 +4731,16 @@ def Summarise_Multi_LLM_Analysis():
                 args.fig_name = 'Laser_Linewidth_Voigt'
                 args.plt_range = [0, 525, 1.0, 3]
                 
-                Plotting.plot_single_curve_with_errors(RBWVals, data[5], dataErr[5], args)
+                Plotting.plot_single_curve_with_errors(FspanVals, data[5], dataErr[5], args)
 
-                # Plot the estimated and fitted lineshapes on the same graph
+                # Plot the estimated and fitted linewidths on the same graph
                 hv_data = []; labels = []; marks = []
-                hv_data.append([RBWVals, data[4], dataErr[4]]); labels.append('Estimated'); marks.append(Plotting.labs[0]); 
-                hv_data.append([RBWVals, data[5], dataErr[5]]); labels.append('Voigt Fit'); marks.append(Plotting.labs[1]); 
+                hv_data.append([FspanVals, data[4], dataErr[4]]); labels.append('Estimated'); marks.append(Plotting.labs[0]); 
+                hv_data.append([FspanVals, data[5], dataErr[5]]); labels.append('Voigt Fit'); marks.append(Plotting.labs[1]); 
 
                 args = Plotting.plot_arg_multiple()
 
-                args.loud = True
+                args.loud = False
                 args.crv_lab_list = labels
                 args.mrk_list = marks
                 args.x_label = 'Measurement Span ( kHz )'
@@ -4746,6 +4750,42 @@ def Summarise_Multi_LLM_Analysis():
                 args.plt_range = [0, 525, 1.0, 3]
 
                 Plotting.plot_multiple_curves_with_errors(hv_data, args)
+
+                # Make a plot of the sigma / RBW ratio versus span
+                res_theor = 0.16 # theoretical LCR-DSHI resolution based on D_{eff} = 400km
+                hv_data2 = []
+                hv_data2.append([FspanVals, dataErr[4] / RBWVals])
+                hv_data2.append([FspanVals, dataErr[5] / RBWVals])
+
+                #print(dataErr[4], ',', RBWVals, ',', hv_data2[0][1])
+
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = 'Measurement Span ( kHz )'
+                args.y_label = '( Error / RBW ) Ratio'
+                args.fig_name = 'Laser_Linewidth_Error_RBW_Ratio'
+                args.plt_title = 'P$_{in}$ = 3.34 (dBm), P$_{rat}$ = 1.06, V$_{VOA}$ = 3V'
+                args.plt_range = [0, 525, 0, 7]
+
+                Plotting.plot_multiple_curves(hv_data2, args)
+
+                # Make a plot of the sigma / theoretical-resolution ratio versus span
+                res_theor = 0.16 # theoretical LCR-DSHI resolution based on D_{eff} = 400km
+                hv_data3 = []
+                hv_data3.append([FspanVals, dataErr[4] / res_theor])
+                hv_data3.append([FspanVals, dataErr[5] / res_theor])
+
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = 'Measurement Span ( kHz )'
+                args.y_label = '( Error / Res ) Ratio'
+                args.fig_name = 'Laser_Linewidth_Error_Res_Ratio'
+                args.plt_title = 'P$_{in}$ = 3.34 (dBm), P$_{rat}$ = 1.06, V$_{VOA}$ = 3V'
+                args.plt_range = [0, 525, 0, 7]
+
+                Plotting.plot_multiple_curves(hv_data3, args)
             
         else:
             raise Exception

@@ -1421,5 +1421,12 @@ def Sorting_By_Column():
 
     print("\nSorting according to a column")
     print(a[a[:,0].argsort()])
+
+def Plotting_With_Two_X_Axes():
+
+    # Generating a plot with two x-axes
+
+
+    pass
     
     

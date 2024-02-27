@@ -4893,3 +4893,224 @@ def Parse_Results_Summary(DATA_HOME, errorIsstdev = True, loud = False):
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
+
+def Lineshape_FFTs():
+
+    # Examine the FFT of lineshapes as a function of beat frequency / effective distance
+    # R. Sheehan 26 - 2 - 2024
+
+    FUNC_NAME = ".Lineshape_FFTs()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+
+        Ival = 200
+        loopLength = 50
+
+        # CoBrite Parameters
+        theLaser = 'CoBriteTLS'
+        temperature = 25        
+        RBW = '5kHz' # RBW used in the measurement
+        FUnits = ' / MHz'
+        LWUNits = ' / MHz / ' + RBW
+        Pin = 0.5*(4.77 + 4.72) # optical input power for measurement
+        Prat = 0.5*(0.075 + 0.323) # Loop power ratio
+
+        # NKT Parameters
+        #theLaser = 'NKT'
+        #temperature = 35        
+        #RBW = '100Hz' # RBW used in the measurement
+        #FUnits = ' / kHz'
+        #LWUNits = ' / kHz / ' + RBW
+        #Pin = 0.5*(9.71 + 9.59) # optical input power for measurement
+        #Prat = 0.5*(0.082 + 0.107) # Loop power ratio
+
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/Beat_Note_Lineshapes/'%{"v2":theLaser, "v3":temperature, "v4":loopLength}
+
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+
+            # CoBrite Laser
+            #looplength = 10; Nbeats = (1360/80);             
+            looplength = 50; Nbeats = (960/80); 
+
+            # NKT Laser
+            #looplength = 10; Nbeats = (1280/80);             
+            #looplength = 50; Nbeats = (1120/80); 
+
+            F_AOM = 80            
+            fbeats = numpy.arange(F_AOM, Nbeats*F_AOM + 1, F_AOM)
+            distances = numpy.arange(looplength, Nbeats*looplength + 1, looplength)
+
+            filestr = 'Lineshape_I_200_D_%(v1)d_fb_%(v2)d.txt'
+
+            # Plot the measured lineshapes along the beat notes
+            #Plot_Lineshape_Vs_Fbeat(filestr, looplength, theLaser, fbeats, distances, LWUNits)
+
+            # Plot the measured lineshapes together
+            #Plot_Lineshape_Together(filestr, looplength, theLaser, fbeats, distances, FUnits, LWUNits, Pin, Prat)
+
+            # Plot the computed FFT together
+            filestr_X = 'Lineshape_I_200_D_%(v1)d_fb_%(v2)d_Frq_data.txt'
+            filestr_Y = 'Lineshape_I_200_D_%(v1)d_fb_%(v2)d_FFT_data.txt'
+            Plot_FFT_Together(filestr_X, filestr_Y, looplength, theLaser, fbeats, distances, FUnits, LWUNits, Pin, Prat)
+
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Plot_Lineshape_Vs_Fbeat(filestr, looplength, theLaser, fbeats, distances, LWUNits):
+
+    # Make a plot of all the lineshapes placed at their respective fbeat values, scale all freq values to MHz
+    # filestr is the template for the filename containing the linehsape data
+    # looplength is the length of the fibre loop used in the measurement
+    # theLaser is the name of the DUT
+    # fbeats is an array of beat notes from the measurement system, in units of MHz
+    # distances is an array of effective loop lengths corresponding to fbeats, in units of km
+    # LWUNits is the string containing the ESA RBW data for the system
+    # R. Sheehan 27 - 2 - 2024
+
+    FUNC_NAME = ".Plot_Lineshape_Vs_Fbeat()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        # Plot the measured lineshapes together
+        hv_data = []; marks = []; labels = []; 
+        ord = 'Frequency'
+        count = 0
+        for f in fbeats:
+            filename = filestr%{"v1":looplength, "v2":f}
+            if glob.glob(filename):
+                data = numpy.loadtxt(filename, delimiter = '\t')
+                if theLaser == 'NKT':
+                    data[0] = (data[0]/1000.0) + f # offset the frequency data by fbeat, change funits from kHz to MHz
+                hv_data.append(data); 
+                marks.append(Plotting.labs_lins[count%len(Plotting.labs_lins)]); labels.append( 'f$_{b}$ = %(v1)d MHz'%{"v1":f} )
+                count = count + 1
+
+        args = Plotting.plot_arg_multiple()
+
+        args.loud = True
+        args.crv_lab_list = labels
+        args.show_leg = False
+        args.mrk_list = marks
+        args.x_label = 'Beat Frequency / MHz'
+        args.x_label_2 = 'Effective Loop Length / km'
+        args.y_label = 'Power / dBm' + LWUNits
+        args.xold = fbeats
+        args.xnew = distances
+        args.fig_name = 'Lineshapes_vs_%(v1)s_D_%(v2)d'%{"v1":ord, "v2":looplength}
+        #args.plt_title = '%(v1)s, P$_{1}$ = %(v2)0.2f dBm, P$_{2}$ / P$_{1}$ = %(v3)0.2f, L$_{fbr}$ = %(v4)d km'%{"v1":theLaser, "v2":Pin, "v3":Prat, "v4":looplength}
+        args.plt_range = [0, 1440, -100, -30]
+
+        Plotting.plot_two_x_axis(hv_data, args)
+
+        del hv_data; del marks; del labels; 
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Plot_Lineshape_Together(filestr, looplength, theLaser, fbeats, distances, FUnits, LWUNits, Pin, Prat):
+
+    # Make a plot of all the lineshapes centred at 0kHz, scale all freq values to kHz
+    # filestr is the template for the filename containing the linehsape data
+    # looplength is the length of the fibre loop used in the measurement
+    # theLaser is the name of the DUT
+    # fbeats is an array of beat notes from the measurement system, in units of MHz
+    # distances is an array of effective loop lengths corresponding to fbeats, in units of km
+    # LWUNits is the string containing the ESA RBW data for the system
+    # R. Sheehan 27 - 2 - 2024
+
+    FUNC_NAME = ".Plot_Lineshape_Together()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        # Plot the measured lineshapes together
+        hv_data = []; marks = []; labels = []; 
+        ord = 'Frequency'
+        count = 0
+        for i in range(0, len(fbeats), 3):
+            filename = filestr%{"v1":looplength, "v2":fbeats[i]}
+            if glob.glob(filename):
+                data = numpy.loadtxt(filename, delimiter = '\t')
+                if theLaser == 'CoBriteTLS':
+                    data[0] = data[0] - fbeats[i] # rescale the freq data from kHz to MHz and subtract the beat note value
+                hv_data.append(data); 
+                marks.append(Plotting.labs_lins[count%len(Plotting.labs_lins)]); labels.append( '%(v1)d km'%{"v1":distances[i]} )
+                count = count + 1
+
+        args = Plotting.plot_arg_multiple()
+
+        args.loud = True
+        args.crv_lab_list = labels
+        args.show_leg = True
+        args.mrk_list = marks
+        args.x_label = 'Frequency' + FUnits
+        args.y_label = 'Power / dBm' + LWUNits
+        args.fig_name = 'Lineshapes_Together_D_%(v2)d'%{"v1":ord, "v2":looplength}
+        args.plt_title = '%(v1)s, P$_{1}$ = %(v2)0.2f dBm, P$_{2}$ / P$_{1}$ = %(v3)0.2f, L$_{fbr}$ = %(v4)d km'%{"v1":theLaser, "v2":Pin, "v3":Prat, "v4":looplength}
+        args.plt_range = [-1, 1, -100, -30]
+
+        Plotting.plot_multiple_curves(hv_data, args)
+
+        del hv_data; del marks; del labels; 
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Plot_FFT_Together(filestr_X, filestr_Y, looplength, theLaser, fbeats, distances, FUnits, LWUNits, Pin, Prat):
+
+    # Make a plot of all the lineshapes centred at 0kHz, scale all freq values to kHz
+    # filestr_X is the template for the filename containing the time values from the computed FFT(lineshape)
+    # filestr_Y is the template for the filename containing the FFT values from the computed FFT(lineshape)
+    # data is contained in the form real(FFT), imag(FFT), abs(FFT), arg(FFT)
+    # all positive and negative components have been computed
+    # looplength is the length of the fibre loop used in the measurement
+    # theLaser is the name of the DUT
+    # fbeats is an array of beat notes from the measurement system, in units of MHz
+    # distances is an array of effective loop lengths corresponding to fbeats, in units of km
+    # LWUNits is the string containing the ESA RBW data for the system
+    # R. Sheehan 27 - 2 - 2024
+
+    FUNC_NAME = ".Plot_FFT_Together()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        # Plot the measured lineshapes together
+        hv_data = []; marks = []; labels = []; 
+        ord = 'Frequency'
+        count = 0
+        for i in range(0, 7, 1):
+            filename_X = filestr_X%{"v1":looplength, "v2":fbeats[i]}
+            filename_Y = filestr_Y%{"v1":looplength, "v2":fbeats[i]}
+            if glob.glob(filename_X) and glob.glob(filename_Y):
+                time_data = numpy.loadtxt(filename_X, delimiter = '\t')
+                fft_data = numpy.loadtxt(filename_Y, delimiter = ',', unpack = True)
+                # scale the abs(FFT) so that its maximum is at 1
+                scale_factor = numpy.max(fft_data[2])
+                hv_data.append([time_data, fft_data[2] / scale_factor]); # interested in plotting the abs(FFT) 
+                marks.append(Plotting.labs_lins[count%len(Plotting.labs_lins)]); labels.append( '%(v1)d km'%{"v1":distances[i]} )
+                count = count + 1
+
+        args = Plotting.plot_arg_multiple()
+
+        args.loud = True
+        args.crv_lab_list = labels
+        args.show_leg = True
+        args.mrk_list = marks
+        args.x_label = 'Time / us'
+        args.y_label = 'FFT(Lineshape)'
+        args.fig_name = 'AutoCorr_D_%(v2)d'%{"v2":looplength}
+        args.plt_title = '%(v1)s, P$_{1}$ = %(v2)0.2f dBm, P$_{2}$ / P$_{1}$ = %(v3)0.2f, L$_{fbr}$ = %(v4)d km'%{"v1":theLaser, "v2":Pin, "v3":Prat, "v4":looplength}
+        args.plt_range = [0, 10, 0, 1]
+
+        Plotting.plot_multiple_curves(hv_data, args)
+
+        del hv_data; del marks; del labels; 
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)

@@ -4908,22 +4908,22 @@ def Lineshape_FFTs():
         loopLength = 50
 
         # CoBrite Parameters
-        theLaser = 'CoBriteTLS'
-        temperature = 25        
-        RBW = '5kHz' # RBW used in the measurement
-        FUnits = ' / MHz'
-        LWUNits = ' / MHz / ' + RBW
-        Pin = 0.5*(4.77 + 4.72) # optical input power for measurement
-        Prat = 0.5*(0.075 + 0.323) # Loop power ratio
+        #theLaser = 'CoBriteTLS'
+        #temperature = 25        
+        #RBW = '5kHz' # RBW used in the measurement
+        #FUnits = ' / MHz'
+        #LWUNits = ' / MHz / ' + RBW
+        #Pin = 0.5*(4.77 + 4.72) # optical input power for measurement
+        #Prat = 0.5*(0.075 + 0.323) # Loop power ratio
 
         # NKT Parameters
-        #theLaser = 'NKT'
-        #temperature = 35        
-        #RBW = '100Hz' # RBW used in the measurement
-        #FUnits = ' / kHz'
-        #LWUNits = ' / kHz / ' + RBW
-        #Pin = 0.5*(9.71 + 9.59) # optical input power for measurement
-        #Prat = 0.5*(0.082 + 0.107) # Loop power ratio
+        theLaser = 'NKT'
+        temperature = 35        
+        RBW = '100Hz' # RBW used in the measurement
+        FUnits = ' / kHz'
+        LWUNits = ' / kHz / ' + RBW
+        Pin = 0.5*(9.71 + 9.59) # optical input power for measurement
+        Prat = 0.5*(0.082 + 0.107) # Loop power ratio
 
         DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/Beat_Note_Lineshapes/'%{"v2":theLaser, "v3":temperature, "v4":loopLength}
 
@@ -4933,11 +4933,11 @@ def Lineshape_FFTs():
 
             # CoBrite Laser
             #looplength = 10; Nbeats = (1360/80);             
-            looplength = 50; Nbeats = (960/80); 
+            #looplength = 50; Nbeats = (960/80); 
 
             # NKT Laser
             #looplength = 10; Nbeats = (1280/80);             
-            #looplength = 50; Nbeats = (1120/80); 
+            looplength = 50; Nbeats = (1120/80); 
 
             F_AOM = 80            
             fbeats = numpy.arange(F_AOM, Nbeats*F_AOM + 1, F_AOM)
@@ -5092,7 +5092,7 @@ def Plot_FFT_Together(filestr_X, filestr_Y, looplength, theLaser, fbeats, distan
                 fft_data = numpy.loadtxt(filename_Y, delimiter = ',', unpack = True)
                 # scale the abs(FFT) so that its maximum is at 1
                 scale_factor = numpy.max(fft_data[2])
-                hv_data.append([time_data, fft_data[2] / scale_factor]); # interested in plotting the abs(FFT) 
+                hv_data.append([1000.0*time_data, fft_data[2] / scale_factor]); # interested in plotting the abs(FFT) 
                 marks.append(Plotting.labs_lins[count%len(Plotting.labs_lins)]); labels.append( '%(v1)d km'%{"v1":distances[i]} )
                 count = count + 1
 
@@ -5106,7 +5106,7 @@ def Plot_FFT_Together(filestr_X, filestr_Y, looplength, theLaser, fbeats, distan
         args.y_label = 'FFT(Lineshape)'
         args.fig_name = 'AutoCorr_D_%(v2)d'%{"v2":looplength}
         args.plt_title = '%(v1)s, P$_{1}$ = %(v2)0.2f dBm, P$_{2}$ / P$_{1}$ = %(v3)0.2f, L$_{fbr}$ = %(v4)d km'%{"v1":theLaser, "v2":Pin, "v3":Prat, "v4":looplength}
-        args.plt_range = [0, 10, 0, 1]
+        args.plt_range = [0, 100, 0, 1]
 
         Plotting.plot_multiple_curves(hv_data, args)
 

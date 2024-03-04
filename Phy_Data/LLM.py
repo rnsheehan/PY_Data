@@ -2523,7 +2523,7 @@ def Multi_LLM_Analysis(DATA_HOME, RBW_Val = 500, Tmeas = 20, theXUnits = 'kHz', 
                 LOUD = False      
                 
                 # Perform Correlation calculations of the variables
-                RUN_CORRELATIONS = True
+                RUN_CORRELATIONS = False
 
                 RUN_TAOM_CORRELATIONS = False # No need to check this, T_{AOM} is constant
                 RUN_PMAX_CORRELATIONS = False
@@ -2931,7 +2931,8 @@ def Plot_Fitted_Lineshape_with_Data(dataFrame, titles, RBW_Val = 500, Tmeas = 20
             args.mrk_list = marks
             args.x_label = 'Frequency / %(v1)s'%{"v1":theXUnits}
             args.y_label = 'Power / dBm / %(v1)d%(v2)s'%{"v1":RBW_Val, "v2":theYUnits}
-            args.plt_range = [xlow, xhigh, -90, -20]
+            #args.plt_range = [xlow, xhigh, -90, -20]
+            args.plt_range = [xlow, xhigh, -70, -30]
             args.fig_name = 'Measured_Spectra'
             args.plt_title = 'D$_{eff}$ = %(v1)d km, P$_{in}$ = %(v2)0.1f dBm, V$_{VOA}$ = %(v3)0.1f V'%{"v1":Deff, "v2":Pin, "v3":VVOA}
 
@@ -4210,39 +4211,41 @@ def Multi_Multi_LLM_Analysis():
     # can you generalise this to look at measurements as a function of Fspan / RBW? 
     # Do you even want to? 
 
-    FUNC_NAME = ".Multi_LLM_Analysis()" # use this in exception handling messages
+    FUNC_NAME = ".Multi_Multi_LLM_Analysis()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
         # loop the Multi-LLM Analysis calculations over a list of directories
         # gather the averaged data as a function of VOA bias / loop power Ratio
 
-        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
+        #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
         #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_CoBriteTLS_T_25_D_400/'
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_JDSU_DFB_T_20_D_400/'
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
             print(os.getcwd())
 
             # Make a directory for storing the results
-            resDir = 'Loop_Power_Variation/'
+            #resDir = 'Loop_Power_Variation/'
             #resDir = 'Loop_Power_Variation_FSpan_100/'
             #resDir = 'Loop_RBW_Variation/'
+            resDir = 'JDSU_I_Variation/'
             if not os.path.isdir(resDir): os.mkdir(resDir)
 
             # Generate the list of directories to be analysed
             
             # Parameters for the NKT measurement
-            Ival = 100; Day = '19';  
+            #Ival = 100; Day = '19';  
             #Ival = 200; Day = '20';
             #Ival = 300; Day = '21';
-            Month = '06'; 
-            Nmeas = 200
+            #Month = '06'; 
+            #Nmeas = 200
              # NKT parameters
-            RBW = 100; theYunits = 'Hz' # RBW and its units for the NKT measurement
-            Tmeas = 28.5; # Approximate measurement time in seconds for the NKT measurement
-            Deff = 400 # Effective loop length in km
-            theXunits = 'kHz' # Frequency units along X-axis
+            #RBW = 100; theYunits = 'Hz' # RBW and its units for the NKT measurement
+            #Tmeas = 28.5; # Approximate measurement time in seconds for the NKT measurement
+            #Deff = 400 # Effective loop length in km
+            #theXunits = 'kHz' # Frequency units along X-axis
             
             # Parameters for the CoBrite measurement
             #Ival = 100; Day = '07';  
@@ -4254,7 +4257,19 @@ def Multi_Multi_LLM_Analysis():
             #RBW = 5; theYunits = 'kHz' # RBW and its units for the CoBrite measurement
             #Tmeas = 15; # Approximate measurement time in seconds for the CoBrite measurement
             #Deff = 400 # Effective loop length in km
-            #theXunits = 'MHz' # Frequency units along X-axis       
+            #theXunits = 'MHz' # Frequency units along X-axis
+            
+            # Parameters for the JDSU measurement
+            #Ival = 50; Day = '22';  
+            Ival = 70; Day = '22';
+            #Ival = 90; Day = '22';
+            Month = '02'; 
+            Nmeas = 200
+            # CoBrite Parameters
+            RBW = 20; theYunits = 'kHz' # RBW and its units for the CoBrite measurement
+            Tmeas = 33.9; # Approximate measurement time in seconds for the CoBrite measurement
+            Deff = 400 # Effective loop length in km
+            theXunits = 'MHz' # Frequency units along X-axis
             
             dir_list = glob.glob('LLM_Data_Nmeas_%(v4)d_I_%(v1)d_%(v3)s_%(v2)s_*/'%{"v4":Nmeas, "v1":Ival, "v3":Day, "v2":Month})
             #dir_list = ['LLM_Data_Nmeas_200_I_100_05_07_2023_13_37/', 'LLM_Data_Nmeas_200_I_200_05_07_2023_11_00/', 'LLM_Data_Nmeas_200_I_300_05_07_2023_09_58/']
@@ -4263,7 +4278,7 @@ def Multi_Multi_LLM_Analysis():
             #dir_list = dir_list[2:len(dir_list)]
 
             # Obtain the loop power data from all the measurements
-            PARSE_ESA_FILES = False
+            PARSE_ESA_FILES = True
             LoopPowerFileName = 'Loop_Power_Values_I_%(v1)d.txt'%{"v1":Ival}
 
             # Create files for storing the accumulated data
@@ -4298,7 +4313,7 @@ def Multi_Multi_LLM_Analysis():
                     
                     # Do the Multi-LLM Analysis on each measured data
                     if PERFORM_MULTI_LLM:
-                        Multi_LLM_Analysis(dir_list[i], RBW, Tmeas, theXunits, theYunits, Deff, Pin, VVOA)
+                        Multi_LLM_Analysis(dir_list[i], RBW/1000.0, Tmeas, theXunits, theYunits, Deff, Pin, VVOA)
                         os.chdir(DATA_HOME)
             else:
                 ERR_STATEMENT = ERR_STATEMENT + '\ndir_list is empty'
@@ -4321,8 +4336,9 @@ def Summarise_Multi_LLM_Analysis():
         # loop the Multi-LLM directories gather the averaged data
         # In this case as a function of VOA bias / loop power Ratio
 
-        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
+        #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
         #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_CoBriteTLS_T_25_D_400/'
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_JDSU_DFB_T_20_D_400/'
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
@@ -4332,21 +4348,21 @@ def Summarise_Multi_LLM_Analysis():
             print(os.getcwd())
 
             # Make a directory for storing the results
-            resDir = 'Loop_Power_Variation/'
+            #resDir = 'Loop_Power_Variation/'
             #resDir = 'Loop_Power_Variation_FSpan_100/'
             #resDir = 'Loop_RBW_Variation/'
+            resDir = 'JDSU_I_Variation/'
             if not os.path.isdir(resDir): os.mkdir(resDir)
-
             
             # Parameters for the NKT measurement
-            Ival = 100; Day = '19';  Pin = 3.356; 
+            #Ival = 100; Day = '19';  Pin = 3.356; 
             #Ival = 200; Day = '20'; Pin = 9.313; 
             #Ival = 300; Day = '21'; Pin = 11.767; 
-            Month = '06'; Nmeas = 200; 
+            #Month = '06'; Nmeas = 200; 
             ## Input powers for the NKT data set
-            Pvals = [3.356, 9.313, 11.767]
-            Perr = [0.016, 0.015, 0.013]
-            RBWstr = '100Hz'; LLMunitstr = 'kHz'; Deff = 400; 
+            #Pvals = [3.356, 9.313, 11.767]
+            #Perr = [0.016, 0.015, 0.013]
+            #RBWstr = '100Hz'; LLMunitstr = 'kHz'; Deff = 400; 
             
             # Parameters for the CoBrite measurement
             #Ival = 100; Day = '07'; Pin = 4.365; 
@@ -4356,7 +4372,17 @@ def Summarise_Multi_LLM_Analysis():
             ## Input powers for the CoBrite data set
             #Pvals = [4.365, 5.512, 6.539]
             #Perr = [0.066, 0.011, 0.018]
-            #RBWstr = '5kHz'; LLMunitstr = 'MHz'; Deff = 400; 
+            #RBWstr = '5kHz'; LLMunitstr = 'MHz'; Deff = 400;
+            
+            # Parameters for the JDSU measurement
+            #Ival = 50; Day = '22'; Pin = 5.880; 
+            #Ival = 70; Day = '22'; Pin = 7.741; 
+            Ival = 90; Day = '22'; Pin = 9.045; 
+            Month = '02'; Nmeas = 200; 
+            # Input powers for the CoBrite data set
+            Pvals = [5.880, 7.741, 9.045]
+            Perr = [0.001, 0.001, 0.001]
+            RBWstr = '20kHz'; LLMunitstr = 'MHz'; Deff = 400; 
             
             dir_list = glob.glob('LLM_Data_Nmeas_%(v4)d_I_%(v1)d_%(v3)s_%(v2)s_*/'%{"v4":Nmeas, "v1":Ival, "v3":Day, "v2":Month})
             #dir_list = dir_list[2:len(dir_list)]
@@ -4364,9 +4390,10 @@ def Summarise_Multi_LLM_Analysis():
             #TmeasVals = [39, 29, 19, 20] # measurement time varies depending on the RBW value and the Freq. Span
             #SpanVals = [50, 100, 250, 500]
             #RBWVals = [50, 100, 500, 500]
+            RBWVals = [20]
             #Pin = 3.34
             
-            PARSE_RES_FILES = False # Must be false until all Multi-LLM results are obtained
+            PARSE_RES_FILES = True # Must be false until all Multi-LLM results are obtained
             esaResFileName = 'Measurement_Results_I_%(v1)d.txt'%{"v1":Ival}
             esaErrFileName = 'Measurement_Errors_I_%(v1)d.txt'%{"v1":Ival}
 
@@ -4449,7 +4476,7 @@ def Summarise_Multi_LLM_Analysis():
                     args.plt_title = 'D$_{eff}$ = %(v1)d km, P$_{in}$ = %(v2)0.2f dBm'%{"v1":Deff, "v2":Pin}
                     #args.plt_range = [xlow, xhigh, -90, -20]
                     #args.plt_range = [-100, 100, -80, -30]
-                    args.plt_range = [-25, 25, -80, -30]
+                    args.plt_range = [-25, 25, -70, -30]
 
                     Plotting.plot_multiple_curves(hv_data, args)
 
@@ -4510,7 +4537,7 @@ def Summarise_Multi_LLM_Analysis():
                 os.chdir(DATA_HOME)
             
             # Make plots of the gathered summarised data
-            PLOT_RES_FILES = True # Generate the plots of the summarised data files
+            PLOT_RES_FILES = False # Generate the plots of the summarised data files
             PLOT_VS_PRAT = False # Generate the plot with Power Ratio along the x-axis, other wise plot versus V_{VOA}
             
             if PLOT_RES_FILES:
@@ -4933,29 +4960,136 @@ def Lineshape_FFTs():
             print(os.getcwd())
 
             # CoBrite Laser
-            #looplength = 10; Nbeats = (1360/80);             
+            looplength = 10; Nbeats = (1360/80);             
             #looplength = 50; Nbeats = (960/80); 
 
             # NKT Laser
             #looplength = 10; Nbeats = (1280/80);             
-            looplength = 50; Nbeats = (1120/80); 
+            #looplength = 50; Nbeats = (1120/80); 
 
             F_AOM = 80            
             fbeats = numpy.arange(F_AOM, Nbeats*F_AOM + 1, F_AOM)
             distances = numpy.arange(looplength, Nbeats*looplength + 1, looplength)
 
-            filestr = 'Lineshape_I_200_D_%(v1)d_fb_%(v2)d.txt'
+            filestr = 'Lineshape_I_200_D_%(v1)d_fb_%(v2)d_fspan_150.txt'
 
             # Plot the measured lineshapes along the beat notes
             #Plot_Lineshape_Vs_Fbeat(filestr, looplength, theLaser, fbeats, distances, LWUNits)
 
             # Plot the measured lineshapes together
-            #Plot_Lineshape_Together(filestr, looplength, theLaser, fbeats, distances, FUnits, LWUNits, Pin, Prat)
+            Plot_Lineshape_Together(filestr, looplength, theLaser, fbeats, distances, FUnits, LWUNits, Pin, Prat, True)
 
             # Plot the computed FFT together
             filestr_X = 'Lineshape_I_200_D_%(v1)d_fb_%(v2)d_Frq_data.txt'
             filestr_Y = 'Lineshape_I_200_D_%(v1)d_fb_%(v2)d_FFT_data.txt'
-            Plot_FFT_Together(filestr_X, filestr_Y, looplength, theLaser, fbeats, distances, FUnits, LWUNits, Pin, Prat)
+            #Plot_FFT_Together(filestr_X, filestr_Y, looplength, theLaser, fbeats, distances, FUnits, LWUNits, Pin, Prat)
+
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Lineshape_FFTs_Comparison():
+    # Compare the computed lineshapes for the CoBrite TLS and the NKT Fibre Laser on the same graph
+    # Don't need an exhaustive set of plots, just compare the data from the D = 10km, fb = 800MHz, Deff = 100km
+    # R. Sheehan 4 - 3 - 2024
+
+    FUNC_NAME = ".Lineshape_FFTs_Comparison()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/'
+
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+
+            # Lineshape files
+            lineshape_file = 'Lineshape_I_200_D_10_fb_800.txt' # the lineshape
+            lineshape_fft_X = 'Lineshape_I_200_D_10_fb_800_Frq_Data.txt' # FFT of the lineshape, X-values
+            lineshape_fft_Y = 'Lineshape_I_200_D_10_fb_800_FFT_Data.txt' # FFT of the lineshape, Y-values
+
+            # Goto Cobrite Directory and Fetch the data you want
+            Ival = 200
+            loopLength = 50
+
+            lineshapes = []
+            lineshapes_FFT = []
+            labels = []
+            marks = []
+
+            # CoBrite Parameters
+            theLaser = 'CoBriteTLS'
+            temperature = 25        
+            RBW = '5kHz' # RBW used in the measurement
+            FUnits = ' / MHz'
+            LWUNits = ' / MHz / ' + RBW
+            Pin = 0.5*(4.77 + 4.72) # optical input power for measurement
+            Prat = 0.5*(0.075 + 0.323) # Loop power ratio
+
+            SUB_DIR = 'LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/Beat_Note_Lineshapes/'%{"v2":theLaser, "v3":temperature, "v4":loopLength}
+            os.chdir(SUB_DIR)
+            print(os.getcwd())
+            CoBrite_lineshape = numpy.loadtxt(lineshape_file, delimiter = '\t')
+            lineshapes.append([1000.0*(CoBrite_lineshape[0]-800.0), CoBrite_lineshape[1]]); labels.append('CoBrite 5kHz/2MHz'); marks.append(Plotting.labs_lins[0])
+            time_data = numpy.loadtxt(lineshape_fft_X, delimiter = '\t')
+            fft_data = numpy.loadtxt(lineshape_fft_Y, delimiter = ',', unpack = True)
+            # scale the abs(FFT) so that its maximum is at 1
+            scale_factor = numpy.max(fft_data[2])
+            lineshapes_FFT.append( [1000.0*time_data, fft_data[2] / scale_factor] ); # interested in plotting the abs(FFT) with time in units of us
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+
+            # Goto NKT Directory and Fetch the data you want
+
+            # NKT Parameters
+            theLaser = 'NKT'
+            temperature = 35        
+            RBW = '100Hz' # RBW used in the measurement
+            FUnits = ' / kHz'
+            LWUNits = ' / kHz / ' + RBW
+            Pin = 0.5*(9.71 + 9.59) # optical input power for measurement
+            Prat = 0.5*(0.082 + 0.107) # Loop power ratio
+
+            SUB_DIR = 'LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/Beat_Note_Lineshapes/'%{"v2":theLaser, "v3":temperature, "v4":loopLength}
+            os.chdir(SUB_DIR)
+            print(os.getcwd())
+            NKT_lineshape = numpy.loadtxt(lineshape_file, delimiter = '\t')
+            lineshapes.append(NKT_lineshape); labels.append('NKT 100Hz/100kHz'); marks.append(Plotting.labs_lins[1])
+            time_data = numpy.loadtxt(lineshape_fft_X, delimiter = '\t')
+            fft_data = numpy.loadtxt(lineshape_fft_Y, delimiter = ',', unpack = True)
+            # scale the abs(FFT) so that its maximum is at 1
+            scale_factor = numpy.max(fft_data[2])
+            lineshapes_FFT.append( [1000.0*time_data, fft_data[2] / scale_factor] ); # interested in plotting the abs(FFT) with time in units of us
+
+            #Store the Plot in the NKT Directory
+            args = Plotting.plot_arg_multiple()
+
+            args.loud = True
+            args.crv_lab_list = labels
+            args.show_leg = True
+            args.mrk_list = marks
+            args.x_label = 'Frequency' + FUnits
+            args.y_label = 'Power / dBm'
+            args.fig_name = 'Lineshapes_Comparison_D_10_fb_800'
+            args.plt_title = 'D$_{eff}$ = 100km, P$_{CoBr}$ = 4.74dBm, P$_{NKT}$ = 9.65dBm'
+            args.plt_range = [-300, 300, -80, -40]
+
+            Plotting.plot_multiple_curves(lineshapes, args)
+
+            args.loud = True
+            args.crv_lab_list = labels
+            args.show_leg = True
+            args.mrk_list = marks
+            args.x_label = 'Time / us'
+            args.y_label = 'FFT(Lineshape)'
+            args.fig_name = 'Lineshapes_FFT_Comparison_D_10_fb_800'
+            args.plt_title = 'D$_{eff}$ = 100km, P$_{CoBr}$ = 4.74dBm, P$_{NKT}$ = 9.65dBm'
+            args.plt_range = [0, 100, 0, 1]
+
+            Plotting.plot_multiple_curves(lineshapes_FFT, args)
 
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
@@ -5015,7 +5149,7 @@ def Plot_Lineshape_Vs_Fbeat(filestr, looplength, theLaser, fbeats, distances, LW
         print(ERR_STATEMENT)
         print(e)
 
-def Plot_Lineshape_Together(filestr, looplength, theLaser, fbeats, distances, FUnits, LWUNits, Pin, Prat):
+def Plot_Lineshape_Together(filestr, looplength, theLaser, fbeats, distances, FUnits, LWUNits, Pin, Prat, SubCoher = False):
 
     # Make a plot of all the lineshapes centred at 0kHz, scale all freq values to kHz
     # filestr is the template for the filename containing the linehsape data
@@ -5034,7 +5168,7 @@ def Plot_Lineshape_Together(filestr, looplength, theLaser, fbeats, distances, FU
         hv_data = []; marks = []; labels = []; 
         ord = 'Frequency'
         count = 0
-        for i in range(0, len(fbeats), 3):
+        for i in range(0, 6, 1):
             filename = filestr%{"v1":looplength, "v2":fbeats[i]}
             if glob.glob(filename):
                 data = numpy.loadtxt(filename, delimiter = '\t')
@@ -5052,9 +5186,9 @@ def Plot_Lineshape_Together(filestr, looplength, theLaser, fbeats, distances, FU
         args.mrk_list = marks
         args.x_label = 'Frequency' + FUnits
         args.y_label = 'Power / dBm' + LWUNits
-        args.fig_name = 'Lineshapes_Together_D_%(v2)d'%{"v1":ord, "v2":looplength}
+        args.fig_name = 'Lineshapes_Together_D_%(v2)d_SubCoher_Zoom'%{"v1":ord, "v2":looplength} if SubCoher else 'Lineshapes_Together_D_%(v2)d'%{"v1":ord, "v2":looplength}
         args.plt_title = '%(v1)s, P$_{1}$ = %(v2)0.2f dBm, P$_{2}$ / P$_{1}$ = %(v3)0.2f, L$_{fbr}$ = %(v4)d km'%{"v1":theLaser, "v2":Pin, "v3":Prat, "v4":looplength}
-        args.plt_range = [-1, 1, -100, -30]
+        args.plt_range = [-30, 30, -70, -10]
 
         Plotting.plot_multiple_curves(hv_data, args)
 
@@ -5063,7 +5197,7 @@ def Plot_Lineshape_Together(filestr, looplength, theLaser, fbeats, distances, FU
         print(ERR_STATEMENT)
         print(e)
 
-def Plot_FFT_Together(filestr_X, filestr_Y, looplength, theLaser, fbeats, distances, FUnits, LWUNits, Pin, Prat):
+def Plot_FFT_Together(filestr_X, filestr_Y, looplength, theLaser, fbeats, distances, FUnits, LWUNits, Pin, Prat, SubCoher = False):
 
     # Make a plot of all the lineshapes centred at 0kHz, scale all freq values to kHz
     # filestr_X is the template for the filename containing the time values from the computed FFT(lineshape)
@@ -5085,7 +5219,7 @@ def Plot_FFT_Together(filestr_X, filestr_Y, looplength, theLaser, fbeats, distan
         hv_data = []; marks = []; labels = []; 
         ord = 'Frequency'
         count = 0
-        for i in range(0, 7, 1):
+        for i in range(0, len(fbeats), 3):
             filename_X = filestr_X%{"v1":looplength, "v2":fbeats[i]}
             filename_Y = filestr_Y%{"v1":looplength, "v2":fbeats[i]}
             if glob.glob(filename_X) and glob.glob(filename_Y):
@@ -5093,7 +5227,7 @@ def Plot_FFT_Together(filestr_X, filestr_Y, looplength, theLaser, fbeats, distan
                 fft_data = numpy.loadtxt(filename_Y, delimiter = ',', unpack = True)
                 # scale the abs(FFT) so that its maximum is at 1
                 scale_factor = numpy.max(fft_data[2])
-                hv_data.append([1000.0*time_data, fft_data[2] / scale_factor]); # interested in plotting the abs(FFT) 
+                hv_data.append([1000.0*time_data, fft_data[2] / scale_factor]); # interested in plotting the abs(FFT) with time in units of us
                 marks.append(Plotting.labs_lins[count%len(Plotting.labs_lins)]); labels.append( '%(v1)d km'%{"v1":distances[i]} )
                 count = count + 1
 
@@ -5105,9 +5239,9 @@ def Plot_FFT_Together(filestr_X, filestr_Y, looplength, theLaser, fbeats, distan
         args.mrk_list = marks
         args.x_label = 'Time / us'
         args.y_label = 'FFT(Lineshape)'
-        args.fig_name = 'AutoCorr_D_%(v2)d'%{"v2":looplength}
+        args.fig_name = 'AutoCorr_D_%(v2)d_SubCoher'%{"v2":looplength} if SubCoher else 'AutoCorr_D_%(v2)d'%{"v2":looplength}
         args.plt_title = '%(v1)s, P$_{1}$ = %(v2)0.2f dBm, P$_{2}$ / P$_{1}$ = %(v3)0.2f, L$_{fbr}$ = %(v4)d km'%{"v1":theLaser, "v2":Pin, "v3":Prat, "v4":looplength}
-        args.plt_range = [0, 100, 0, 1]
+        args.plt_range = [0, 10, 0, 1]
 
         Plotting.plot_multiple_curves(hv_data, args)
 

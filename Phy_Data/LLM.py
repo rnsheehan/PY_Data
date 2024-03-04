@@ -1529,8 +1529,8 @@ def OEWaves_FNPSD_Multiple(filelst, laser_name, loud = False):
         args.log_y = False 
         args.show_leg = False
         #args.plt_range = [0.08, 120, 1000, 6000]
-        args.plt_range = [0.08, 120, 10, 300]
-        #args.plt_range = [0.08, 120, 0.0, 40]
+        #args.plt_range = [0.08, 120, 10, 300]
+        args.plt_range = [0.08, 120, 0.0, 40]
 
         Plotting.plot_single_curve_with_errors(ll_data[0][0], avg_LL, err_LL, args)
 
@@ -1575,8 +1575,8 @@ def OEWaves_FNPSD_Multiple(filelst, laser_name, loud = False):
         args.log_y = False  
         args.show_leg = False
         #args.plt_range = [0.08, 120, 1000, 6000]
-        args.plt_range = [0.08, 120, 10, 300]
-        #args.plt_range = [0.08, 120, 0.0, 40]
+        #args.plt_range = [0.08, 120, 10, 300]
+        args.plt_range = [0.08, 120, 0.0, 40]
 
         Plotting.plot_multiple_curves(ll_data, args) 
                 
@@ -1709,7 +1709,7 @@ def OEWaves_Analysis():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/OE4000_Init/CoBrite_TLS/'
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/OE4000_Init/NKT_High_Averaging/'
 
         if(os.path.isdir(DATA_HOME)):
             os.chdir(DATA_HOME)
@@ -1724,14 +1724,14 @@ def OEWaves_Analysis():
             #OEWaves_Analysis_Single(filename, True)
 
             #dev_name = 'Ref_DFB'
-            dev_name = 'CoBrite_TLS'
-            #dev_name = 'NKT'
-            Ival = 9
-            filestr = '%(v1)s_P_%(v2)d*.txt'%{"v1":dev_name, "v2":Ival}
+            #dev_name = 'CoBrite_TLS'
+            dev_name = 'NKT'
+            Ival = 125
+            filestr = '%(v1)s_I_%(v2)d*.txt'%{"v1":dev_name, "v2":Ival}
             
             #dev_name = 'Reference_DFB'
-            dev_name = 'CoBrite_Tunable'
-            #dev_name = 'NKT_FL'
+            #dev_name = 'CoBrite_Tunable'
+            dev_name = 'NKT_FL'
             resstr = '%(v1)s_P_%(v2)d'%{"v1":dev_name, "v2":Ival}
 
             filenames = glob.glob(filestr)
@@ -2201,7 +2201,7 @@ def Estimate_No_Viable_Peaks(pbeats, CNR_min, Noise_level):
                 if pbeats[i] - Noise_level > CNR_min: count = count + 1
             return count
         else:
-            ERR_STATEMENT = ERR_STAMENT + "Incorrect input arguments\n"
+            ERR_STATEMENT = ERR_STATEMENT + "Incorrect input arguments\n"
             raise Exception
     except Exception as e:
         print(ERR_STATEMENT)
@@ -4388,7 +4388,7 @@ def Summarise_Multi_LLM_Analysis():
             #dir_list = dir_list[2:len(dir_list)]
             #dir_list = ['LLM_Data_Nmeas_200_I_100_09_06_2023_09_42_Span_50k/', 'LLM_Data_Nmeas_200_I_100_08_06_2023_12_57_Span_100k/', 'LLM_Data_Nmeas_200_I_100_29_05_2023_15_34_Span_250k/', 'LLM_Data_Nmeas_200_I_100_29_05_2023_14_20_Span_500k/']
             #TmeasVals = [39, 29, 19, 20] # measurement time varies depending on the RBW value and the Freq. Span
-            #SpanVals = [50, 100, 250, 500]
+            SpanVals = [50, 100, 250, 500]
             #RBWVals = [50, 100, 500, 500]
             RBWVals = [20]
             #Pin = 3.34

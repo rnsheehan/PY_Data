@@ -4936,22 +4936,22 @@ def Lineshape_FFTs():
         loopLength = 50
 
         # CoBrite Parameters
-        #theLaser = 'CoBriteTLS'
-        #temperature = 25        
-        #RBW = '5kHz' # RBW used in the measurement
-        #FUnits = ' / MHz'
-        #LWUNits = ' / MHz / ' + RBW
-        #Pin = 0.5*(4.77 + 4.72) # optical input power for measurement
-        #Prat = 0.5*(0.075 + 0.323) # Loop power ratio
+        theLaser = 'CoBriteTLS'
+        temperature = 25        
+        RBW = '5kHz' # RBW used in the measurement
+        FUnits = ' / MHz'
+        LWUNits = ' / MHz / ' + RBW
+        Pin = 0.5*(4.77 + 4.72) # optical input power for measurement
+        Prat = 0.5*(0.075 + 0.323) # Loop power ratio
 
         # NKT Parameters
-        theLaser = 'NKT'
-        temperature = 35        
-        RBW = '100Hz' # RBW used in the measurement
-        FUnits = ' / kHz'
-        LWUNits = ' / kHz / ' + RBW
-        Pin = 0.5*(9.71 + 9.59) # optical input power for measurement
-        Prat = 0.5*(0.082 + 0.107) # Loop power ratio
+        #theLaser = 'NKT'
+        #temperature = 35        
+        #RBW = '100Hz' # RBW used in the measurement
+        #FUnits = ' / kHz'
+        #LWUNits = ' / kHz / ' + RBW
+        #Pin = 0.5*(9.71 + 9.59) # optical input power for measurement
+        #Prat = 0.5*(0.082 + 0.107) # Loop power ratio
 
         DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/Beat_Note_Lineshapes/'%{"v2":theLaser, "v3":temperature, "v4":loopLength}
 
@@ -4971,18 +4971,18 @@ def Lineshape_FFTs():
             fbeats = numpy.arange(F_AOM, Nbeats*F_AOM + 1, F_AOM)
             distances = numpy.arange(looplength, Nbeats*looplength + 1, looplength)
 
-            filestr = 'Lineshape_I_200_D_%(v1)d_fb_%(v2)d_fspan_150.txt'
+            filestr = 'Lineshape_I_200_D_%(v1)d_fb_%(v2)d.txt'
 
             # Plot the measured lineshapes along the beat notes
             #Plot_Lineshape_Vs_Fbeat(filestr, looplength, theLaser, fbeats, distances, LWUNits)
 
             # Plot the measured lineshapes together
-            Plot_Lineshape_Together(filestr, looplength, theLaser, fbeats, distances, FUnits, LWUNits, Pin, Prat, True)
+            #Plot_Lineshape_Together(filestr, looplength, theLaser, fbeats, distances, FUnits, LWUNits, Pin, Prat)
 
             # Plot the computed FFT together
             filestr_X = 'Lineshape_I_200_D_%(v1)d_fb_%(v2)d_Frq_data.txt'
             filestr_Y = 'Lineshape_I_200_D_%(v1)d_fb_%(v2)d_FFT_data.txt'
-            #Plot_FFT_Together(filestr_X, filestr_Y, looplength, theLaser, fbeats, distances, FUnits, LWUNits, Pin, Prat)
+            Plot_FFT_Together(filestr_X, filestr_Y, looplength, theLaser, fbeats, distances, FUnits, LWUNits, Pin, Prat)
 
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
@@ -5237,11 +5237,12 @@ def Plot_FFT_Together(filestr_X, filestr_Y, looplength, theLaser, fbeats, distan
         args.crv_lab_list = labels
         args.show_leg = True
         args.mrk_list = marks
+        args.log_x = True
         args.x_label = 'Time / us'
         args.y_label = 'FFT(Lineshape)'
         args.fig_name = 'AutoCorr_D_%(v2)d_SubCoher'%{"v2":looplength} if SubCoher else 'AutoCorr_D_%(v2)d'%{"v2":looplength}
         args.plt_title = '%(v1)s, P$_{1}$ = %(v2)0.2f dBm, P$_{2}$ / P$_{1}$ = %(v3)0.2f, L$_{fbr}$ = %(v4)d km'%{"v1":theLaser, "v2":Pin, "v3":Prat, "v4":looplength}
-        args.plt_range = [0, 10, 0, 1]
+        #args.plt_range = [0, 100, 0, 1]
 
         Plotting.plot_multiple_curves(hv_data, args)
 

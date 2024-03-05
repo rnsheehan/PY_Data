@@ -63,7 +63,7 @@ if __name__ == '__main__':
 
     #General.PDA10CS_Calibration()
 
-    LLM.OEWaves_Analysis()
+    #LLM.OEWaves_Analysis()
 
     #General.PDA10CS_Calibration()
 
@@ -105,5 +105,5 @@ if __name__ == '__main__':
 
     #General.Sorting_By_Column()
 
-    #LLM.Lineshape_FFTs()
+    LLM.Lineshape_FFTs()
 

@@ -5083,6 +5083,7 @@ def Lineshape_FFTs_Comparison():
             args.crv_lab_list = labels
             args.show_leg = True
             args.mrk_list = marks
+            args.log_x = False
             args.x_label = 'Time / us'
             args.y_label = 'FFT(Lineshape)'
             args.fig_name = 'Lineshapes_FFT_Comparison_D_10_fb_800'
@@ -5247,6 +5248,144 @@ def Plot_FFT_Together(filestr_X, filestr_Y, looplength, theLaser, fbeats, distan
         Plotting.plot_multiple_curves(hv_data, args)
 
         del hv_data; del marks; del labels; 
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def CNR_Analysis():
+
+    # Plot the measured CNR data
+    # R. Sheehan 11 - 3 - 2024
+
+    FUNC_NAME = ".CNR_Analysis()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        Ival = 200
+        loopLength = 400
+
+        # CoBrite Parameters
+        theLaser = 'CoBriteTLS'
+        temperature = 25        
+        RBW = '5kHz' # RBW used in the measurement
+        FUnits = ' / MHz'
+        LWUNits = ' / MHz / ' + RBW
+        Pin = 4.91 # optical input power for measurement
+
+        # NKT Parameters
+        #theLaser = 'NKT'
+        #temperature = 35        
+        #RBW = '100Hz' # RBW used in the measurement
+        #FUnits = ' / kHz'
+        #LWUNits = ' / kHz / ' + RBW
+        #Pin = 6.19 # optical input power for measurement
+
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/Lineshape_vs_VOA/'%{"v2":theLaser, "v3":temperature, "v4":loopLength}
+
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+
+            filestr = 'Lineshape_VVOA_%(v1)d.txt'
+            Deff = 400
+            #VVOA = [0, 1, 2, 3, 32, 34, 35, 36, 37, 38]
+            #VVOA_vals = [0, 1, 2, 3, 3.2, 3.4, 3.5, 3.6, 3.7, 3.8]
+            VVOA = [0, 1, 2, 3, 35, 37]
+            VVOA_vals = [0, 1, 2, 3, 3.5, 3.7]
+            Fbeat = 640
+
+            Plot_Lineshape_vs_VVOA(filestr, Deff, VVOA, VVOA_vals, Fbeat, theLaser, FUnits, LWUNits, Pin)
+
+            filename = 'NKT_CNR_VVOA_3.txt'
+            #Plot_CNR(filename, Deff, Fbeat, theLaser, FUnits, LWUNits, Pin)
+
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Plot_Lineshape_vs_VVOA(filestr, looplength, VVOA, VVOA_vals, Fbeat, theLaser, FUnits, LWUNits, Pin, ScaleVert = False):
+
+    # Make a plot of all the lineshapes centred at 0kHz, scale all freq values to kHz
+    # filestr is the template for the filename containing the linehsape data
+    # looplength is the length of the fibre loop used in the measurement
+    # theLaser is the name of the DUT
+    # VVOA is an array of VOA voltages used
+    # Fbeat is the beat note used to make the measurement
+    # LWUNits is the string containing the ESA RBW data for the system
+    # R. Sheehan 27 - 2 - 2024
+
+    FUNC_NAME = ".Plot_Lineshape_vs_VVOA()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        # Plot the measured lineshapes together
+        hv_data = []; marks = []; labels = []; 
+        ord = 'Frequency'
+        count = 0
+        for i in range(0, len(VVOA), 1):
+            filename = filestr%{"v1":VVOA[i]}
+            if glob.glob(filename):
+                data = numpy.loadtxt(filename, delimiter = '\t', unpack = True)
+                if theLaser == 'NKT':
+                    data[0] = 1000.0*(data[0] - Fbeat) # rescale the freq data from kHz to MHz and subtract the beat note value
+                else:
+                    data[0] = (data[0] - Fbeat) # rescale the freq data from kHz to MHz and subtract the beat note value
+                if ScaleVert:
+                    Ymax = numpy.max(data[1])
+                    data[1] = data[1] - Ymax
+                hv_data.append(data); 
+                marks.append(Plotting.labs_lins[count%len(Plotting.labs_lins)]); labels.append( '%(v1)0.1f V'%{"v1":VVOA_vals[i]} )
+                count = count + 1
+
+        args = Plotting.plot_arg_multiple()
+
+        args.loud = True
+        args.crv_lab_list = labels
+        args.show_leg = True
+        args.mrk_list = marks
+        args.x_label = 'Frequency' + FUnits
+        args.y_label = 'Power / dBm' + LWUNits
+        args.fig_name = 'Lineshapes_Together_D_%(v2)d'%{"v2":looplength} if ScaleVert == False else 'Lineshapes_Together_D_%(v2)d_Scaled'%{"v2":looplength}
+        args.plt_title = '%(v1)s, P$_{1}$ = %(v2)0.2f dBm, D$_{eff}$ = %(v4)d km'%{"v1":theLaser, "v2":Pin, "v4":looplength}
+        if ScaleVert:
+            args.plt_range = [-50, 50, -40, 0] if theLaser == 'NKT' else [-1, 1, -30, 0]
+        else:
+            args.plt_range = [-50, 50, -110, -30] if theLaser == 'NKT' else [-1, 1, -100, -30]
+
+        Plotting.plot_multiple_curves(hv_data, args)
+
+        del hv_data; del marks; del labels; 
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Plot_CNR(filename, looplength, Fbeat, theLaser, FUnits, LWUNits, Pin):
+
+    # Plot the CNR for a given laser
+
+    FUNC_NAME = ".Plot_CNR()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        if glob.glob(filename):
+            data = numpy.loadtxt(filename, delimiter = '\t', unpack = True)
+
+            args = Plotting.plot_arg_single()
+            args.loud = True
+            args.x_label = 'VOA Voltage / V'
+            args.y_label = 'CNR / dB / 100Hz'
+            args.fig_name = '%(v1)s_CNR'%{"v1":theLaser}
+            args.plt_title = '%(v1)s, P$_{1}$ = %(v2)0.2f dBm, D$_{eff}$ = %(v4)d km'%{"v1":theLaser, "v2":Pin, "v4":looplength}
+            args.plt_range = [0, 4, 24, 32] if theLaser == 'NKT' else [0, 4, 14, 24]
+
+            Plotting.plot_single_curve_with_errors(data[0], data[1], data[2], args)
+
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate file: ' + filename
+            raise Exception
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)

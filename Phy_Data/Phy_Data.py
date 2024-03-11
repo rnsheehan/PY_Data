@@ -105,5 +105,7 @@ if __name__ == '__main__':
 
     #General.Sorting_By_Column()
 
-    LLM.Lineshape_FFTs()
+    #LLM.Lineshape_FFTs_Comparison()
+
+    LLM.CNR_Analysis()
 

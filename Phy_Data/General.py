@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 
 import Common
 import Plotting
+import SpctrmPlt
 
 import pandas
 import pprint
@@ -178,7 +179,7 @@ def Superlum_Amplification():
             PLOT_POW_SINGLE = False
             PLOT_FULL = False
             PLOT_FILT = False
-            SLD_file = glob.glob("SLD*2023.txt")
+            SLD_file = ['SLD_T_125_I_300_26_1_2023.txt', 'SLD_T_125_I_350_26_1_2023.txt', 'SLD_T_125_I_400_26_1_2023.txt']
             SLD_file_Amp = glob.glob("SLD*2023_Amp.txt")
             SLD_file_full = glob.glob("SLD*Full*.txt")
             #SLD_file_filt = glob.glob("SLD*_1_13*.txt")
@@ -193,9 +194,9 @@ def Superlum_Amplification():
             SLD_pow = [6.82, 8.24, 9.23]
             SLD_pow_amp = [11.51, 11.74, 11.93]
 
-            SLD_curr = [300, 310, 320, 330, 340, 350, 360, 370, 380, 390, 400]
-            SLD_pow = [6.83, 7.15, 7.45, 7.74, 8.00, 8.25, 8.48, 8.70, 8.90, 9.09, 9.28]
-            SLD_pow_filt = [-16.60, -16.23, -15.90, -15.58, -15.30, -15.03, -14.78, -14.56, -14.35, -14.14, -13.95]
+            #SLD_curr = [300, 310, 320, 330, 340, 350, 360, 370, 380, 390, 400]
+            #SLD_pow = [6.83, 7.15, 7.45, 7.74, 8.00, 8.25, 8.48, 8.70, 8.90, 9.09, 9.28]
+            #SLD_pow_filt = [-16.60, -16.23, -15.90, -15.58, -15.30, -15.03, -14.78, -14.56, -14.35, -14.14, -13.95]
 
             if PLOT_POW_SINGLE:
                 # plot the SLD power
@@ -568,7 +569,7 @@ def Superlum_Amplification():
             PLOT_OAM_Spctr_Full = False
             PLOT_OAM_Spctr_Short = False
             PLOT_OAM_IV = False
-            PLOT_OAM_AMP = False
+            PLOT_OAM_AMP = True
             OAM = 'A'
             full_spctr = glob.glob('JDSU_OEM_%(v1)s_I_*_ASE_20_2_2023.txt'%{"v1":OAM})
             short_spctr = glob.glob('JDSU_OEM_%(v1)s_I_*_ASE_Short_20_2_2023.txt'%{"v1":OAM})
@@ -617,10 +618,10 @@ def Superlum_Amplification():
                 #hv_data.append([data[0], data[1]])
                 #labels.append('SLD + OTF + FP'); marks.append( Plotting.labs_lins[0] );
 
-                #STEP = 22
-                #data = numpy.loadtxt(OAM_AMP_files[3], delimiter = '\t', unpack = True)
-                #hv_data.append([data[0], data[1]])
-                #labels.append('SLD + OTF + OAM-A'); marks.append( Plotting.labs_lins[2] );
+                STEP = 22
+                data = numpy.loadtxt(OAM_AMP_files[3], delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[1]])
+                labels.append('SLD + OTF + OAM-A'); marks.append( Plotting.labs_lins[2] );
 
                 #data = numpy.loadtxt(OAM_AMP_files[2], delimiter = '\t', unpack = True)
                 #hv_data.append([data[0], data[1]])
@@ -635,18 +636,22 @@ def Superlum_Amplification():
                 #hv_data.append([data[0], data[1]])
                 #labels.append('SLD + OTF + OAM-A'); marks.append( Plotting.labs_lins[2] );
 
-                STEP = 4
-                data = numpy.loadtxt(OAM_AMP_files[6], delimiter = '\t', unpack = True)
-                hv_data.append([data[0], data[1]])
-                labels.append('SLD + OTF + C-band + OAM-A'); marks.append( Plotting.labs_lins[5] );
+                #STEP = 4
+                #data = numpy.loadtxt(OAM_AMP_files[6], delimiter = '\t', unpack = True)
+                #hv_data.append([data[0], data[1]])
+                #labels.append('SLD + OTF + C-band + OAM-A'); marks.append( Plotting.labs_lins[5] );
 
-                data = numpy.loadtxt(OAM_AMP_files[5], delimiter = '\t', unpack = True)
-                hv_data.append([data[0], data[1]])
-                labels.append('SLD + OTF + C-band'); marks.append( Plotting.labs_lins[4] );
+                #data = numpy.loadtxt(OAM_AMP_files[5], delimiter = '\t', unpack = True)
+                #hv_data.append([data[0], data[1]])
+                #labels.append('SLD + OTF + C-band'); marks.append( Plotting.labs_lins[4] );                
 
                 data = numpy.loadtxt(OAM_AMP_files[0], delimiter = '\t', unpack = True)
                 hv_data.append([data[0], data[1]])
-                labels.append('SLD + OTF'); marks.append( Plotting.labs_line_only[1] );    
+                labels.append('SLD + OTF'); marks.append( Plotting.labs_lins[1] );
+
+                data = numpy.loadtxt('SLD_T_125_I_400_UnFiltered_1_13_2_2023.txt', delimiter = '\t', unpack = True)
+                hv_data.append([data[0], data[1]])
+                labels.append('SLD'); marks.append( Plotting.labs_lins[0] );
                 
             # Counter Propagation Experiment
             PLOT_COUNT = False
@@ -666,7 +671,7 @@ def Superlum_Amplification():
                 labels.append('SLD + OTF'); marks.append( Plotting.labs_line_only[1] );
 
             # C-band EDFA altered ASE
-            PLOT_Alt_ASE = True
+            PLOT_Alt_ASE = False
             ASE_Files = ['JDSU_OEM_A_I_400_ASE_21_2_2023.txt',
                          'JDSU_OEM_A_I_400_ASE_20_2_2023.txt',
                          'Fibre_CBand_EDFA_Gain_Pump_400_21_2_2023.txt',
@@ -1428,5 +1433,77 @@ def Plotting_With_Two_X_Axes():
 
 
     pass
+
+def Chilas_TLS_Characterisation():
+
+    # Generate the plots from the Chilas TLS
+    # R. Sheehan 30 - 4 - 2024
+
+    FUNC_NAME = ".Chilas_TLS_Characterisation()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Data/Chilas_TLS/'
+
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            #os.chdir('Initial_Characterisation/')
+            print(os.getcwd())
+
+            PLOT_INIT_SPCTR = False
+            if PLOT_INIT_SPCTR:
+                the_dir = 'Initial_Characterisation/'
+                the_files = []
+                the_labels = []
+                wl_list = numpy.arange(1500, 1590, 10)
+                for i in range(0, len(wl_list), 1):
+                    the_files.append('WL_%(v1)d.txt'%{"v1":int(wl_list[i]) })
+                    the_labels.append('$\lambda_{s}$ = %(v1)d nm'%{"v1":int(wl_list[i]) })
+
+                plt_title = 'Chilas TLS Output I = 250 mA'
+                plt_name = 'Chilas_TLS_Output'
+
+                #SpctrmPlt.multiple_optical_spectrum_plot(the_dir, the_files, the_labels, [1490, 1590, -80, +10], plt_title, plt_name, loudness = True)
+                SpctrmPlt.multiple_optical_spectrum_plot(the_dir, the_files, the_labels, [1490, 1590, -80, +10], loudness = True)
+
+            PLOT_INIT_VALS = True
+            if PLOT_INIT_VALS:
+                the_dir = 'Initial_Characterisation/'
+                os.chdir(the_dir)
+                data = numpy.loadtxt('OSA_Settings.txt', delimiter = '\t', skiprows = 6, usecols = [0, 1, 2, 3, 4], unpack = True)
+                
+                # Make plots of the measured quantities
+                # plot power vs WL
+                args = Plotting.plot_arg_single()
+
+                args.loud = True
+                args.x_label = 'Wavelength (nm)'
+                args.y_label = 'Optical Power (dBm)'
+                args.fig_name = 'Optical_Power'
+
+                Plotting.plot_single_curve(data[1], data[4], args)
+
+                # plot SMSR and SNR versus WL
+                args = Plotting.plot_arg_multiple()
+                
+                hv_data = [[data[1], data[3]], [data[1], data[2]]]
+                labels = ['SNR', 'SMSR']
+                marks = [Plotting.labs[0], Plotting.labs[1]]
+                
+                args.loud = True
+                args.x_label = 'Wavelength (nm)'
+                args.y_label = 'Ratio (dB)'
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.fig_name = 'Ratio'
+
+                Plotting.plot_multiple_curves(hv_data,args)
+
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate directory: ' + DATA_HOME
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
     
     

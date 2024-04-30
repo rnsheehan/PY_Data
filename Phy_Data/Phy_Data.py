@@ -63,7 +63,7 @@ if __name__ == '__main__':
 
     #General.PDA10CS_Calibration()
 
-    LLM.OEWaves_Analysis()
+    #LLM.OEWaves_Analysis()
 
     #General.PDA10CS_Calibration()
 
@@ -108,4 +108,8 @@ if __name__ == '__main__':
     #LLM.Lineshape_FFTs_Comparison()
 
     #LLM.CNR_Analysis()
+
+    #General.Superlum_Amplification()
+
+    General.Chilas_TLS_Characterisation()
 

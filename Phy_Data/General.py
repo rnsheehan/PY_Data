@@ -1480,6 +1480,7 @@ def Chilas_TLS_Characterisation():
                 args.x_label = 'Wavelength (nm)'
                 args.y_label = 'Optical Power (dBm)'
                 args.fig_name = 'Optical_Power'
+                args.plt_title = 'Chilas TLS Output I = 250 mA'
 
                 Plotting.plot_single_curve(data[1], data[4], args)
 
@@ -1496,6 +1497,7 @@ def Chilas_TLS_Characterisation():
                 args.crv_lab_list = labels
                 args.mrk_list = marks
                 args.fig_name = 'Ratio'
+                args.plt_title = 'Chilas TLS Output I = 250 mA'
 
                 Plotting.plot_multiple_curves(hv_data,args)
 

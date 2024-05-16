@@ -1466,7 +1466,7 @@ def Chilas_TLS_Characterisation():
                 #SpctrmPlt.multiple_optical_spectrum_plot(the_dir, the_files, the_labels, [1490, 1590, -80, +10], plt_title, plt_name, loudness = True)
                 SpctrmPlt.multiple_optical_spectrum_plot(the_dir, the_files, the_labels, [1490, 1590, -80, +10], loudness = True)
 
-            PLOT_INIT_VALS = True
+            PLOT_INIT_VALS = False
             if PLOT_INIT_VALS:
                 the_dir = 'Initial_Characterisation/'
                 os.chdir(the_dir)
@@ -1500,6 +1500,58 @@ def Chilas_TLS_Characterisation():
                 args.plt_title = 'Chilas TLS Output I = 250 mA'
 
                 Plotting.plot_multiple_curves(hv_data,args)
+
+            PLOT_HI_RES = False
+            if PLOT_HI_RES:
+                # Make plots of the hi-res spectrum
+                # resolution = 0.05 nm, sensitivity = HIGH2
+                # plot power vs WL
+
+                the_dir = 'Initial_Characterisation/'
+                os.chdir(the_dir)
+                data = numpy.loadtxt('WL_1550_HiRes.txt', delimiter = '\t', unpack = True)
+
+                args = Plotting.plot_arg_single()
+
+                args.loud = True
+                args.x_label = 'Wavelength (nm)'
+                args.y_label = 'Spectral Power (dBm / 0.05nm)'
+                args.marker = Plotting.labs_lins[5]
+                args.plt_range = [1548, 1552, -80, +10]
+                args.fig_name = 'Optical_Power_HiRes'
+                args.plt_title = 'Chilas TLS Output I = 250 mA'
+
+                Plotting.plot_single_curve(data[0], data[1], args)
+
+            PLOT_INIT_LINESHAPES = True
+            if PLOT_INIT_LINESHAPES:
+                the_dir = 'Initial_Characterisation/'
+                os.chdir(the_dir)
+                files = ['LLM_80.txt', 'LLM_160.txt', 'LLM_320.txt']
+                fbeat = [80, 160, 320]
+                hv_data = []
+                labels = []
+                marks = []
+                count = 0
+                for f in files:
+                    data = numpy.loadtxt(f, delimiter = '\t', unpack = True)
+                    data[0] = data[0] - fbeat[count]
+                    hv_data.append(data); 
+                    labels.append('$f_{b}$ = %(v1)d MHz'%{"v1":fbeat[count]}); 
+                    marks.append(Plotting.labs_lins[count])
+                    count = count + 1
+
+                args = Plotting.plot_arg_multiple()
+                
+                args.loud = True
+                args.x_label = 'Frequency Offset (MHz)'
+                args.y_label = 'Spectral Power (dBm / 20kHz)'
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.fig_name = 'Lineshapes'
+                args.plt_title = 'Chilas TLS Lineshape I = 250 mA'
+
+                Plotting.plot_multiple_curves(hv_data, args)
 
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate directory: ' + DATA_HOME

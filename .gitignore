@@ -133,3 +133,7 @@ Phy_Data/.vs/Phy_Data/v16/Browse.VC.opendb
 Phy_Data/.vs/Phy_Data/v16/.suo
 Phy_Data/.vs/Phy_Data/v16/.suo
 Phy_Data/.vs/Phy_Data/v16/.suo
+
+*.vsidx
+*.suo
+*.json

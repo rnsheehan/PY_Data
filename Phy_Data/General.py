@@ -137,9 +137,19 @@ def Diode_Fit_Calibration():
 
 def Sandbox():
 
-    size_diff = -3
-    print(numpy.zeros( abs(size_diff)  ))
-    print(numpy.repeat( -1000, abs(size_diff)  ))
+    # size_diff = -3
+    # print(numpy.zeros( abs(size_diff)  ))
+    # print(numpy.repeat( -1000, abs(size_diff)  ))
+    
+    # Attempt to select a dictionary element other than the one named
+    Write_Chnnls = {"A0":0, "A1":1}
+    the_channel = 'A1'
+    
+    if the_channel == 'A0':
+        print('Writing from A1:',Write_Chnnls['A1'])
+    else:
+        print('Writing from A0:',Write_Chnnls['A0'])
+    
 
 def Superlum_Amplification():
 

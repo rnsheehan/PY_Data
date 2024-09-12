@@ -1460,7 +1460,7 @@ def Chilas_TLS_Characterisation():
             #os.chdir('Initial_Characterisation/')
             print(os.getcwd())
 
-            PLOT_INIT_SPCTR = False
+            PLOT_INIT_SPCTR = True
             if PLOT_INIT_SPCTR:
                 the_dir = 'Initial_Characterisation/'
                 the_files = []
@@ -1533,7 +1533,7 @@ def Chilas_TLS_Characterisation():
 
                 Plotting.plot_single_curve(data[0], data[1], args)
 
-            PLOT_INIT_LINESHAPES = True
+            PLOT_INIT_LINESHAPES = False
             if PLOT_INIT_LINESHAPES:
                 the_dir = 'Initial_Characterisation/'
                 os.chdir(the_dir)

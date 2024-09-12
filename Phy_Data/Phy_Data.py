@@ -111,7 +111,7 @@ if __name__ == '__main__':
 
     #General.Superlum_Amplification()
 
-    #General.Chilas_TLS_Characterisation()
+    General.Chilas_TLS_Characterisation()
     
-    General.Sandbox()
+    #General.Sandbox()
 

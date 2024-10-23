@@ -150,7 +150,6 @@ def Sandbox():
     else:
         print('Writing from A0:',Write_Chnnls['A0'])
     
-
 def Superlum_Amplification():
 
     # plots relating to measurement of Superlum SLD amplification
@@ -1532,6 +1531,75 @@ def Chilas_TLS_Characterisation():
                 args.plt_title = 'Chilas TLS Output I = 250 mA'
 
                 Plotting.plot_single_curve(data[0], data[1], args)
+
+            PLOT_INIT_LINESHAPES = False
+            if PLOT_INIT_LINESHAPES:
+                the_dir = 'Initial_Characterisation/'
+                os.chdir(the_dir)
+                files = ['LLM_80.txt', 'LLM_160.txt', 'LLM_320.txt']
+                fbeat = [80, 160, 320]
+                hv_data = []
+                labels = []
+                marks = []
+                count = 0
+                for f in files:
+                    data = numpy.loadtxt(f, delimiter = '\t', unpack = True)
+                    data[0] = data[0] - fbeat[count]
+                    hv_data.append(data); 
+                    labels.append('$f_{b}$ = %(v1)d MHz'%{"v1":fbeat[count]}); 
+                    marks.append(Plotting.labs_lins[count])
+                    count = count + 1
+
+                args = Plotting.plot_arg_multiple()
+                
+                args.loud = True
+                args.x_label = 'Frequency Offset (MHz)'
+                args.y_label = 'Spectral Power (dBm / 20kHz)'
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.fig_name = 'Lineshapes'
+                args.plt_title = 'Chilas TLS Lineshape I = 250 mA'
+
+                Plotting.plot_multiple_curves(hv_data, args)
+
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate directory: ' + DATA_HOME
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+        
+def CoBrite_TLS_Characterisation():
+
+    # Generate the plots from the Chilas TLS
+    # R. Sheehan 30 - 4 - 2024
+
+    FUNC_NAME = ".CoBrite_TLS_Characterisation()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/CPT_Tests/CoBriteTLS/'
+
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            #os.chdir('Initial_Characterisation/')
+            print(os.getcwd())
+
+            PLOT_INIT_SPCTR = True
+            if PLOT_INIT_SPCTR:
+                the_dir = 'Init_Char/'
+                the_files = []
+                the_labels = []
+                plist = [6, 7, 8]
+                for i in range(0, len(plist), 1):
+                    the_files.append('OpticalOut_P_%(v1)ddBm.txt'%{"v1":plist[i] })
+                    the_labels.append('P = %(v1)d dBm'%{"v1":plist[i] })
+
+                plt_title = 'CoBrite TLS Output'
+                plt_name = 'CoBrite_TLS_Output'
+
+                SpctrmPlt.multiple_optical_spectrum_plot(the_dir, the_files, the_labels, [1545, 1555, -60, +10], plt_title, plt_name, loudness = True)
+                #SpctrmPlt.multiple_optical_spectrum_plot(the_dir, the_files, the_labels, [1490, 1590, -80, +10], loudness = True)
 
             PLOT_INIT_LINESHAPES = False
             if PLOT_INIT_LINESHAPES:

@@ -1,3 +1,4 @@
+from ast import Try
 import sys
 import os 
 
@@ -1529,7 +1530,7 @@ def OEWaves_FNPSD_Multiple(filelst, laser_name, loud = False):
         args.log_y = False 
         args.show_leg = False
         #args.plt_range = [0.08, 120, 1000, 6000]
-        args.plt_range = [0.08, 120, 10, 300]
+        #args.plt_range = [0.08, 120, 10, 300]
         #args.plt_range = [0.08, 120, 0.0, 40]
 
         Plotting.plot_single_curve_with_errors(ll_data[0][0], avg_LL, err_LL, args)
@@ -1575,7 +1576,7 @@ def OEWaves_FNPSD_Multiple(filelst, laser_name, loud = False):
         args.log_y = False  
         args.show_leg = False
         #args.plt_range = [0.08, 120, 1000, 6000]
-        args.plt_range = [0.08, 120, 10, 300]
+        #args.plt_range = [0.08, 120, 10, 300]
         #args.plt_range = [0.08, 120, 0.0, 40]
 
         Plotting.plot_multiple_curves(ll_data, args) 
@@ -1596,7 +1597,7 @@ def OEWaves_FNPSD_Multiple(filelst, laser_name, loud = False):
         args.log_x = True
         args.log_y = True  
         args.show_leg = False
-        args.plt_range = [10, 1e+6, 1e+1, 1e+12]
+        #args.plt_range = [10, 1e+6, 1e+1, 1e+12]
 
         Plotting.plot_multiple_curves(hv_data, args)
 
@@ -5386,6 +5387,109 @@ def Plot_CNR(filename, looplength, Fbeat, theLaser, FUnits, LWUNits, Pin):
 
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate file: ' + filename
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def OL_Laser_Analysis():
+    
+    # Plot the data from the measurements for Odhran Liston's Laser
+    # 25 - 10 - 2024
+
+    FUNC_NAME = ".Plot_CNR()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/Odhran_Liston_LLM_10_2024/'
+        
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+
+            # Optical Spectra
+            PLOT_OPTICAL = False
+            
+            if PLOT_OPTICAL:
+                filenames = [#'CoBrite_Laser_Spctrm_l_1554.txt',
+                             #'OL_Laser_Spctrm_l_1554.txt',
+                             'OL_Laser_Spctrm_l_1554_Time_T2_NoAmp.txt',
+                             'OL_Laser_Spctrm_l_1554_Time_T2_WithAmp.txt',
+                             'OL_Laser_Spctrm_l_1554_Time_T2_WithAmp_WithFilt.txt'#,
+                             #'OL_Laser_Spctrm_l_1554_Time_T3_WithAmp_WithFilt.txt'
+                             ]
+                
+                labels = [#'CoBrite TLS',
+                          #'OL T$_{1}$ No Amp',
+                          'OL T$_{2}$ No Amp',
+                          'OL T$_{2}$ Amp',
+                          'OL T$_{2}$ Amp + Filt'#,
+                          #'OL T$_{3}$ Amp + Filt'
+                          ]
+                
+                hv_data = []
+                marks = []
+                for i in range(0, len(filenames),1):
+                    data = numpy.loadtxt(filenames[i], delimiter = '\t', unpack = True)
+                    hv_data.append(data)
+                    marks.append(Plotting.labs_lins[i%len(Plotting.labs_lins)])
+                    
+                # plot the data
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = 'Wavelength (nm)'
+                args.y_label = 'Power / dBm / 0.01 nm'
+                args.plt_range = [1552, 1556, -50, 10]
+                args.fig_name = 'Optical_Spectra_Zoom_1'
+                #args.plt_title = 'JDSU CQF915/508 $I_{DFB}$ = 200 mA'                
+                            
+                Plotting.plot_multiple_curves(hv_data, args)
+                
+            # ESA Spectrum
+            PLOT_FULL_ESA = False    
+            
+            if PLOT_FULL_ESA:
+                filenames =['OL_Amp_Filt_ESA_Spctrm_Full_1.txt','OL_Amp_Filt_ESA_Spctrm_Full_2.txt']
+                labels = ['V$_{VOA}$ = 0V', 'V$_{VOA}$ = 3.5V']
+                
+                hv_data = []
+                marks = []
+                for i in range(0, len(filenames),1):
+                    data = numpy.loadtxt(filenames[i], delimiter = '\t', unpack = True)
+                    hv_data.append(data)
+                    marks.append(Plotting.labs_lins[i%len(Plotting.labs_lins)])
+                    
+                # plot the data
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = 'Frequency (MHz)'
+                args.y_label = 'Power / dBm / 100 kHz'
+                #args.plt_range = [1552, 1556, -50, 10]
+                args.fig_name = 'Full_ESA_Spectrum'
+                #args.plt_title = 'JDSU CQF915/508 $I_{DFB}$ = 200 mA'                
+                            
+                Plotting.plot_multiple_curves(hv_data, args)
+
+            # OE Waves Analysis
+            PLOT_OE = True
+            
+            if PLOT_OE:
+                filenames = ['OEWaves_Test_WithAmp_WithFilt_WithAtt_1.txt','OEWaves_Test_WithAmp_WithFilt_WithAtt_2.txt','OEWaves_Test_WithAmp_WithFilt_WithAtt_3.txt']
+                
+                lasname = 'OL_Laser'
+                
+                #for f in filenames: OEWaves_Analysis_Single(f, True)
+                OEWaves_FNPSD_Multiple(filenames, lasname, True)
+                OEWaves_FNPSD_Integration(filenames, lasname, True)
+
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
             raise Exception
     except Exception as e:
         print(ERR_STATEMENT)

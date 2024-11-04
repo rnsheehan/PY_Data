@@ -5408,21 +5408,21 @@ def OL_Laser_Analysis():
             print(os.getcwd())
 
             # Optical Spectra
-            PLOT_OPTICAL = False
+            PLOT_OPTICAL = True
             
             if PLOT_OPTICAL:
-                filenames = [#'CoBrite_Laser_Spctrm_l_1554.txt',
+                filenames = ['CoBrite_Laser_Spctrm_l_1554.txt',
                              #'OL_Laser_Spctrm_l_1554.txt',
-                             'OL_Laser_Spctrm_l_1554_Time_T2_NoAmp.txt',
-                             'OL_Laser_Spctrm_l_1554_Time_T2_WithAmp.txt',
+                             #'OL_Laser_Spctrm_l_1554_Time_T2_NoAmp.txt',
+                             #'OL_Laser_Spctrm_l_1554_Time_T2_WithAmp.txt',
                              'OL_Laser_Spctrm_l_1554_Time_T2_WithAmp_WithFilt.txt'#,
                              #'OL_Laser_Spctrm_l_1554_Time_T3_WithAmp_WithFilt.txt'
                              ]
                 
-                labels = [#'CoBrite TLS',
+                labels = ['CoBrite TLS',
                           #'OL T$_{1}$ No Amp',
-                          'OL T$_{2}$ No Amp',
-                          'OL T$_{2}$ Amp',
+                          #'OL T$_{2}$ No Amp',
+                          #'OL T$_{2}$ Amp',
                           'OL T$_{2}$ Amp + Filt'#,
                           #'OL T$_{3}$ Amp + Filt'
                           ]
@@ -5432,7 +5432,9 @@ def OL_Laser_Analysis():
                 for i in range(0, len(filenames),1):
                     data = numpy.loadtxt(filenames[i], delimiter = '\t', unpack = True)
                     hv_data.append(data)
-                    marks.append(Plotting.labs_lins[i%len(Plotting.labs_lins)])
+                    #marks.append(Plotting.labs_lins[i%len(Plotting.labs_lins)])
+                    
+                marks = [Plotting.labs_lins[0], Plotting.labs_lins[2]]
                     
                 # plot the data
                 args = Plotting.plot_arg_multiple()
@@ -5441,9 +5443,9 @@ def OL_Laser_Analysis():
                 args.crv_lab_list = labels
                 args.mrk_list = marks
                 args.x_label = 'Wavelength (nm)'
-                args.y_label = 'Power / dBm / 0.01 nm'
-                args.plt_range = [1552, 1556, -50, 10]
-                args.fig_name = 'Optical_Spectra_Zoom_1'
+                args.y_label = 'Power / dBm / 0.05 nm'
+                args.plt_range = [1552, 1556, -45, 10]
+                args.fig_name = 'Optical_Spectra_Zoom_2'
                 #args.plt_title = 'JDSU CQF915/508 $I_{DFB}$ = 200 mA'                
                             
                 Plotting.plot_multiple_curves(hv_data, args)
@@ -5477,7 +5479,7 @@ def OL_Laser_Analysis():
                 Plotting.plot_multiple_curves(hv_data, args)
 
             # OE Waves Analysis
-            PLOT_OE = True
+            PLOT_OE = False
             
             if PLOT_OE:
                 filenames = ['OEWaves_Test_WithAmp_WithFilt_WithAtt_1.txt','OEWaves_Test_WithAmp_WithFilt_WithAtt_2.txt','OEWaves_Test_WithAmp_WithFilt_WithAtt_3.txt']

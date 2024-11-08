@@ -65,20 +65,20 @@ def JDSU_DFB_LIV():
                 args.loud = True
                 args.crv_lab_list = labels
                 args.mrk_list = marks
-                args.x_label = '$I_{DFB}$ / mA'
-                args.y_label = '$V_{DFB}$ / V'
+                args.x_label = r'$I_{DFB}$ / mA'
+                args.y_label = r'$V_{DFB}$ / V'
                 args.fig_name = 'JDSU_CQF915_508_Voltage'
                 #args.plt_range = [0, 50, 0, 1.1]
 
                 Plotting.plot_multiple_curves(hv_data_v, args)
 
-                args.y_label = '$P_{DFB}$ / mW'
+                args.y_label = r'$P_{DFB}$ / mW'
                 args.fig_name = 'JDSU_CQF915_508_PmW'
                 #args.plt_range = [0, 50, 0, 7]
 
                 Plotting.plot_multiple_curves(hv_data_mW, args)
 
-                args.y_label = '$P_{DFB}$ / dBm'
+                args.y_label = r'$P_{DFB}$ / dBm'
                 args.fig_name = 'JDSU_CQF915_508_PdBm'
                 #args.plt_range = [0, 50, -40, 10]
 
@@ -107,9 +107,9 @@ def JDSU_DFB_LIV():
                 args.loud = True
                 args.crv_lab_list = labels
                 args.mrk_list = marks
-                args.x_label = '$T_{DFB}$ / C'
-                args.y_label = '$V_{DFB}$ / V'
-                args.y_label_2 = '$P_{DFB}$ / mW'
+                args.x_label = r'$T_{DFB}$ / C'
+                args.y_label = r'$V_{DFB}$ / V'
+                args.y_label_2 = r'$P_{DFB}$ / mW'
                 args.fig_name = 'JDSU_CQF915_508_I_200'
                 args.plt_title = 'JDSU CQF915/508 $I_{DFB}$ = 200 mA'
             
@@ -161,9 +161,9 @@ def JDSU_DFB_LIV():
                     args = Plotting.plot_arg_multiple()
 
                     args.loud = True
-                    args.x_label = '$T_{DFB}$ / C'
-                    args.y_label = '$\lambda_{peak}$ / nm'
-                    args.y_label_2 = '$P_{peak}$ / dBm / 0.05 nm'
+                    args.x_label = r'$T_{DFB}$ / C'
+                    args.y_label = r'$\lambda_{peak}$ / nm'
+                    args.y_label_2 = r'$P_{peak}$ / dBm / 0.05 nm'
                     args.fig_name = 'JDSU_CQF915_508_I_100'
                     #args.plt_title = 'JDSU CQF915/508 $I_{DFB}$ = I00 mA'
             
@@ -595,7 +595,7 @@ def Meas_Analysis(filename, LL_col, LL_col_Rsqr):
 
             args.loud = False
             args.x_label = 'Time / min'
-            args.y_label = '$\Delta \\nu$ / MHz'
+            args.y_label = r'$\Delta \\nu$ / MHz'
             args.plt_title = '<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz, r = %(v3)0.3f'%{"v1":LLave,"v2":LLstd, "v3":LLrcoeff[0][1]}
             args.fig_name = filename.replace('.txt','_') + 'LLMvsTime'
             #args.plt_range = [0, 60, 1, 2]
@@ -614,7 +614,7 @@ def Meas_Analysis(filename, LL_col, LL_col_Rsqr):
             args.x_label = 'Lorentzian Fit $R^{2}$ coefficient'
             args.y_label = 'Frequency'
             args.fig_name = filename.replace('.txt','_') + 'Histogram_Rsqr'
-            args.plt_title = '$R^{2}$ = %(v1)0.2f +/- %(v2)0.2f MHz, k = %(v3)0.3f'%{"v1":Rave,"v2":Rstd, "v3":KKR}
+            args.plt_title = r'$R^{2}$ = %(v1)0.2f +/- %(v2)0.2f MHz, k = %(v3)0.3f'%{"v1":Rave,"v2":Rstd, "v3":KKR}
 
             Plotting.plot_histogram(data[LL_col_Rsqr], args)
 
@@ -679,7 +679,7 @@ def Meas_Analysis_Old(filename):
 
             args.loud = False
             args.x_label = 'Time / min'
-            args.y_label = '$\Delta \\nu$ / MHz'
+            args.y_label = r'$\Delta \\nu$ / MHz'
             args.plt_title = '<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz, r = %(v3)0.3f'%{"v1":LLave,"v2":LLspread, "v3":LLrcoeff[0][1]}
             args.fig_name = filename.replace('.txt','_') + 'LLMvsTime'
             args.plt_range = [0, 60, 1, 2]
@@ -698,7 +698,7 @@ def Meas_Analysis_Old(filename):
             args.x_label = 'Lorentzian Fit $R^{2}$ coefficient'
             args.y_label = 'Frequency'
             args.fig_name = filename.replace('.txt','_') + 'Histogram_Rsqr'
-            args.plt_title = '$R^{2}$ = %(v1)0.2f +/- %(v2)0.2f MHz, k = %(v3)0.3f'%{"v1":Rave,"v2":Rspread, "v3":KKR}
+            args.plt_title = r'$R^{2}$ = %(v1)0.2f +/- %(v2)0.2f MHz, k = %(v3)0.3f'%{"v1":Rave,"v2":Rspread, "v3":KKR}
 
             Plotting.plot_histogram(data[5], args)
 
@@ -1084,10 +1084,10 @@ def NKT_Spectral_Tune():
         args = Plotting.plot_arg_single()
 
         args.loud = True
-        args.x_label = '$I_{set}$ mA'
-        args.y_label = '$\lambda_{meas}$ nm'
+        args.x_label = r'$I_{set}$ mA'
+        args.y_label = r'$\lambda_{meas}$ nm'
         args.plt_range = [100, 200, 1549.7, 1550.4]
-        args.plt_title = '$T_{set}$ = 25 C, $\lambda_{set}$ = 1550 nm'
+        args.plt_title = r'$T_{set}$ = 25 C, $\lambda_{set}$ = 1550 nm'
         args.fig_name = 'NKT_Current_Tuning_meas_WL'
        
         Ivals = numpy.arange(100,210,20)
@@ -1095,26 +1095,26 @@ def NKT_Spectral_Tune():
         Plotting.plot_single_linear_fit_curve(Ivals, lam_vals, args)
         
         Ivals_files = ["W0000.txt", "W0001.txt", "W0002.txt", "W0003.txt", "W0004.txt", "W0005.txt"]
-        Ivals_labels = ['$I_{set}$ = 100 mA', '$I_{set}$ = 120 mA', '$I_{set}$ = 140 mA', '$I_{set}$ = 160 mA', '$I_{set}$ = 180 mA', '$I_{set}$ = 200 mA']
+        Ivals_labels = [r'$I_{set}$ = 100 mA', r'$I_{set}$ = 120 mA', r'$I_{set}$ = 140 mA', r'$I_{set}$ = 160 mA', r'$I_{set}$ = 180 mA', r'$I_{set}$ = 200 mA']
 
-        SpctrmPlt.multiple_optical_spectrum_plot(DATA_DIR, Ivals_files, Ivals_labels, [1549, 1551, -50, 10], '$T_{set}$ = 25 C, $\lambda_{set}$ = 1550 nm', 'NKT_Current_Tuning')
+        SpctrmPlt.multiple_optical_spectrum_plot(DATA_DIR, Ivals_files, Ivals_labels, [1549, 1551, -50, 10], r'$T_{set}$ = 25 C, $\lambda_{set}$ = 1550 nm', 'NKT_Current_Tuning')
 
         lam_vals = [1549.7, 1549.8, 1549.9, 1550.0, 1550.1, 1550.2, 1550.3]
         lam_vals_meas = [1549.750, 1549.849, 1549.948, 1550.048, 1550.147, 1550.247, 1550.348]
 
         args.loud = True
-        args.x_label = '$\lambda_{set}$ nm'
-        args.y_label = '$\lambda_{meas}$ nm'
+        args.x_label = r'$\lambda_{set}$ nm'
+        args.y_label = r'$\lambda_{meas}$ nm'
         args.plt_range = [1549.7, 1550.4, 1549.7, 1550.4]
-        args.plt_title = '$T_{set}$ = 25 C, $I_{set}$ = 150 mA'
+        args.plt_title = r'$T_{set}$ = 25 C, $I_{set}$ = 150 mA'
         args.fig_name = 'NKT_Wavelength_Tuning_meas_WL'
 
         Plotting.plot_single_linear_fit_curve(lam_vals, lam_vals_meas, args)
 
         Ivals_files = ["W0006.txt", "W0007.txt", "W0008.txt", "W0009.txt", "W0010.txt", "W0011.txt", "W0012.txt"]
-        Ivals_labels = ['$\lambda_{set}$ = 1549.7 nm', '$\lambda_{set}$ = 1549.8 nm', '$\lambda_{set}$ = 1549.9 nm', '$\lambda_{set}$ = 1550.0 nm', '$\lambda_{set}$ = 1550.1 nm', '$\lambda_{set}$ = 1550.2 nm', '$\lambda_{set}$ = 1550.3 nm']
+        Ivals_labels = [r'$\lambda_{set}$ = 1549.7 nm', r'$\lambda_{set}$ = 1549.8 nm', r'$\lambda_{set}$ = 1549.9 nm', r'$\lambda_{set}$ = 1550.0 nm', r'$\lambda_{set}$ = 1550.1 nm', r'$\lambda_{set}$ = 1550.2 nm', r'$\lambda_{set}$ = 1550.3 nm']
 
-        SpctrmPlt.multiple_optical_spectrum_plot(DATA_DIR, Ivals_files, Ivals_labels, [1549, 1551, -50, 10], '$T_{set}$ = 25 C, $I_{set}$ = 150 mA', 'NKT_Wavelength_Tuning')
+        SpctrmPlt.multiple_optical_spectrum_plot(DATA_DIR, Ivals_files, Ivals_labels, [1549, 1551, -50, 10], r'$T_{set}$ = 25 C, $I_{set}$ = 150 mA', 'NKT_Wavelength_Tuning')
 
     except Exception as e:
         print(ERR_STATEMENT)
@@ -1860,7 +1860,7 @@ def Combine_Multi_Spctrm():
                     the_data = numpy.loadtxt(the_file, unpack = True)
                     hv_data.append(the_data)
                     marks.append(Plotting.labs_lins[i])
-                    labels.append('$P_{2}$ = %(v1)0.2f dBm'%{"v1":powers[i]})
+                    labels.append(r'$P_{2}$ = %(v1)0.2f dBm'%{"v1":powers[i]})
 
             # Plot the data sets on a single graph
                 
@@ -2275,8 +2275,8 @@ def Plot_Measured_SNR():
                 data = numpy.loadtxt(filename, delimiter = '\t', unpack = True); 
             
                 hv_data = []; labels = []; marks = []; 
-                hv_data.append([Vvolts, CNR15, deltaCNR15]); labels.append('$\Delta$ = 15 MHz'); marks.append(Plotting.labs_pts[0])
-                hv_data.append([Vvolts, CNR20, deltaCNR20]); labels.append('$\Delta$ = 20 MHz'); marks.append(Plotting.labs_pts[1])
+                hv_data.append([Vvolts, CNR15, deltaCNR15]); labels.append(r'$\Delta$ = 15 MHz'); marks.append(Plotting.labs_pts[0])
+                hv_data.append([Vvolts, CNR20, deltaCNR20]); labels.append(r'$\Delta$ = 20 MHz'); marks.append(Plotting.labs_pts[1])
                 hv_data.append(data); labels.append('Sweep $\Delta$ = 20 MHz'); marks.append(Plotting.labs_pts[2])
 
                 # Plot the data
@@ -5397,7 +5397,7 @@ def OL_Laser_Analysis():
     # Plot the data from the measurements for Odhran Liston's Laser
     # 25 - 10 - 2024
 
-    FUNC_NAME = ".Plot_CNR()" # use this in exception handling messages
+    FUNC_NAME = ".OL_Laser_Analysis()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
@@ -5490,6 +5490,83 @@ def OL_Laser_Analysis():
                 OEWaves_FNPSD_Multiple(filenames, lasname, True)
                 OEWaves_FNPSD_Integration(filenames, lasname, True)
 
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Lineshape_Comparison():
+
+    # Plot the DFB, CoBrite and NKT lineshapes together on the same graph
+    # Show the freq axis in log scale
+    # R. Sheehan 8 - 11 - 2024
+
+    FUNC_NAME = ".Lineshape_Comparison()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/'
+        
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+            
+            # DFB Data centred at 80MHz
+            dfbFile = 'LCR_DSHI_JDSU_DFB_T_20_D_400/LLM_Data_Nmeas_200_I_70_22_02_2024_13_59/Voigt_Average.txt'
+            dfbData = numpy.loadtxt(dfbFile, delimiter = ',',unpack=True)
+            #dfbData[0] = dfbData[0] + 560 # reset freq scale to 640MHz
+            dfbData[0] = dfbData[0] - 80 # reset freq scale to 0MHz
+            # convert freq data to log scale
+            # for i in range(0, len(dfbData[0]), 1):
+            #     dfbData[0][i] = math.log10(dfbData[0][i])
+            dfbMax = numpy.max(dfbData[1]) # rescale peak value to 1
+            dfbData[1] = dfbData[1] / dfbMax
+            
+            # CoBrite Data centred at 640MHz
+            coBriteFile = 'LCR_DSHI_CoBriteTLS_T_25_D_400/LLM_Data_Nmeas_200_I_200_05_07_2023_11_00/Voigt_Average.txt'
+            coBriteData = numpy.loadtxt(coBriteFile, delimiter = ',',unpack=True)
+            coBriteData[0] = coBriteData[0] - 640 # reset freq scale to 0MHz
+            #coBriteData[0] = 1000*coBriteData[0] # reset freq scale to kHz
+            # convert freq data to log scale
+            # for i in range(0, len(coBriteData[0]), 1):
+            #     coBriteData[0][i] = math.log10(coBriteData[0][i])
+            coBriteMax = numpy.max(coBriteData[1]) # rescale peak value to 1
+            coBriteData[1] = coBriteData[1] / coBriteMax
+
+            # NKT Data centred at 640MHz but rescaled to 0kHz
+            NKTFile = 'LCR_DSHI_NKT_T_35_D_400/LLM_Data_Nmeas_200_I_200_20_06_2023_15_31/Voigt_Average.txt'
+            NKTData = numpy.loadtxt(NKTFile, delimiter = ',',unpack=True)
+            #NKTData[0] = 640 + (NKTData[0]/1000)  # reset freq scale to 640MHz
+            NKTData[0] = (NKTData[0]/1000)  # reset freq scale to 0MHz
+            # convert freq data to log scale
+            # for i in range(0, len(NKTData[0]), 1):
+            #     NKTData[0][i] = math.log10(NKTData[0][i])
+            NKTMax = numpy.max(NKTData[1]) # rescale peak value to 1
+            NKTData[1] = NKTData[1] / NKTMax
+            
+            hv_data = [dfbData, coBriteData, NKTData]
+            marks = [Plotting.labs_lins[0], Plotting.labs_lins[1], Plotting.labs_lins[2]]
+            labels = [r'DFB $\Delta\nu$ = 2.5 MHz', r'TLS $\Delta\nu$ = 100 kHz', r'NKT $\Delta\nu$ = 2 kHz']
+            
+            # hv_data = [coBriteData, NKTData]
+            # marks = [Plotting.labs_lins[1], Plotting.labs_lins[2]]
+            # labels = [r'TLS $\Delta\nu$ = 100 kHz', r'NKT $\Delta\nu$ = 2 kHz']
+
+            # Make a plot of the measured data
+            args = Plotting.plot_arg_multiple()
+            
+            args.crv_lab_list=labels
+            args.mrk_list=marks
+            args.loud = True
+            args.x_label = 'Frequency ( MHz )'
+            args.y_label = 'Fitted Lineshapes ( A. U. )'
+            args.log_y = True
+            args.plt_range = [-5, 5, 1e-2, 1]
+            args.fig_name = 'LCR_DSHI_Report/Linewidths_compar1'
+            
+            Plotting.plot_multiple_curves(hv_data, args)
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
             raise Exception

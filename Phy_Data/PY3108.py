@@ -45,9 +45,9 @@ def CE_AMP_IV_Char(Vcc, Vb, Rc, Rb, Rbval, ratio, loud = False):
                 Ib = numpy.mean(data[2])
                 dIb = 0.5*(numpy.max(data[2]) - numpy.min(data[2]))
                 hv_data.append([data[5], data[4]])
-                #labels.append('$I_{b}$ = %(v1)0.1f $\mu$A'%{"v1":1000.0*(Vb[i] / Rbval)})
-                labels.append('$I_{b}$ = %(v1)0.2f $\pm$ %(v2)0.2f mA'%{"v1":Ib, "v2":dIb})
-                #labels.append('$V_{b}$ = %(v1)0.1f V'%{"v1":Vb[i]})
+                #labels.append(r'$I_{b}$ = %(v1)0.1f $\mu$A'%{"v1":1000.0*(Vb[i] / Rbval)})
+                labels.append(r'$I_{b}$ = %(v1)0.2f $\pm$ %(v2)0.2f mA'%{"v1":Ib, "v2":dIb})
+                #labels.append(r'$V_{b}$ = %(v1)0.1f V'%{"v1":Vb[i]})
                 marks.append(Plotting.labs_pts[ count%len(Plotting.labs_pts) ] )
             count = count + 1 
 
@@ -63,8 +63,8 @@ def CE_AMP_IV_Char(Vcc, Vb, Rc, Rb, Rbval, ratio, loud = False):
         args.loud = True
         args.crv_lab_list = labels
         args.mrk_list = marks
-        args.x_label = '$V_{ce}$ / V'
-        args.y_label = '$I_{c}$ / mA'
+        args.x_label = r'$V_{ce}$ / V'
+        args.y_label = r'$I_{c}$ / mA'
         args.fig_name = "Ichar_Vext_%(v0)d_Rc_%(v1)s_Rb_%(v2)s"%{"v0":Vcc, "v1":Rc, "v2":Rb, }
 
         Plotting.plot_multiple_curves(hv_data, args)
@@ -102,8 +102,8 @@ def EF_AMP_IV_Char(Vcc, Vb, Rc, Rb, Rbval, Rcval, loud = False):
                 Ib = numpy.mean(data[0])
                 dIb = 0.5*(numpy.max(data[0]) - numpy.min(data[0]))
                 hv_data.append([data[4], data[3]])
-                #labels.append('$V_{b}$ = %(v1)0.2f $\pm$ %(v2)0.2f V'%{"v1":Ib, "v2":dIb})
-                labels.append('$V_{b}$ = %(v1)0.1f V'%{"v1":Ib})
+                #labels.append(r'$V_{b}$ = %(v1)0.2f $\pm$ %(v2)0.2f V'%{"v1":Ib, "v2":dIb})
+                labels.append(r'$V_{b}$ = %(v1)0.1f V'%{"v1":Ib})
                 marks.append(Plotting.labs_pts[ count%len(Plotting.labs_pts) ] )
             count = count + 1 
 
@@ -119,8 +119,8 @@ def EF_AMP_IV_Char(Vcc, Vb, Rc, Rb, Rbval, Rcval, loud = False):
         args.loud = True
         args.crv_lab_list = labels
         args.mrk_list = marks
-        args.x_label = '$V_{ce}$ / V'
-        args.y_label = '$I_{c}$ / mA'
+        args.x_label = r'$V_{ce}$ / V'
+        args.y_label = r'$I_{c}$ / mA'
         args.fig_name = "Ichar_Vext_%(v0)d_Rc_%(v1)s_Rb_%(v2)s"%{"v0":Vcc, "v1":Rc, "v2":Rb, }
 
         Plotting.plot_multiple_curves(hv_data, args)
@@ -158,9 +158,9 @@ def CE_AMP_IV_Char_Compare(Vcc, Vb, Rc, Rb, Rbval, ratio, loud = False):
                 #Ib = numpy.mean(data[1])
                 #dIb = 0.5*(numpy.max(data[1]) - numpy.min(data[1]))
                 hv_data.append([data[4], data[3]])
-                #labels.append('$I_{b}$ = %(v1)0.1f $\mu$A'%{"v1":1000.0*(Vb[i] / Rbval)})
-                #labels.append('$I_{b}$ = %(v1)0.2f $\pm$ %(v2)0.2f mA'%{"v1":Ib, "v2":dIb})
-                labels.append('$V_{cc}$ = %(v1)0.1f V'%{"v1":Vcc[i]})
+                #labels.append(r'$I_{b}$ = %(v1)0.1f $\mu$A'%{"v1":1000.0*(Vb[i] / Rbval)})
+                #labels.append(r'$I_{b}$ = %(v1)0.2f $\pm$ %(v2)0.2f mA'%{"v1":Ib, "v2":dIb})
+                labels.append(r'$V_{cc}$ = %(v1)0.1f V'%{"v1":Vcc[i]})
                 marks.append(Plotting.labs_pts[ count%len(Plotting.labs_pts) ] )
             count = count + 1 
 
@@ -176,8 +176,8 @@ def CE_AMP_IV_Char_Compare(Vcc, Vb, Rc, Rb, Rbval, ratio, loud = False):
         args.loud = True
         args.crv_lab_list = labels
         args.mrk_list = marks
-        args.x_label = '$V_{ce}$ / V'
-        args.y_label = '$I_{c}$ / mA'
+        args.x_label = r'$V_{ce}$ / V'
+        args.y_label = r'$I_{c}$ / mA'
         args.plt_range = [0, 8, 0, 60]
         args.fig_name = "Ichar_Vb_%(v0)s_Rc_%(v1)s_Rb_%(v2)s"%{"v0":Vb, "v1":Rc, "v2":Rb}
 
@@ -216,9 +216,9 @@ def EF_AMP_IV_Char_Compare(Vcc, Vb, Rc, Rb, Rbval, Rcval, loud = False):
                 #Ib = numpy.mean(data[1])
                 #dIb = 0.5*(numpy.max(data[1]) - numpy.min(data[1]))
                 hv_data.append([data[4], data[3]])
-                #labels.append('$I_{b}$ = %(v1)0.1f $\mu$A'%{"v1":1000.0*(Vb[i] / Rbval)})
-                #labels.append('$I_{b}$ = %(v1)0.2f $\pm$ %(v2)0.2f mA'%{"v1":Ib, "v2":dIb})
-                labels.append('$V_{cc}$ = %(v1)0.1f V'%{"v1":Vcc[i]})
+                #labels.append(r'$I_{b}$ = %(v1)0.1f $\mu$A'%{"v1":1000.0*(Vb[i] / Rbval)})
+                #labels.append(r'$I_{b}$ = %(v1)0.2f $\pm$ %(v2)0.2f mA'%{"v1":Ib, "v2":dIb})
+                labels.append(r'$V_{cc}$ = %(v1)0.1f V'%{"v1":Vcc[i]})
                 marks.append(Plotting.labs_pts[ count%len(Plotting.labs_pts) ] )
             count = count + 1 
 
@@ -234,8 +234,8 @@ def EF_AMP_IV_Char_Compare(Vcc, Vb, Rc, Rb, Rbval, Rcval, loud = False):
         args.loud = True
         args.crv_lab_list = labels
         args.mrk_list = marks
-        args.x_label = '$V_{ce}$ / V'
-        args.y_label = '$I_{c}$ / mA'
+        args.x_label = r'$V_{ce}$ / V'
+        args.y_label = r'$I_{c}$ / mA'
         args.plt_range = [0, 4, 0, 100]
         args.fig_name = "Ichar_Vb_%(v0)s_Rc_%(v1)s_Rb_%(v2)s"%{"v0":Vb, "v1":Rc, "v2":Rb}
 
@@ -347,7 +347,7 @@ def CE_AMP_Vgain(Rc, Rb, vgain = True, loud = False):
                     hv_data.append([data[2], data[3]])
                 else:  # plot current gain
                     hv_data.append([data[0], data[1]])
-                labels.append('$V_{cc}$ = %(v1)s V'%{"v1":num_list[0]})
+                labels.append(r'$V_{cc}$ = %(v1)s V'%{"v1":num_list[0]})
                 marks.append(Plotting.labs_pts[ count%len(Plotting.labs_pts) ] )
                 count = count + 1 
 
@@ -357,8 +357,8 @@ def CE_AMP_Vgain(Rc, Rb, vgain = True, loud = False):
             args.loud = True
             args.crv_lab_list = labels
             args.mrk_list = marks
-            args.x_label = '$V_{in}$ / V' if vgain else '$I_{in}$ / mA'
-            args.y_label = '$V_{out}$ / V' if vgain else '$I_{out}$ / mA'
+            args.x_label = r'$V_{in}$ / V' if vgain else r'$I_{in}$ / mA'
+            args.y_label = r'$V_{out}$ / V' if vgain else r'$I_{out}$ / mA'
             #args.plt_range = [0, 3, 0, 7]
             num_list = Common.extract_values_from_string(files[0])
             if vgain:
@@ -406,7 +406,7 @@ def CE_AMP_Vgain_Compare(Rc, Rb, ratios, vgain = True, loud = False):
                     hv_data.append([data[2], data[3]])
                 else:  # plot current gain
                     hv_data.append([data[0], data[1]])
-                labels.append('$R_{b} / R_{c}$ = %(v1)0.2f'%{"v1":ratios[i]})
+                labels.append(r'$R_{b} / R_{c}$ = %(v1)0.2f'%{"v1":ratios[i]})
                 marks.append(Plotting.labs_pts[ count%len(Plotting.labs_pts) ] )
             count = count + 1
 
@@ -416,8 +416,8 @@ def CE_AMP_Vgain_Compare(Rc, Rb, ratios, vgain = True, loud = False):
         args.loud = True
         args.crv_lab_list = labels
         args.mrk_list = marks
-        args.x_label = '$V_{in}$ / V' if vgain else '$I_{in}$ / mA'
-        args.y_label = '$G_{V}$' if vgain else '$G_{I}$'
+        args.x_label = r'$V_{in}$ / V' if vgain else r'$I_{in}$ / mA'
+        args.y_label = r'$G_{V}$' if vgain else r'$G_{I}$'
         args.plt_range = [0, 3, 0, 10]
         if vgain:
             args.fig_name = filename.replace("_Rc_%(v1)s_Rb_%(v2)s"%{"v1":Rc[-1], "v2":Rb[-1]},"").replace(".txt","")
@@ -454,14 +454,14 @@ def Vbe_Loop():
             if glob.glob(filename):
                 data = numpy.loadtxt(filename, delimiter = '\t', unpack = True)
                 hv_data.append([data[0], data[1]])
-                labels.append('$R_{e}$ = %(v1)0.3f k$\Omega$'%{"v1":R[i]})
+                labels.append(r'$R_{e}$ = %(v1)0.3f k$\Omega$'%{"v1":R[i]})
                 marks.append(Plotting.labs_pts[i%len(Plotting.labs_pts)])
 
         args = Plotting.plot_arg_multiple()
 
         args.loud = True
-        args.x_label = '$V_{b}$ / V'
-        args.y_label = '$V_{e}$ / V'
+        args.x_label = r'$V_{b}$ / V'
+        args.y_label = r'$V_{e}$ / V'
         args.crv_lab_list = labels
         args.mrk_list = marks
 
@@ -507,9 +507,9 @@ def OpAmpComparison():
             
             # Make a plot of the measured voltages versus supplied voltage
             hv_data = []; labels = []; marks = []; 
-            hv_data.append([data[0], data[1]]); labels.append('$V_{ctrl}$'); marks.append(Plotting.labs_pts[0]); 
-            hv_data.append([data[0], data[2]]); labels.append('$V_{R3}$'); marks.append(Plotting.labs_pts[1]); 
-            hv_data.append([data[0], data[3]]); labels.append('$V_{load}$'); marks.append(Plotting.labs_pts[2]); 
+            hv_data.append([data[0], data[1]]); labels.append(r'$V_{ctrl}$'); marks.append(Plotting.labs_pts[0]); 
+            hv_data.append([data[0], data[2]]); labels.append(r'$V_{R3}$'); marks.append(Plotting.labs_pts[1]); 
+            hv_data.append([data[0], data[3]]); labels.append(r'$V_{load}$'); marks.append(Plotting.labs_pts[2]); 
 
             args = Plotting.plot_arg_multiple()
 
@@ -597,8 +597,8 @@ def InAmp_Isrc_Char():
             args.loud = False
             args.crv_lab_list = labels
             args.mrk_list = marks
-            args.x_label = '$V_{in}$ / V'
-            args.y_label = '$I_{load}$ / mA'
+            args.x_label = r'$V_{in}$ / V'
+            args.y_label = r'$I_{load}$ / mA'
             args.fig_name = 'Isrc_v2_Current_Output'
             args.plt_range = [0, 3.3, 0, 140]
 
@@ -640,10 +640,10 @@ def InAmp_Isrc_Char():
             args = Plotting.plot_arg_single()
 
             args.loud = True
-            args.curve_label = '$I_{load}$ = %(v1)0.3f $V_{in}$ + %(v2)0.3f'%{"v1":pars[1],"v2":pars[0]}
+            args.curve_label = r'$I_{load}$ = %(v1)0.3f $V_{in}$ + %(v2)0.3f'%{"v1":pars[1],"v2":pars[0]}
             args.marker = Plotting.labs_pts[0]
-            args.x_label = '$V_{in}$ / V'
-            args.y_label = '$I_{load}$ / mA'
+            args.x_label = r'$V_{in}$ / V'
+            args.y_label = r'$I_{load}$ / mA'
             args.fig_name = 'Isrc_v2_Average_Current_Output'
             args.plt_range = [0, 3.3, 0, 140]
 

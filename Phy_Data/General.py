@@ -113,7 +113,7 @@ def Diode_Fit_Calibration():
                     data = numpy.loadtxt(the_file, delimiter = '\t', unpack = True)
                     hv_data.append(data)
                     marks.append(Plotting.labs_pts[count%len(Plotting.labs_pts)])
-                    labels.append('$R_{s}$  = %(v2)d $\Omega$'%{"v2":int(r)})
+                    labels.append(r'$R_{s}$  = %(v2)d $\Omega$'%{"v2":int(r)})
                     count = count + 1
 
             # Make the plot
@@ -709,16 +709,16 @@ def Superlum_Amplification():
             args.crv_lab_list = labels
             args.mrk_list = marks
             if READ_EDFA: 
-                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.x_label = r'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm)'
                 args.fig_name = 'EDFA_Spectrum'
             if READ_SLD: 
-                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.x_label = r'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.1 nm)'
                 #args.plt_range = [1530, 1560, -65, -15]
                 args.fig_name = 'SLD_Spectrum'
             if READ_SLD_AMP: 
-                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.x_label = r'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.05 nm)'
                 args.plt_range = [1530, 1560, -65, -15]
                 args.fig_name = 'SLD_Spectrum_Amp_Unamp_EDFA'
@@ -727,23 +727,23 @@ def Superlum_Amplification():
                 args.y_label = 'SLD Power (dBm)'
                 args.fig_name = 'SLD_Power'
             if PLOT_FULL:
-                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.x_label = r'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.1 nm)'
                 #args.plt_range = [1530, 1560, -65, -15]
                 args.fig_name = 'SLD_Full_Spectrum_Amp_Unamp'
             if PLOT_FILT:
-                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.x_label = r'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.05 nm)'
                 #args.plt_range = [1530, 1560, -65, -15]
                 args.fig_name = 'SLD_Filtered_Spectrum_Unamp'
                 #args.fig_name = 'SLD_Filtered_Spectrum_Amp_1'
             if PLOT_FBG:
-                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.x_label = r'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.5 nm)'
                 #args.plt_range = [1530, 1560, -65, -15]
                 args.fig_name = 'FBG_Full_Spectrum'
             if PLOT_FBG_Zoom:
-                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.x_label = r'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.05 nm)'
                 args.plt_range = [970, 980, -50, 12]
                 args.fig_name = 'FBG_Full_Spectrum_Zoom'
@@ -761,57 +761,57 @@ def Superlum_Amplification():
                 args.plt_range = [0, 300, 0, 15]
                 args.fig_name = 'Cbnd_Power_mW'
             if PLOT_Cbnd_Gain:
-                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.x_label = r'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.05 nm)'
                 args.plt_range = [1530, 1560, -65, -15]
                 args.fig_name = 'Cbnd_EDFA_Spectra'
             if PLOT_Lbnd_Gain:
-                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.x_label = r'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.05 nm)'
                 args.plt_range = [1530, 1560, -65, -15]
                 args.fig_name = 'Lbnd_EDFA_Spectra'
             if PLOT_Gain_Compar:
-                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.x_label = r'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.1 nm)'
                 args.plt_range = [1500, 1620, -65, -15]
                 args.fig_name = 'EDFA_Gain_Spectra'
             if PLOT_Gain_Compar_Short:
-                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.x_label = r'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.05 nm)'
                 args.plt_range = [1530, 1560, -60, 0]
                 args.fig_name = 'Gain_Spectra_Compar_2'
             if PLOT_Config1:
-                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.x_label = r'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.05 nm)'
                 args.plt_range = [1545, 1555, -60, 10]
                 args.fig_name = 'Spectrum_Config_%(v1)d'%{"v1":CN}
             if PLOT_Config_Combo:
-                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.x_label = r'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.05 nm)'
                 args.plt_range = [1545, 1555, -60, 10]
                 args.fig_name = 'Combined_Config'
             if PLOT_Config_Res:
-                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.x_label = r'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.05 nm)'
                 args.plt_range = [1545, 1555, -60, 10]
                 args.fig_name = 'SLD_Amp_Result'
             if PLOT_Tuning:
-                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.x_label = r'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.05 nm)'
                 args.plt_range = [1535, 1560, -30, 5]
                 args.fig_name = 'SLD_Amp_Tuning_%(v1)sBand'%{"v1":Band}
             if PLOT_Gain_Filt: 
-                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.x_label = r'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.05 nm)'
                 args.plt_range = [1540, 1560, -60, 0]
                 args.fig_name = 'Gain_Spectra_Compar_Filt_2'
             if PLOT_OAM_Spctr_Full:
-                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.x_label = r'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.1 nm)'
                 args.plt_range = [1500, 1600, -50, 0]
                 args.fig_name = 'JDSU_OAM_%(v1)s_Full'%{"v1":OAM}
             if PLOT_OAM_Spctr_Short:
-                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.x_label = r'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.05 nm)'
                 args.plt_range = [1540, 1560, -60, -10]
                 args.fig_name = 'JDSU_OAM_%(v1)s_Short'%{"v1":OAM}
@@ -821,17 +821,17 @@ def Superlum_Amplification():
                 args.plt_range = [0, 100, 0, 1.6]
                 args.fig_name = 'OAM_IV_Curves_2'
             if PLOT_OAM_AMP:
-                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.x_label = r'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.05 nm)'
                 args.plt_range = [1540, 1560, -60, 10]
                 args.fig_name = 'JDSU_OAM_Test_%(v1)d'%{"v1":STEP}
             if PLOT_COUNT:
-                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.x_label = r'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.05 nm)'
                 args.plt_range = [1540, 1560, -60, 10]
                 args.fig_name = 'Counter_Prop_Test'
             if PLOT_Alt_ASE:
-                args.x_label = 'Wavelength $\lambda$ (nm)'
+                args.x_label = r'Wavelength $\lambda$ (nm)'
                 args.y_label = 'Power (dBm / 0.05 nm)'
                 args.plt_range = [1540, 1560, -60, -10]
                 args.fig_name = 'ASE_Change'
@@ -1467,7 +1467,7 @@ def Chilas_TLS_Characterisation():
                 wl_list = numpy.arange(1500, 1590, 10)
                 for i in range(0, len(wl_list), 1):
                     the_files.append('WL_%(v1)d.txt'%{"v1":int(wl_list[i]) })
-                    the_labels.append('$\lambda_{s}$ = %(v1)d nm'%{"v1":int(wl_list[i]) })
+                    the_labels.append(r'$\lambda_{s}$ = %(v1)d nm'%{"v1":int(wl_list[i]) })
 
                 plt_title = 'Chilas TLS Output I = 250 mA'
                 plt_name = 'Chilas_TLS_Output'
@@ -1546,7 +1546,7 @@ def Chilas_TLS_Characterisation():
                     data = numpy.loadtxt(f, delimiter = '\t', unpack = True)
                     data[0] = data[0] - fbeat[count]
                     hv_data.append(data); 
-                    labels.append('$f_{b}$ = %(v1)d MHz'%{"v1":fbeat[count]}); 
+                    labels.append(r'$f_{b}$ = %(v1)d MHz'%{"v1":fbeat[count]}); 
                     marks.append(Plotting.labs_lins[count])
                     count = count + 1
 
@@ -1615,7 +1615,7 @@ def CoBrite_TLS_Characterisation():
                     data = numpy.loadtxt(f, delimiter = '\t', unpack = True)
                     data[0] = data[0] - fbeat[count]
                     hv_data.append(data); 
-                    labels.append('$f_{b}$ = %(v1)d MHz'%{"v1":fbeat[count]}); 
+                    labels.append(r'$f_{b}$ = %(v1)d MHz'%{"v1":fbeat[count]}); 
                     marks.append(Plotting.labs_lins[count])
                     count = count + 1
 

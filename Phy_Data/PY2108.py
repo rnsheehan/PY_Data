@@ -690,7 +690,7 @@ def AM_BJT_Meas_Imped_Anal():
 
         args.loud = True
         args.marker = Plotting.labs_pts[0]
-        args.curve_label = '$V_{b}^{meas}$ = %(m)0.3f $V_{b}^{set}$ %(c)0.3f'%{"m":pars[1], "c":pars[0]}
+        args.curve_label = r'$V_{b}^{meas}$ = %(m)0.3f $V_{b}^{set}$ %(c)0.3f'%{"m":pars[1], "c":pars[0]}
         args.x_label = 'Set-Point $V_{b}$ / V'
         args.y_label = 'Measured $V_{b}$ / V'
         args.fig_name = "AM_BJT_Set_Meas_Vb_%(v1)d"%{"v1":rat}
@@ -730,7 +730,7 @@ def AM_BJT_Meas_Imped_Anal():
         
         args.loud = True
         args.marker = Plotting.labs_pts[0]
-        args.curve_label = '$V_{c}^{meas}$'%{"m":pars[1], "c":pars[0]}
+        args.curve_label = r'$V_{c}^{meas}$'%{"m":pars[1], "c":pars[0]}
         args.x_label = 'Set-Point $V_{c}$ / V'
         args.y_label = 'Measured $V_{c}$ / V'
         args.fig_name = "AM_BJT_Set_Meas_Vc_err_%(v1)d"%{"v1":rat}

@@ -1648,7 +1648,7 @@ def OEWaves_FNPSD_Integration(filelst, laser_name, loud = False):
                     if hv_data[i][0][j] < 1e+5 and hv_data[i][1][j] > beta_slope * hv_data[i][0][j]:
                         integral = integral + ( hv_data[i][0][j] - hv_data[i][0][j-1] ) * hv_data[i][1][j]
                 print('Integral ',i,': ',integral,', HWHM: ',0.5*math.sqrt(8.0*integral))
-                appr_lst.append( 0.5*math.sqrt(8.0*integral) )
+                appr_lst.append( 0.5*math.sqrt(8.0*integral) ) # Are you sure this is correct? Is there a multiplicative factor of log(2) missing? RNS 12 - 2 - 2025
 
             #appr_lst = []
             #for i in range(0, len(hv_data), 1):

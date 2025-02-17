@@ -4220,19 +4220,19 @@ def Multi_Multi_LLM_Analysis():
         # loop the Multi-LLM Analysis calculations over a list of directories
         # gather the averaged data as a function of VOA bias / loop power Ratio
 
-        #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
         #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_CoBriteTLS_T_25_D_400/'
-        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_JDSU_DFB_T_20_D_400/'
+        #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_JDSU_DFB_T_20_D_400/'
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
             print(os.getcwd())
 
             # Make a directory for storing the results
-            #resDir = 'Loop_Power_Variation/'
+            resDir = 'Loop_Power_Variation/'
             #resDir = 'Loop_Power_Variation_FSpan_100/'
             #resDir = 'Loop_RBW_Variation/'
-            resDir = 'JDSU_I_Variation/'
+            #resDir = 'JDSU_I_Variation/'
             if not os.path.isdir(resDir): os.mkdir(resDir)
 
             # Generate the list of directories to be analysed
@@ -4241,13 +4241,20 @@ def Multi_Multi_LLM_Analysis():
             #Ival = 100; Day = '19';  
             #Ival = 200; Day = '20';
             #Ival = 300; Day = '21';
-            #Month = '06'; 
-            #Nmeas = 200
-             # NKT parameters
-            #RBW = 100; theYunits = 'Hz' # RBW and its units for the NKT measurement
-            #Tmeas = 28.5; # Approximate measurement time in seconds for the NKT measurement
-            #Deff = 400 # Effective loop length in km
-            #theXunits = 'kHz' # Frequency units along X-axis
+            #Month = '06';
+            
+            Ival = 100; Day = '17';  
+            #Ival = 200; Day = '20';
+            #Ival = 300; Day = '21';
+            Month = '02'; 
+            
+            Nmeas = 200
+            
+            # NKT parameters
+            RBW = 100; theYunits = 'Hz' # RBW and its units for the NKT measurement
+            Tmeas = 28.5; # Approximate measurement time in seconds for the NKT measurement
+            Deff = 400 # Effective loop length in km
+            theXunits = 'kHz' # Frequency units along X-axis
             
             # Parameters for the CoBrite measurement
             #Ival = 100; Day = '07';  
@@ -4263,15 +4270,15 @@ def Multi_Multi_LLM_Analysis():
             
             # Parameters for the JDSU measurement
             #Ival = 50; Day = '22';  
-            Ival = 70; Day = '22';
+            #Ival = 70; Day = '22';
             #Ival = 90; Day = '22';
-            Month = '02'; 
-            Nmeas = 200
+            #Month = '02'; 
+            #Nmeas = 200
             # CoBrite Parameters
-            RBW = 20; theYunits = 'kHz' # RBW and its units for the CoBrite measurement
-            Tmeas = 33.9; # Approximate measurement time in seconds for the CoBrite measurement
-            Deff = 400 # Effective loop length in km
-            theXunits = 'MHz' # Frequency units along X-axis
+            #RBW = 20; theYunits = 'kHz' # RBW and its units for the CoBrite measurement
+            #Tmeas = 33.9; # Approximate measurement time in seconds for the CoBrite measurement
+            #Deff = 400 # Effective loop length in km
+            #theXunits = 'MHz' # Frequency units along X-axis
             
             dir_list = glob.glob('LLM_Data_Nmeas_%(v4)d_I_%(v1)d_%(v3)s_%(v2)s_*/'%{"v4":Nmeas, "v1":Ival, "v3":Day, "v2":Month})
             #dir_list = ['LLM_Data_Nmeas_200_I_100_05_07_2023_13_37/', 'LLM_Data_Nmeas_200_I_200_05_07_2023_11_00/', 'LLM_Data_Nmeas_200_I_300_05_07_2023_09_58/']
@@ -4338,9 +4345,9 @@ def Summarise_Multi_LLM_Analysis():
         # loop the Multi-LLM directories gather the averaged data
         # In this case as a function of VOA bias / loop power Ratio
 
-        #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
         #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_CoBriteTLS_T_25_D_400/'
-        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_JDSU_DFB_T_20_D_400/'
+        #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_JDSU_DFB_T_20_D_400/'
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
@@ -4350,17 +4357,17 @@ def Summarise_Multi_LLM_Analysis():
             print(os.getcwd())
 
             # Make a directory for storing the results
-            #resDir = 'Loop_Power_Variation/'
+            resDir = 'Loop_Power_Variation/'
             #resDir = 'Loop_Power_Variation_FSpan_100/'
             #resDir = 'Loop_RBW_Variation/'
-            resDir = 'JDSU_I_Variation/'
+            #resDir = 'JDSU_I_Variation/'
             if not os.path.isdir(resDir): os.mkdir(resDir)
             
             # Parameters for the NKT measurement
-            #Ival = 100; Day = '19';  Pin = 3.356; 
+            Ival = 100; Day = '19';  Pin = 3.356; 
             #Ival = 200; Day = '20'; Pin = 9.313; 
             #Ival = 300; Day = '21'; Pin = 11.767; 
-            #Month = '06'; Nmeas = 200; 
+            Month = '06'; Nmeas = 200; 
             ## Input powers for the NKT data set
             #Pvals = [3.356, 9.313, 11.767]
             #Perr = [0.016, 0.015, 0.013]
@@ -4379,12 +4386,12 @@ def Summarise_Multi_LLM_Analysis():
             # Parameters for the JDSU measurement
             #Ival = 50; Day = '22'; Pin = 5.880; 
             #Ival = 70; Day = '22'; Pin = 7.741; 
-            Ival = 90; Day = '22'; Pin = 9.045; 
-            Month = '02'; Nmeas = 200; 
+            #Ival = 90; Day = '22'; Pin = 9.045; 
+            #Month = '02'; Nmeas = 200; 
             # Input powers for the CoBrite data set
-            Pvals = [5.880, 7.741, 9.045]
-            Perr = [0.001, 0.001, 0.001]
-            RBWstr = '20kHz'; LLMunitstr = 'MHz'; Deff = 400; 
+            #Pvals = [5.880, 7.741, 9.045]
+            #Perr = [0.001, 0.001, 0.001]
+            #RBWstr = '20kHz'; LLMunitstr = 'MHz'; Deff = 400; 
             
             dir_list = glob.glob('LLM_Data_Nmeas_%(v4)d_I_%(v1)d_%(v3)s_%(v2)s_*/'%{"v4":Nmeas, "v1":Ival, "v3":Day, "v2":Month})
             #dir_list = dir_list[2:len(dir_list)]

@@ -142,7 +142,7 @@ def JDSU_DFB_LIV():
                     args.loud = True
                     args.crv_lab_list = labels
                     args.mrk_list = marks
-                    args.x_label = 'Wavelength $\lambda$ / nm'
+                    args.x_label = r'Wavelength $\lambda$ / nm'
                     args.y_label = 'Power dBm / 0.05nm'
                     args.fig_name = 'JDSU_CQF915_508_Spectrum'
                     args.plt_title = 'JDSU CQF915/508 $I_{DFB}$ = 100 mA'
@@ -596,7 +596,7 @@ def Meas_Analysis(filename, LL_col, LL_col_Rsqr):
             args.loud = False
             args.x_label = 'Time / min'
             args.y_label = r'$\Delta \\nu$ / MHz'
-            args.plt_title = '<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz, r = %(v3)0.3f'%{"v1":LLave,"v2":LLstd, "v3":LLrcoeff[0][1]}
+            args.plt_title = r'<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz, r = %(v3)0.3f'%{"v1":LLave,"v2":LLstd, "v3":LLrcoeff[0][1]}
             args.fig_name = filename.replace('.txt','_') + 'LLMvsTime'
             #args.plt_range = [0, 60, 1, 2]
 
@@ -607,7 +607,7 @@ def Meas_Analysis(filename, LL_col, LL_col_Rsqr):
             args.x_label = 'Laser Linewidth / MHz'
             args.y_label = 'Frequency'
             args.fig_name = filename.replace('.txt','_') + 'Histogram'
-            args.plt_title = '<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz, k = %(v3)0.3f'%{"v1":LLave,"v2":LLstd, "v3":KK}
+            args.plt_title = r'<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz, k = %(v3)0.3f'%{"v1":LLave,"v2":LLstd, "v3":KK}
 
             Plotting.plot_histogram(data[LL_col], args)
 
@@ -680,7 +680,7 @@ def Meas_Analysis_Old(filename):
             args.loud = False
             args.x_label = 'Time / min'
             args.y_label = r'$\Delta \\nu$ / MHz'
-            args.plt_title = '<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz, r = %(v3)0.3f'%{"v1":LLave,"v2":LLspread, "v3":LLrcoeff[0][1]}
+            args.plt_title = r'<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz, r = %(v3)0.3f'%{"v1":LLave,"v2":LLspread, "v3":LLrcoeff[0][1]}
             args.fig_name = filename.replace('.txt','_') + 'LLMvsTime'
             args.plt_range = [0, 60, 1, 2]
 
@@ -691,7 +691,7 @@ def Meas_Analysis_Old(filename):
             args.x_label = 'Laser Linewidth / MHz'
             args.y_label = 'Frequency'
             args.fig_name = filename.replace('.txt','_') + 'Histogram'
-            args.plt_title = '<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz, k = %(v3)0.3f'%{"v1":LLave,"v2":LLspread, "v3":KK}
+            args.plt_title = r'<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz, k = %(v3)0.3f'%{"v1":LLave,"v2":LLspread, "v3":KK}
 
             Plotting.plot_histogram(data[3], args)
 
@@ -745,9 +745,9 @@ def LL_Result():
             args = Plotting.plot_arg_single()
 
             args.loud = True
-            args.x_label = 'Inverse Power $P^{-1}$ / mW$^{-1}$'
-            args.y_label = 'Laser Linewidth $\Delta \\nu$ / MHz'
-            #args.plt_title = '<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz'%{"v1":LLave,"v2":LLspread}
+            args.x_label = r'Inverse Power $P^{-1}$ / mW$^{-1}$'
+            args.y_label = r'Laser Linewidth $\Delta \\nu$ / MHz'
+            #args.plt_title = r'<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz'%{"v1":LLave,"v2":LLspread}
             args.fig_name = 'JDSU_DFB_Laser_Linewidth_D_25'
             args.plt_range = [0.1, 0.25, 1, 2]
 
@@ -793,9 +793,9 @@ def LL_Result_Voigt():
             args = Plotting.plot_arg_single()
 
             args.loud = True
-            args.x_label = 'Inverse Power $P^{-1}$ / mW$^{-1}$'
-            args.y_label = 'Laser Linewidth $\Delta \\nu$ / MHz'
-            #args.plt_title = '<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz'%{"v1":LLave,"v2":LLspread}
+            args.x_label = r'Inverse Power $P^{-1}$ / mW$^{-1}$'
+            args.y_label = r'Laser Linewidth $\Delta \\nu$ / MHz'
+            #args.plt_title = r'<$\Delta \\nu$> = %(v1)0.2f +/- %(v2)0.2f MHz'%{"v1":LLave,"v2":LLspread}
             args.fig_name = 'JDSU_DFB_Laser_Linewidth_D_25_Power'
             #args.plt_range = [0.1, 0.25, 1, 2]
 
@@ -940,8 +940,8 @@ def Voigt_Fit_Analysis():
                 VOIGT_FIT_VALS = False
                 if VOIGT_FIT_VALS and VALUES:
                     hv_data.append([vals, data[5]]); labels.append('Voigt HWHM'); marks.append(Plotting.labs_pts[1])
-                    hv_data.append([vals, data[3]]); labels.append('Voigt $\gamma$'); marks.append(Plotting.labs_pts[2])
-                    hv_data.append([vals, data[4]]); labels.append('Voigt $\sigma$'); marks.append(Plotting.labs_pts[3])
+                    hv_data.append([vals, data[3]]); labels.append(r'Voigt $\gamma$'); marks.append(Plotting.labs_pts[2])
+                    hv_data.append([vals, data[4]]); labels.append(r'Voigt $\sigma$'); marks.append(Plotting.labs_pts[3])
                     f_ending = '_Voigt_vals'
                     y_lab = 'Voigt Fit Parameters / kHz'
                     x_lab = 'Beat Frequency / MHz'
@@ -952,7 +952,7 @@ def Voigt_Fit_Analysis():
                     hv_data.append([vals, data[0]]); labels.append('Voigt'); marks.append(Plotting.labs_pts[1])
                     hv_data.append([vals, data[4]]); labels.append('Lorentz'); marks.append(Plotting.labs_pts[2])
                     f_ending = '_Fit_Chisq'
-                    y_lab = 'Model Fit $\chi^{2}$'
+                    y_lab = r'Model Fit $\chi^{2}$'
                     x_lab = 'Beat Frequency / MHz'
 
                  ## GOF chisq values
@@ -961,7 +961,7 @@ def Voigt_Fit_Analysis():
                     hv_data.append([vals, data[2]]); labels.append('Voigt'); marks.append(Plotting.labs_pts[1])
                     hv_data.append([vals, data[6]]); labels.append('Lorentz'); marks.append(Plotting.labs_pts[2])
                     f_ending = '_Fit_Red_Chisq'
-                    y_lab = 'Model Fit Reduced $\chi^{2}$'
+                    y_lab = r'Model Fit Reduced $\chi^{2}$'
                     x_lab = 'Beat Frequency / MHz'
 
                 ## HWHM Vals
@@ -970,10 +970,10 @@ def Voigt_Fit_Analysis():
                 #    sub_data.append([data[5, i], data[3, i], data[4, i]])
                 #Common.sort_multi_col(sub_data)
 
-                ##hv_data.append([data[5], data[3]]); labels.append('Lorentz $\gamma$'); marks.append(Plotting.labs_pts[1])
-                ##hv_data.append([data[5], data[4]]); labels.append('Gauss $\sigma$'); marks.append(Plotting.labs_pts[2])
-                #hv_data.append([Common.get_col(sub_data,0), Common.get_col(sub_data,1)]); labels.append('Lorentz $\gamma$'); marks.append(Plotting.labs_pts[1])
-                #hv_data.append([Common.get_col(sub_data,0), Common.get_col(sub_data,2)]); labels.append('Gauss $\sigma$'); marks.append(Plotting.labs_pts[2])
+                ##hv_data.append([data[5], data[3]]); labels.append(r'Lorentz $\gamma$'); marks.append(Plotting.labs_pts[1])
+                ##hv_data.append([data[5], data[4]]); labels.append(r'Gauss $\sigma$'); marks.append(Plotting.labs_pts[2])
+                #hv_data.append([Common.get_col(sub_data,0), Common.get_col(sub_data,1)]); labels.append(r'Lorentz $\gamma$'); marks.append(Plotting.labs_pts[1])
+                #hv_data.append([Common.get_col(sub_data,0), Common.get_col(sub_data,2)]); labels.append(r'Gauss $\sigma$'); marks.append(Plotting.labs_pts[2])
                 #f_ending = '_Voigt_cpts'
 
                 ## Model Vals
@@ -2277,7 +2277,7 @@ def Plot_Measured_SNR():
                 hv_data = []; labels = []; marks = []; 
                 hv_data.append([Vvolts, CNR15, deltaCNR15]); labels.append(r'$\Delta$ = 15 MHz'); marks.append(Plotting.labs_pts[0])
                 hv_data.append([Vvolts, CNR20, deltaCNR20]); labels.append(r'$\Delta$ = 20 MHz'); marks.append(Plotting.labs_pts[1])
-                hv_data.append(data); labels.append('Sweep $\Delta$ = 20 MHz'); marks.append(Plotting.labs_pts[2])
+                hv_data.append(data); labels.append(r'Sweep $\Delta$ = 20 MHz'); marks.append(Plotting.labs_pts[2])
 
                 # Plot the data
                 args = Plotting.plot_arg_multiple()
@@ -2525,11 +2525,10 @@ def Multi_LLM_Analysis(DATA_HOME, RBW_Val = 500, Tmeas = 20, theXUnits = 'kHz', 
                 LOUD = False      
                 
                 # Perform Correlation calculations of the variables
-                RUN_CORRELATIONS = False
+                RUN_CORRELATIONS = True
 
-                RUN_TAOM_CORRELATIONS = False # No need to check this, T_{AOM} is constant
-                RUN_PMAX_CORRELATIONS = False
-                RUN_LLEST_CORRELATIONS = False
+                # No need to check this, T_{AOM} is constant
+                RUN_TAOM_CORRELATIONS = RUN_PMAX_CORRELATIONS = RUN_LLEST_CORRELATIONS = True
 
                 if RUN_CORRELATIONS:
                     # Correlations with Time
@@ -2567,8 +2566,11 @@ def Multi_LLM_Analysis(DATA_HOME, RBW_Val = 500, Tmeas = 20, theXUnits = 'kHz', 
                         axis_m = 8
                         Multi_LLM_Correlation(data, titles, axis_n, axis_m, INCLUDEHIST, ERRORISSTDEV, LOUD)
 
-                # Make a plot of the spectra with max/min fitted params
-                Plot_Fitted_Lineshape_with_Data(data, titles, RBW_Val, Tmeas, theXUnits, theYUnits, Deff, Pin, VVOA, ERRORISSTDEV, LOUD)
+                RUN_LINESHAPE_PLOT_COMPUTATION = True
+
+                if RUN_LINESHAPE_PLOT_COMPUTATION:
+                    # Make a plot of the spectra with max/min fitted params
+                    Plot_Fitted_Lineshape_with_Data(data, titles, RBW_Val, Tmeas, theXUnits, theYUnits, Deff, Pin, VVOA, ERRORISSTDEV, LOUD)
                 
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
@@ -2808,7 +2810,7 @@ def Multi_LLM_Extract_Fit_Params_Old_Deprecated(dataFrame, titles, errorIsstdev 
         print(ERR_STATEMENT)
         print(e)
 
-def Plot_Fitted_Lineshape_with_Data(dataFrame, titles, RBW_Val = 500, Tmeas = 20, theXUnits = 'kHz', theYUnits = 'Hz', Deff = 400, Pin = 0, VVOA = 3.5, errorIsstdev = True, loud = False):
+def Plot_Fitted_Lineshape_with_Data(dataFrame, titles, RBW_Val = 500, Tmeas = 20, theXUnits = 'kHz', theYUnits = 'Hz', Deff = 400, Pin = 0, VVOA = 3.5, errorIsstdev = True, AddFitted = False, loud = False):
 
     # Extract the average of the fitted model parameters from the Multi-LLM data
     # Make a plot showing the model with the average fitted parameters along with the measured data
@@ -2837,6 +2839,10 @@ def Plot_Fitted_Lineshape_with_Data(dataFrame, titles, RBW_Val = 500, Tmeas = 20
     # Updated R. Sheehan 24 - 1 - 2024
     # The updated method combines Multi_LLM_Extract_Fit_Params_Old_Deprecated with Plot_Multiple_Spectra_Old_Deprecated
 
+    # Updated R. Sheehan 24 - 2 - 2024
+    # Had to add an option on whether or not to include the fitted data because access restrictions mean that I can't call an external .exe file
+    # AddFitted = False means that the fitted lineshape is not included in the plot that is generated by this method
+
     FUNC_NAME = ".Plot_Fitted_Lineshape_with_Data()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
@@ -2847,12 +2853,12 @@ def Plot_Fitted_Lineshape_with_Data(dataFrame, titles, RBW_Val = 500, Tmeas = 20
         else:
             # Import the measured lineshape data
             LINESHAPE_DATA_EXISTS = False # If no measured LLM files exist then just plot the computed Voigt and Lorentz lineshapes together
-            xlow = 0.0; xhigh = 0.0; # variables for storing the enpoints of the frequency plot range
+            xlow = 0.0; xhigh = 0.0; # variables for storing the endpoints of the frequency plot range
             hv_data = []; marks = []; labels = []; # variables for storing imported data
             files = glob.glob('LLM_Meas_*.txt')
             if files:
                 LINESHAPE_DATA_EXISTS = True
-                files.sort(key=lambda f: int(re.sub('\D', '', f))) # sort the filenames in place using the number within the string, assumes single digit in string
+                files.sort(key=lambda f: int(re.sub(r'\D', '', f))) # sort the filenames in place using the number within the string, assumes single digit in string
 
                 deltaT = Tmeas / 60.0 # measurement time in mins
                  
@@ -2873,57 +2879,60 @@ def Plot_Fitted_Lineshape_with_Data(dataFrame, titles, RBW_Val = 500, Tmeas = 20
             # Define the titles from the dataFrame
             if titles is None: titles = list(dataFrame)            
 
-            # Averaged Voigt Model Fit Parameters
-            Vh = columnStatistics(dataFrame, titles, 10, errorIsstdev) # fitted height
-            Vf0 = columnStatistics(dataFrame, titles, 11, errorIsstdev) # centre frequency
-            Vgamma = columnStatistics(dataFrame, titles, 12, errorIsstdev) # Lorentzian HWHM
-            Vsigma = columnStatistics(dataFrame, titles, 13, errorIsstdev) # Gaussian std. dev.
-
             # define the plot range string based on the endpoints of the measured data sets
-            Nsteps = 500; 
-
-            # In the event of no lineshape data being available just plot the lineshapes about the central frequency
-            if LINESHAPE_DATA_EXISTS is False: 
-                xlow = Vf0['Average'] - 50
-                xhigh = Vf0['Average'] + 50
+            Nsteps = 500;
 
             plt_rng = '%(v1)d %(v2)d %(v3)d'%{"v1":xlow, "v2":xhigh, "v3":Nsteps}
-
-            # generate the arg-val strings for the Voigt lineshape calculation
-            Vave = '%(v1)0.5f %(v2)0.5f %(v3)0.5f %(v4)0.5f'%{"v1":Vh['Average'], "v2":Vf0['Average'], "v3":Vgamma['Average'], "v4":Vsigma['Average']}
-            Vavefile = 'Voigt_Average.txt'
-            Vaveargs = Vave + ' ' + plt_rng + ' ' + Vavefile
-
-            # Averaged Lorentz Model Fit Parameters
-            Lh = columnStatistics(dataFrame, titles, 14, errorIsstdev) # fitted height
-            Lf0 = columnStatistics(dataFrame, titles, 15, errorIsstdev) # centre frequency
-            Lgamma = columnStatistics(dataFrame, titles, 16, errorIsstdev) # Lorentzian HWHM
-
-            # generate the arg-val strings
-            Lave = '%(v1)0.5f %(v2)0.5f %(v3)0.5f'%{"v1":Lh['Average'], "v2":Lf0['Average'], "v3":Lgamma['Average']}
-            Lavefile = 'Lorentz_Average.txt'
-            Laveargs = Lave + ' ' + plt_rng + ' ' + Lavefile            
-
-            # Call the executable with aveparams to generate data fitted Voigt and Lorentz lineshapes
-            PLOT_IN_DBM = True # Always plot in DBM since the measured data is output in units of dBm
             
-            # Compute the Voigt lineshape spectrum
-            # Method Compute_Spectrum sends the computed data to the file named in the arg_string, in this case Vavefile
-            Compute_Spectrum(True, Vaveargs)
-            spctr_data = numpy.loadtxt(Vavefile, delimiter = ',', unpack = True)
-            if PLOT_IN_DBM:
-                spctr_data[1] = spctr_data[1] / 1e+6 # convert nW -> mW
-                spctr_data[1] = Common.list_convert_mW_dBm(spctr_data[1]) # convert mW -> dBm
-            hv_data.append(spctr_data); labels.append('V$_{ave}$'); marks.append(Plotting.labs_lins[0])
+            PLOT_IN_DBM = True # Always plot in dBm since the measured data is output in units of dBm
+            
+            # Call the executable with aveparams to generate data fitted Voigt and Lorentz lineshapes
+            if AddFitted:
+                # Averaged Voigt Model Fit Parameters
+                Vh = columnStatistics(dataFrame, titles, 10, errorIsstdev) # fitted height
+                Vf0 = columnStatistics(dataFrame, titles, 11, errorIsstdev) # centre frequency
+                Vgamma = columnStatistics(dataFrame, titles, 12, errorIsstdev) # Lorentzian HWHM
+                Vsigma = columnStatistics(dataFrame, titles, 13, errorIsstdev) # Gaussian std. dev.
 
-            # Compute the Lorentz lineshape spectrum
-            # Method Compute_Spectrum sends the computed data to the file named in the arg_string, in this case Lavefile
-            Compute_Spectrum(False, Laveargs)
-            spctr_data = numpy.loadtxt(Lavefile, delimiter = ',', unpack = True)            
-            if PLOT_IN_DBM:
-                spctr_data[1] = spctr_data[1] / 1e+6 # convert uW -> mW
-                spctr_data[1] = Common.list_convert_mW_dBm(spctr_data[1]) # convert mW -> dBm
-            hv_data.append(spctr_data); labels.append('L$_{ave}$'); marks.append(Plotting.labs_lins[1])
+                # In the event of no lineshape data being available just plot the lineshapes about the central frequency
+                if LINESHAPE_DATA_EXISTS is False: 
+                    xlow = Vf0['Average'] - 50
+                    xhigh = Vf0['Average'] + 50
+                    
+                # generate the arg-val strings for the Voigt lineshape calculation
+                Vave = '%(v1)0.5f %(v2)0.5f %(v3)0.5f %(v4)0.5f'%{"v1":Vh['Average'], "v2":Vf0['Average'], "v3":Vgamma['Average'], "v4":Vsigma['Average']}
+                Vavefile = 'Voigt_Average.txt'
+                Vaveargs = Vave + ' ' + plt_rng + ' ' + Vavefile
+                
+                # Compute the Voigt lineshape spectrum
+                # Method Compute_Spectrum sends the computed data to the file named in the arg_string, in this case Vavefile
+                Compute_Spectrum(True, Vaveargs)
+                spctr_data = numpy.loadtxt(Vavefile, delimiter = ',', unpack = True)
+                if PLOT_IN_DBM:
+                    spctr_data[1] = spctr_data[1] / 1e+6 # convert nW -> mW
+                    spctr_data[1] = Common.list_convert_mW_dBm(spctr_data[1]) # convert mW -> dBm
+                hv_data.append(spctr_data); labels.append('V$_{ave}$'); marks.append(Plotting.labs_lins[0])
+
+                # Averaged Lorentz Model Fit Parameters
+                Lh = columnStatistics(dataFrame, titles, 14, errorIsstdev) # fitted height
+                Lf0 = columnStatistics(dataFrame, titles, 15, errorIsstdev) # centre frequency
+                Lgamma = columnStatistics(dataFrame, titles, 16, errorIsstdev) # Lorentzian HWHM
+
+                # generate the arg-val strings
+                Lave = '%(v1)0.5f %(v2)0.5f %(v3)0.5f'%{"v1":Lh['Average'], "v2":Lf0['Average'], "v3":Lgamma['Average']}
+                Lavefile = 'Lorentz_Average.txt'
+                Laveargs = Lave + ' ' + plt_rng + ' ' + Lavefile
+
+                # Compute the Lorentz lineshape spectrum
+                # Method Compute_Spectrum sends the computed data to the file named in the arg_string, in this case Lavefile
+                Compute_Spectrum(False, Laveargs)
+                spctr_data = numpy.loadtxt(Lavefile, delimiter = ',', unpack = True)            
+                if PLOT_IN_DBM:
+                    spctr_data[1] = spctr_data[1] / 1e+6 # convert uW -> mW
+                    spctr_data[1] = Common.list_convert_mW_dBm(spctr_data[1]) # convert mW -> dBm
+                hv_data.append(spctr_data); labels.append('L$_{ave}$'); marks.append(Plotting.labs_lins[1])
+                
+                del spctr_data;
 
             # make a plot of the measured lineshape data
             args = Plotting.plot_arg_multiple()
@@ -2940,7 +2949,7 @@ def Plot_Fitted_Lineshape_with_Data(dataFrame, titles, RBW_Val = 500, Tmeas = 20
 
             Plotting.plot_multiple_curves(hv_data, args)
 
-            del hv_data; del labels; del marks; del spctr_data; 
+            del hv_data; del labels; del marks;  
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
@@ -3145,13 +3154,18 @@ def Compute_Spectrum(spctr_choice, arg_vals):
         L_dir = 'C:/Users/robertsheehan/Programming/C++/Fitting/Lorentz/x64/Release/'
         L_exe = 'Lorentz.exe '
 
-        DIR = V_dir if spctr_choice else L_dir
-        EXE = V_exe if spctr_choice else L_exe
+        if os.path.isdir(V_dir) and os.path.isdir(L_dir):
+            DIR = V_dir if spctr_choice else L_dir
+            EXE = V_exe if spctr_choice else L_exe
 
-        args = DIR + EXE + arg_vals
+            args = DIR + EXE + arg_vals
 
-        output = subprocess.call(args, stdin=None, stdout=None, stderr=None, shell=False)
-
+            output = subprocess.call(args, stdin=None, stdout=None, stderr=None, shell=False)
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate ' + V_dir
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate ' + L_dir
+            ERR_STATEMENT = ERR_STATEMENT + '\nPlease ensure that Voigt.exe and Lorentz.exe have been compiled and are available on this computer\n'
+            raise Exception
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
@@ -4167,7 +4181,7 @@ def Plot_Multiple_Spectra_Old_Deprecated(DATA_HOME, RBW_Val = 500, Tmeas = 20, t
             os.chdir(DATA_HOME)
 
             files = glob.glob('LLM_Meas_*.txt')
-            files.sort(key=lambda f: int(re.sub('\D', '', f))) # sort the filenames in place using the number within the string, assumes single digit in string
+            files.sort(key=lambda f: int(re.sub(r'\D', '', f))) # sort the filenames in place using the number within the string, assumes single digit in string
 
             hv_data = []; marks = []; labels = []; 
             deltaT = Tmeas / 60.0 # measurement time in mins
@@ -4229,7 +4243,7 @@ def Multi_Multi_LLM_Analysis():
             print(os.getcwd())
 
             # Make a directory for storing the results
-            resDir = 'Loop_Power_Variation/'
+            resDir = 'Loop_Power_Variation_Feb_25/'
             #resDir = 'Loop_Power_Variation_FSpan_100/'
             #resDir = 'Loop_RBW_Variation/'
             #resDir = 'JDSU_I_Variation/'
@@ -4243,16 +4257,16 @@ def Multi_Multi_LLM_Analysis():
             #Ival = 300; Day = '21';
             #Month = '06';
             
-            Ival = 100; Day = '17';  
-            #Ival = 200; Day = '20';
-            #Ival = 300; Day = '21';
+            #Ival = 100; Day = '17';  
+            #Ival = 200; Day = '18';
+            Ival = 300; Day = '19';
             Month = '02'; 
             
             Nmeas = 200
             
             # NKT parameters
             RBW = 100; theYunits = 'Hz' # RBW and its units for the NKT measurement
-            Tmeas = 28.5; # Approximate measurement time in seconds for the NKT measurement
+            Tmeas = 28.7; # Approximate measurement time in seconds for the NKT measurement
             Deff = 400 # Effective loop length in km
             theXunits = 'kHz' # Frequency units along X-axis
             
@@ -4322,7 +4336,7 @@ def Multi_Multi_LLM_Analysis():
                     
                     # Do the Multi-LLM Analysis on each measured data
                     if PERFORM_MULTI_LLM:
-                        Multi_LLM_Analysis(dir_list[i], RBW/1000.0, Tmeas, theXunits, theYunits, Deff, Pin, VVOA)
+                        Multi_LLM_Analysis(dir_list[i], RBW, Tmeas, theXunits, theYunits, Deff, Pin, VVOA)
                         os.chdir(DATA_HOME)
             else:
                 ERR_STATEMENT = ERR_STATEMENT + '\ndir_list is empty'
@@ -4357,27 +4371,38 @@ def Summarise_Multi_LLM_Analysis():
             print(os.getcwd())
 
             # Make a directory for storing the results
-            resDir = 'Loop_Power_Variation/'
+            resDir = 'Loop_Power_Variation_Feb_25/'
             #resDir = 'Loop_Power_Variation_FSpan_100/'
             #resDir = 'Loop_RBW_Variation/'
             #resDir = 'JDSU_I_Variation/'
             if not os.path.isdir(resDir): os.mkdir(resDir)
             
             # Parameters for the NKT measurement
-            Ival = 100; Day = '19';  Pin = 3.356; 
+            # June 2023
+            #Ival = 100; Day = '19';  Pin = 3.356; 
             #Ival = 200; Day = '20'; Pin = 9.313; 
             #Ival = 300; Day = '21'; Pin = 11.767; 
-            Month = '06'; Nmeas = 200; 
+            #Month = '06'; 
+            
+            # Feb 2025
+            #Ival = 100; Day = '17';  Pin = 3.7265; 
+            #Ival = 200; Day = '18'; Pin = 9.452; 
+            Ival = 300; Day = '19'; Pin = 11.879; 
+            Month = '02'; 
+            Nmeas = 200; 
+            
             ## Input powers for the NKT data set
             #Pvals = [3.356, 9.313, 11.767]
             #Perr = [0.016, 0.015, 0.013]
-            #RBWstr = '100Hz'; LLMunitstr = 'kHz'; Deff = 400; 
+            
+            RBWstr = '100Hz'; LLMunitstr = 'kHz'; Deff = 400; RBWValue = 100; 
             
             # Parameters for the CoBrite measurement
             #Ival = 100; Day = '07'; Pin = 4.365; 
             #Ival = 200; Day = '10'; Pin = 5.512; 
             #Ival = 300; Day = '10'; Pin = 6.539; 
             #Month = '07'; Nmeas = 100; 
+            
             ## Input powers for the CoBrite data set
             #Pvals = [4.365, 5.512, 6.539]
             #Perr = [0.066, 0.011, 0.018]
@@ -4397,12 +4422,12 @@ def Summarise_Multi_LLM_Analysis():
             #dir_list = dir_list[2:len(dir_list)]
             #dir_list = ['LLM_Data_Nmeas_200_I_100_09_06_2023_09_42_Span_50k/', 'LLM_Data_Nmeas_200_I_100_08_06_2023_12_57_Span_100k/', 'LLM_Data_Nmeas_200_I_100_29_05_2023_15_34_Span_250k/', 'LLM_Data_Nmeas_200_I_100_29_05_2023_14_20_Span_500k/']
             #TmeasVals = [39, 29, 19, 20] # measurement time varies depending on the RBW value and the Freq. Span
-            SpanVals = [50, 100, 250, 500]
+            #SpanVals = [50, 100, 250, 500]
             #RBWVals = [50, 100, 500, 500]
-            RBWVals = [20]
+            #RBWVals = [20]
             #Pin = 3.34
             
-            PARSE_RES_FILES = True # Must be false until all Multi-LLM results are obtained
+            PARSE_RES_FILES = False # Must be false until all Multi-LLM results are obtained
             esaResFileName = 'Measurement_Results_I_%(v1)d.txt'%{"v1":Ival}
             esaErrFileName = 'Measurement_Errors_I_%(v1)d.txt'%{"v1":Ival}
 
@@ -4437,13 +4462,13 @@ def Summarise_Multi_LLM_Analysis():
                         esaFile = open(esaResFileName,'a')
                         esaFile.write('%(v1)0.5f\t%(v2)0.5f\t%(v3)0.5f\t%(v4)0.5f\t%(v5)0.5f\t%(v6)0.5f\t%(v7)0.5f\t%(v8)0.5f\t%(v9)0.5f\t%(v10)0.5f\t%(v11)0.1f\n'%{"v1":theVals['P1/dBm'], "v2":theVals['P2/dBm'], "v3":theVals['P2/P1'], "v4":theVals['Pmax/dBm'], 
                                                                                                                                                             "v5":theVals['LLest'], "v6":theVals['LL_Vfit'], "v7":theVals['LL_Lfit'], "v8":theVals['LLest_-20'], 
-                                                                                                                                                            "v9":theVals['Voigt_Lor_HWHM'], "v10":theVals['Voigt_Gau_Stdev'], "v11":RBWVals[i] } )
+                                                                                                                                                            "v9":theVals['Voigt_Lor_HWHM'], "v10":theVals['Voigt_Gau_Stdev'], "v11":RBWValue } )
                         esaFile.close()
 
                         esaFile = open(esaErrFileName,'a')
                         esaFile.write('%(v1)0.5f\t%(v2)0.5f\t%(v3)0.5f\t%(v4)0.5f\t%(v5)0.5f\t%(v6)0.5f\t%(v7)0.5f\t%(v8)0.5f\t%(v9)0.5f\t%(v10)0.5f\t%(v11)0.1f\n'%{"v1":theErrs['P1/dBm'], "v2":theErrs['P2/dBm'], "v3":theErrs['P2/P1'], "v4":theErrs['Pmax/dBm'], 
                                                                                                                                                             "v5":theErrs['LLest'], "v6":theErrs['LL_Vfit'], "v7":theErrs['LL_Lfit'], "v8":theErrs['LLest_-20'], 
-                                                                                                                                                            "v9":theErrs['Voigt_Lor_HWHM'], "v10":theErrs['Voigt_Gau_Stdev'], "v11":RBWVals[i] } )
+                                                                                                                                                            "v9":theErrs['Voigt_Lor_HWHM'], "v10":theErrs['Voigt_Gau_Stdev'], "v11":RBWValue } )
                         esaFile.close()
                         os.chdir(DATA_HOME)
 
@@ -4466,8 +4491,8 @@ def Summarise_Multi_LLM_Analysis():
                             data[1] = data[1] / 1e+6 # convert uW -> mW
                             data[1] = Common.list_convert_mW_dBm(data[1]) # convert mW -> dBm
                         hv_data.append(data); marks.append(Plotting.labs_lins[count_mrk%len(Plotting.labs_lins)]); 
-                        #labels.append('V$_{VOA}$ = %(v1)0.1f V'%{"v1":VVOA[i]})
-                        labels.append('RBW/Spn=%(v2)dHz/%(v1)dkHz'%{"v1":SpanVals[i], "v2":RBWVals[i]})
+                        labels.append('V$_{VOA}$ = %(v1)0.1f V'%{"v1":VVOA[i]})
+                        #labels.append('RBW/Spn=%(v2)dHz/%(v1)dkHz'%{"v1":SpanVals[i], "v2":RBWVals[i]})
                         count_mrk = count_mrk + 1
                         os.chdir(DATA_HOME)
 
@@ -4503,11 +4528,15 @@ def Summarise_Multi_LLM_Analysis():
                 hv_data1 = []; labels1 = []; marks1 = []
                 hv_data2 = []; labels2 = []; marks2 = []
                 Ivals = [100, 200, 300]
-                RBWVals = [50, 100, 250, 500]
+                #RBWVals = [50, 100, 250, 500]
                 
-                # Input powers for the NKT data set
+                # Input powers for the NKT data set, June 2023
                 #Pvals = [3.356, 9.313, 11.767]
                 #Perr = [0.016, 0.015, 0.013]
+                
+                # Input powers for the NKT data set, February 2025
+                Pvals = [3.7265, 9.452, 11.879]
+                Perr = [0.015, 0.036, 0.025]
 
                 # Input powers for the CoBrite data set
                 #Pvals = [4.365, 5.512, 6.539]
@@ -4546,7 +4575,7 @@ def Summarise_Multi_LLM_Analysis():
                 os.chdir(DATA_HOME)
             
             # Make plots of the gathered summarised data
-            PLOT_RES_FILES = False # Generate the plots of the summarised data files
+            PLOT_RES_FILES = True # Generate the plots of the summarised data files
             PLOT_VS_PRAT = False # Generate the plot with Power Ratio along the x-axis, other wise plot versus V_{VOA}
             
             if PLOT_RES_FILES:
@@ -4564,9 +4593,14 @@ def Summarise_Multi_LLM_Analysis():
                 #Ivals = [100]
                 RBWVals = [50, 100, 250, 500]
 
-                # Input powers for the NKT data set
-                Pvals = [3.356, 9.313, 11.767]
-                Perr = [0.016, 0.015, 0.013]
+                # Input powers for the NKT data set, June 2023
+                #Pvals = [3.356, 9.313, 11.767]
+                #Perr = [0.016, 0.015, 0.013]
+                
+                # Input powers for the NKT data set, February 2025
+                Pvals = [3.7265, 9.452, 11.879]
+                Perr = [0.015, 0.036, 0.025]
+
                 RBWstr = '100Hz'
                 LLMunitstr = 'kHz'
 
@@ -4576,7 +4610,8 @@ def Summarise_Multi_LLM_Analysis():
                 #RBWstr = '5kHz'
                 #LLMunitstr = 'MHz'
                 
-                VVOA = numpy.arange(2.8, 4.0, 0.2)
+                #VVOA = numpy.arange(2.8, 4.0, 0.2)
+                VVOA = numpy.arange(0, 2.6, 0.5)
                 Xvals = []
                 print(VVOA)
                 hv_data1 = []; labels1 = []; marks1 = []
@@ -4643,7 +4678,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
                 args.y_label = 'Laser Linewidth ( %(v1)s )'%{"v1":LLMunitstr}
                 args.fig_name = 'Laser_Linewidth' if DRAW_FULL_PLOT else 'Laser_Linewidth_Zoom'
-                args.plt_range = [2.7, 3.9, 1.5, 3.25]
+                #args.plt_range = [2.7, 3.9, 1.5, 3.25]
                 #if PLOT_VS_PRAT:
                 #    args.plt_range = [0, 1.5, 1.5, 3.25] if DRAW_FULL_PLOT else [0, 0.4, 1.5, 3.25]
                 #else:
@@ -4658,7 +4693,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
                 args.y_label = 'Laser Linewidth at -20 dB ( %(v1)s )'%{"v1":LLMunitstr}
                 args.fig_name = 'Laser_Linewidth_20' if DRAW_FULL_PLOT else 'Laser_Linewidth_20_Zoom'
-                args.plt_range = [2.7, 3.9, 8, 14]
+                #args.plt_range = [2.7, 3.9, 8, 14]
                 #if PLOT_VS_PRAT:
                 #    args.plt_range = [0, 1.5, 8, 14] if DRAW_FULL_PLOT else [0, 0.4, 8, 14]
                 #else:
@@ -4673,7 +4708,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
                 args.y_label = 'Laser Linewidth Voigt Fit ( %(v1)s )'%{"v1":LLMunitstr}
                 args.fig_name = 'Laser_Linewidth_Voigt'if DRAW_FULL_PLOT else 'Laser_Linewidth_Voigt_Zoom'
-                args.plt_range = [2.7, 3.9, 1.5, 3.25]
+                #args.plt_range = [2.7, 3.9, 1.5, 3.25]
                 #if PLOT_VS_PRAT:
                 #    args.plt_range = [0, 1.5, 1.5, 3.25] if DRAW_FULL_PLOT else [0, 0.4, 1.5, 3.25]
                 #else:

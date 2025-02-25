@@ -2516,6 +2516,7 @@ def Multi_LLM_Analysis(DATA_HOME, RBW_Val = 500, Tmeas = 20, theXUnits = 'kHz', 
 
                 LOUD = True
                 ERRORISSTDEV = True
+                INCLUDEFIT = True
 
                 # Start publilshing the results
                 #if not glob.glob('ResultsSummary.txt'): 
@@ -2525,10 +2526,10 @@ def Multi_LLM_Analysis(DATA_HOME, RBW_Val = 500, Tmeas = 20, theXUnits = 'kHz', 
                 LOUD = False      
                 
                 # Perform Correlation calculations of the variables
-                RUN_CORRELATIONS = True
+                RUN_CORRELATIONS = False
 
                 # No need to check this, T_{AOM} is constant
-                RUN_TAOM_CORRELATIONS = RUN_PMAX_CORRELATIONS = RUN_LLEST_CORRELATIONS = True
+                RUN_TAOM_CORRELATIONS = RUN_PMAX_CORRELATIONS = RUN_LLEST_CORRELATIONS = False
 
                 if RUN_CORRELATIONS:
                     # Correlations with Time
@@ -2570,7 +2571,7 @@ def Multi_LLM_Analysis(DATA_HOME, RBW_Val = 500, Tmeas = 20, theXUnits = 'kHz', 
 
                 if RUN_LINESHAPE_PLOT_COMPUTATION:
                     # Make a plot of the spectra with max/min fitted params
-                    Plot_Fitted_Lineshape_with_Data(data, titles, RBW_Val, Tmeas, theXUnits, theYUnits, Deff, Pin, VVOA, ERRORISSTDEV, LOUD)
+                    Plot_Fitted_Lineshape_with_Data(data, titles, RBW_Val, Tmeas, theXUnits, theYUnits, Deff, Pin, VVOA, ERRORISSTDEV, INCLUDEFIT, LOUD)
                 
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
@@ -2864,7 +2865,7 @@ def Plot_Fitted_Lineshape_with_Data(dataFrame, titles, RBW_Val = 500, Tmeas = 20
                  
                 #nskip = 8 # only plot every nskip measurements, NKT
                 count_mrk = 0
-                nskip = 5 # only plot every nskip measurements, CoBrite
+                nskip = 7 # only plot every nskip measurements, CoBrite
                 for i in range(0, len(files), nskip):
                     values = Common.extract_values_from_string(files[i])
                     theTime = float(values[0])*deltaT
@@ -2942,8 +2943,8 @@ def Plot_Fitted_Lineshape_with_Data(dataFrame, titles, RBW_Val = 500, Tmeas = 20
             args.mrk_list = marks
             args.x_label = 'Frequency / %(v1)s'%{"v1":theXUnits}
             args.y_label = 'Power / dBm / %(v1)d%(v2)s'%{"v1":RBW_Val, "v2":theYUnits}
-            #args.plt_range = [xlow, xhigh, -90, -20]
-            args.plt_range = [xlow, xhigh, -70, -30]
+            #args.plt_range = [xlow, xhigh, -65, -25]
+            args.plt_range = [xlow, xhigh, -70, -25]
             args.fig_name = 'Measured_Spectra'
             args.plt_title = 'D$_{eff}$ = %(v1)d km, P$_{in}$ = %(v2)0.1f dBm, V$_{VOA}$ = %(v3)0.1f V'%{"v1":Deff, "v2":Pin, "v3":VVOA}
 
@@ -4266,7 +4267,7 @@ def Multi_Multi_LLM_Analysis():
             
             # NKT parameters
             RBW = 100; theYunits = 'Hz' # RBW and its units for the NKT measurement
-            Tmeas = 28.7; # Approximate measurement time in seconds for the NKT measurement
+            Tmeas = 28.5; # Approximate measurement time in seconds for the NKT measurement
             Deff = 400 # Effective loop length in km
             theXunits = 'kHz' # Frequency units along X-axis
             
@@ -4301,7 +4302,7 @@ def Multi_Multi_LLM_Analysis():
             #dir_list = dir_list[2:len(dir_list)]
 
             # Obtain the loop power data from all the measurements
-            PARSE_ESA_FILES = True
+            PARSE_ESA_FILES = False
             LoopPowerFileName = 'Loop_Power_Values_I_%(v1)d.txt'%{"v1":Ival}
 
             # Create files for storing the accumulated data
@@ -4478,7 +4479,8 @@ def Summarise_Multi_LLM_Analysis():
                     PLOT_IN_DBM = True # Always plot in DBM since the measured data is output in units of dBm
 
                     # Gather the data for each Pin
-                    VVOA = numpy.arange(2.8, 4.0, 0.2)
+                    #VVOA = numpy.arange(2.8, 4.0, 0.2)
+                    VVOA = numpy.arange(0, 2.6, 0.5)
                     xlow = 0.0; xhigh = 0.0; # variables for storing the enpoints of the frequency plot range
                     hv_data = []; marks = []; labels = []; 
                     count_mrk = 0
@@ -4510,7 +4512,7 @@ def Summarise_Multi_LLM_Analysis():
                     args.plt_title = 'D$_{eff}$ = %(v1)d km, P$_{in}$ = %(v2)0.2f dBm'%{"v1":Deff, "v2":Pin}
                     #args.plt_range = [xlow, xhigh, -90, -20]
                     #args.plt_range = [-100, 100, -80, -30]
-                    args.plt_range = [-25, 25, -70, -30]
+                    args.plt_range = [-50, 50, -70, -25]
 
                     Plotting.plot_multiple_curves(hv_data, args)
 
@@ -4576,7 +4578,7 @@ def Summarise_Multi_LLM_Analysis():
             
             # Make plots of the gathered summarised data
             PLOT_RES_FILES = True # Generate the plots of the summarised data files
-            PLOT_VS_PRAT = False # Generate the plot with Power Ratio along the x-axis, other wise plot versus V_{VOA}
+            PLOT_VS_PRAT = True # Generate the plot with Power Ratio along the x-axis, other wise plot versus V_{VOA}
             
             if PLOT_RES_FILES:
                 os.chdir(resDir)
@@ -4611,7 +4613,8 @@ def Summarise_Multi_LLM_Analysis():
                 #LLMunitstr = 'MHz'
                 
                 #VVOA = numpy.arange(2.8, 4.0, 0.2)
-                VVOA = numpy.arange(0, 2.6, 0.5)
+                #VVOA = numpy.arange(0, 2.6, 0.5)
+                VVOA = numpy.concatenate([numpy.arange(0, 2.6, 0.5), numpy.arange(2.8, 3.9, 0.2)] )
                 Xvals = []
                 print(VVOA)
                 hv_data1 = []; labels1 = []; marks1 = []
@@ -4629,7 +4632,8 @@ def Summarise_Multi_LLM_Analysis():
 
                     Xvals = data[2] if PLOT_VS_PRAT else VVOA
 
-                    endVal = -1 + numpy.size(data[2]) # ignore the results of the V_{VOA} = 4V measurement, attenuation is too high, error bars too large, obscuring the result
+                    endVal = numpy.size(data[2])
+                    #endVal = -1 + numpy.size(data[2]) # ignore the results of the V_{VOA} = 4V measurement, attenuation is too high, error bars too large, obscuring the result
 
                     # 1. Pmax versus Power Ratio with Errors
                     hv_data1.append([Xvals[:endVal], data[3][:endVal], numpy.absolute( dataErr[3][:endVal] ) ] ); labels1.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks1.append(Plotting.labs_lins[i%(len(Plotting.labs))])
@@ -4657,7 +4661,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.mrk_list = marks1
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
                 args.y_label = 'Spectral Peak Value (dBm / %(v1)s )'%{"v1":RBWstr}
-                args.fig_name = 'Spectral_Peak_Value'
+                args.fig_name = 'Spectral_Peak_Value_vs_Prat' if PLOT_VS_PRAT else 'Spectral_Peak_Value_vs_VVOA'
 
                 Plotting.plot_multiple_curves_with_errors(hv_data1, args)
 
@@ -4667,7 +4671,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.mrk_list = marks2
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
                 args.y_label = 'Optical Power ( dBm )'
-                args.fig_name = 'Optical_Power'
+                args.fig_name = 'Optical_Power_vs_Prat' if PLOT_VS_PRAT else 'Optical_Power_vs_VVOA'
 
                 Plotting.plot_multiple_curves_with_errors(hv_data2, args)
 
@@ -4677,7 +4681,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.mrk_list = marks3
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
                 args.y_label = 'Laser Linewidth ( %(v1)s )'%{"v1":LLMunitstr}
-                args.fig_name = 'Laser_Linewidth' if DRAW_FULL_PLOT else 'Laser_Linewidth_Zoom'
+                args.fig_name = 'Laser_Linewidth_vs_Prat' if PLOT_VS_PRAT else 'Laser_Linewidth_vs_VVOA'
                 #args.plt_range = [2.7, 3.9, 1.5, 3.25]
                 #if PLOT_VS_PRAT:
                 #    args.plt_range = [0, 1.5, 1.5, 3.25] if DRAW_FULL_PLOT else [0, 0.4, 1.5, 3.25]
@@ -4692,7 +4696,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.mrk_list = marks4
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
                 args.y_label = 'Laser Linewidth at -20 dB ( %(v1)s )'%{"v1":LLMunitstr}
-                args.fig_name = 'Laser_Linewidth_20' if DRAW_FULL_PLOT else 'Laser_Linewidth_20_Zoom'
+                args.fig_name = 'Laser_Linewidth_20_vs_Prat' if PLOT_VS_PRAT else 'Laser_Linewidth_20_vs_VVOA'
                 #args.plt_range = [2.7, 3.9, 8, 14]
                 #if PLOT_VS_PRAT:
                 #    args.plt_range = [0, 1.5, 8, 14] if DRAW_FULL_PLOT else [0, 0.4, 8, 14]
@@ -4707,7 +4711,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.mrk_list = marks5
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
                 args.y_label = 'Laser Linewidth Voigt Fit ( %(v1)s )'%{"v1":LLMunitstr}
-                args.fig_name = 'Laser_Linewidth_Voigt'if DRAW_FULL_PLOT else 'Laser_Linewidth_Voigt_Zoom'
+                args.fig_name = 'Laser_Linewidth_Voigt_vs_Prat' if PLOT_VS_PRAT else 'Laser_Linewidth_Voigt_vs_VVOA'
                 #args.plt_range = [2.7, 3.9, 1.5, 3.25]
                 #if PLOT_VS_PRAT:
                 #    args.plt_range = [0, 1.5, 1.5, 3.25] if DRAW_FULL_PLOT else [0, 0.4, 1.5, 3.25]
@@ -4720,7 +4724,7 @@ def Summarise_Multi_LLM_Analysis():
                 for i in range(0, len(hv_data5), 1): print('mean: ',numpy.mean(hv_data5[i][1]),' +/- ',0.5*(numpy.max(hv_data5[i][1]) - numpy.min(hv_data5[i][1]) ) )
 
                 args.loud = False
-                args.fig_name = 'Laser_Linewidth_Voigt_Lin_Fit'
+                args.fig_name = 'Laser_Linewidth_Voigt_Lin_Fit_vs_Prat' if PLOT_VS_PRAT else 'Laser_Linewidth_Voigt_Lin_Fit_vs_VVOA'
 
                 Plotting.plot_multiple_linear_fit_curves(hv_data5, args)
 

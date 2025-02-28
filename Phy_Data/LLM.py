@@ -2865,7 +2865,7 @@ def Plot_Fitted_Lineshape_with_Data(dataFrame, titles, RBW_Val = 500, Tmeas = 20
                  
                 #nskip = 8 # only plot every nskip measurements, NKT
                 count_mrk = 0
-                nskip = 7 # only plot every nskip measurements, CoBrite
+                nskip = 5 # only plot every nskip measurements, CoBrite
                 for i in range(0, len(files), nskip):
                     values = Common.extract_values_from_string(files[i])
                     theTime = float(values[0])*deltaT
@@ -2944,7 +2944,7 @@ def Plot_Fitted_Lineshape_with_Data(dataFrame, titles, RBW_Val = 500, Tmeas = 20
             args.x_label = 'Frequency / %(v1)s'%{"v1":theXUnits}
             args.y_label = 'Power / dBm / %(v1)d%(v2)s'%{"v1":RBW_Val, "v2":theYUnits}
             #args.plt_range = [xlow, xhigh, -65, -25]
-            args.plt_range = [xlow, xhigh, -70, -25]
+            args.plt_range = [xlow, xhigh, -90, -25]
             args.fig_name = 'Measured_Spectra'
             args.plt_title = 'D$_{eff}$ = %(v1)d km, P$_{in}$ = %(v2)0.1f dBm, V$_{VOA}$ = %(v3)0.1f V'%{"v1":Deff, "v2":Pin, "v3":VVOA}
 
@@ -4244,7 +4244,7 @@ def Multi_Multi_LLM_Analysis():
             print(os.getcwd())
 
             # Make a directory for storing the results
-            resDir = 'Loop_Power_Variation_Feb_25/'
+            resDir = 'Loop_Power_Variation_Mar_25/'
             #resDir = 'Loop_Power_Variation_FSpan_100/'
             #resDir = 'Loop_RBW_Variation/'
             #resDir = 'JDSU_I_Variation/'
@@ -4260,10 +4260,15 @@ def Multi_Multi_LLM_Analysis():
             
             #Ival = 100; Day = '17';  
             #Ival = 200; Day = '18';
-            Ival = 300; Day = '19';
-            Month = '02'; 
+            #Ival = 300; Day = '19';
+            #Month = '02';            
+            #Nmeas = 200
             
-            Nmeas = 200
+            #Ival = 100; Day = '25';  
+            #Ival = 200; Day = '26';
+            Ival = 300; Day = '27';
+            Month = '02';
+            Nmeas = 100
             
             # NKT parameters
             RBW = 100; theYunits = 'Hz' # RBW and its units for the NKT measurement
@@ -4372,7 +4377,8 @@ def Summarise_Multi_LLM_Analysis():
             print(os.getcwd())
 
             # Make a directory for storing the results
-            resDir = 'Loop_Power_Variation_Feb_25/'
+            #resDir = 'Loop_Power_Variation_Feb_25/'
+            resDir = 'Loop_Power_Variation_Mar_25/'
             #resDir = 'Loop_Power_Variation_FSpan_100/'
             #resDir = 'Loop_RBW_Variation/'
             #resDir = 'JDSU_I_Variation/'
@@ -4388,9 +4394,16 @@ def Summarise_Multi_LLM_Analysis():
             # Feb 2025
             #Ival = 100; Day = '17';  Pin = 3.7265; 
             #Ival = 200; Day = '18'; Pin = 9.452; 
-            Ival = 300; Day = '19'; Pin = 11.879; 
+            #Ival = 300; Day = '19'; Pin = 11.879; 
+            #Month = '02'; 
+            #Nmeas = 200; 
+            
+            # Mar 2025
+            Ival = 100; Day = '25';  Pin = 3.769; 
+            #Ival = 200; Day = '26'; Pin = 9.519;
+            #Ival = 300; Day = '27'; Pin = 11.934;
             Month = '02'; 
-            Nmeas = 200; 
+            Nmeas = 100; 
             
             ## Input powers for the NKT data set
             #Pvals = [3.356, 9.313, 11.767]
@@ -4480,7 +4493,8 @@ def Summarise_Multi_LLM_Analysis():
 
                     # Gather the data for each Pin
                     #VVOA = numpy.arange(2.8, 4.0, 0.2)
-                    VVOA = numpy.arange(0, 2.6, 0.5)
+                    #VVOA = numpy.arange(0, 2.6, 0.5)
+                    VVOA = [0, 0.5, 1.0, 1.5, 2.0, 2.5, 2.8, 3.0, 3.2, 3.5, 3.7]
                     xlow = 0.0; xhigh = 0.0; # variables for storing the enpoints of the frequency plot range
                     hv_data = []; marks = []; labels = []; 
                     count_mrk = 0
@@ -4512,7 +4526,7 @@ def Summarise_Multi_LLM_Analysis():
                     args.plt_title = 'D$_{eff}$ = %(v1)d km, P$_{in}$ = %(v2)0.2f dBm'%{"v1":Deff, "v2":Pin}
                     #args.plt_range = [xlow, xhigh, -90, -20]
                     #args.plt_range = [-100, 100, -80, -30]
-                    args.plt_range = [-50, 50, -70, -25]
+                    #args.plt_range = [-50, 50, -70, -25]
 
                     Plotting.plot_multiple_curves(hv_data, args)
 
@@ -4537,8 +4551,12 @@ def Summarise_Multi_LLM_Analysis():
                 #Perr = [0.016, 0.015, 0.013]
                 
                 # Input powers for the NKT data set, February 2025
-                Pvals = [3.7265, 9.452, 11.879]
-                Perr = [0.015, 0.036, 0.025]
+                #Pvals = [3.7265, 9.452, 11.879]
+                #Perr = [0.015, 0.036, 0.025]
+                
+                # Input powers for the NKT data set, March 2025
+                Pvals = [3.769, 9.519, 11.934]
+                Perr = [0.016, 0.013, 0.025]
 
                 # Input powers for the CoBrite data set
                 #Pvals = [4.365, 5.512, 6.539]
@@ -4600,8 +4618,12 @@ def Summarise_Multi_LLM_Analysis():
                 #Perr = [0.016, 0.015, 0.013]
                 
                 # Input powers for the NKT data set, February 2025
-                Pvals = [3.7265, 9.452, 11.879]
-                Perr = [0.015, 0.036, 0.025]
+                #Pvals = [3.7265, 9.452, 11.879]
+                #Perr = [0.015, 0.036, 0.025]
+                
+                # Input powers for the NKT data set, March 2025
+                Pvals = [3.769, 9.519, 11.934]
+                Perr = [0.016, 0.013, 0.025]
 
                 RBWstr = '100Hz'
                 LLMunitstr = 'kHz'
@@ -4614,7 +4636,8 @@ def Summarise_Multi_LLM_Analysis():
                 
                 #VVOA = numpy.arange(2.8, 4.0, 0.2)
                 #VVOA = numpy.arange(0, 2.6, 0.5)
-                VVOA = numpy.concatenate([numpy.arange(0, 2.6, 0.5), numpy.arange(2.8, 3.9, 0.2)] )
+                #VVOA = numpy.concatenate([numpy.arange(0, 2.6, 0.5), numpy.arange(2.8, 3.9, 0.2)] )
+                VVOA = [0, 0.5, 1.0, 1.5, 2.0, 2.5, 2.8, 3.0, 3.2, 3.5, 3.7]
                 Xvals = []
                 print(VVOA)
                 hv_data1 = []; labels1 = []; marks1 = []

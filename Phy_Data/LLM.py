@@ -3458,7 +3458,40 @@ def Summarise_Beat_Analysis():
                 Plotting.plot_multiple_curves_with_errors(hv_data, args)
                 #Plotting.plot_multiple_curves(hv_data, args)
 
-                del D10data; del D50data; del data; del deltadata; del hv_data; del marks; del labels; 
+                SUBSET_LIN_FIT = False
+                
+                if SUBSET_LIN_FIT:
+                    # Perform a linear fit to a subset of the beat data
+                    D50data = numpy.loadtxt('Averaged_Data_D_50.txt', skiprows = 1, delimiter = '\t', unpack = True)
+                    n_dist = len(D50data[0])
+                    n_back = 13 # no. of data points to examine
+                    hv_sub = []
+                    #print(n_dist)
+                    #print(data[0])
+                    #print(data[0][n_dist - n_back:n_dist-1])
+                
+                    # hv_sub.append([data[0][n_dist - n_back:n_dist], data[1][n_dist - n_back:n_dist], deltadata[1][n_dist - n_back:n_dist] ]);
+                    # hv_sub.append([data[0][n_dist - n_back:n_dist], data[2][n_dist - n_back:n_dist], deltadata[2][n_dist - n_back:n_dist] ]);
+                    # hv_sub.append([data[0][n_dist - n_back:n_dist], data[3][n_dist - n_back:n_dist], deltadata[3][n_dist - n_back:n_dist] ]);
+                
+                    hv_sub.append([D50data[0][n_dist - n_back:n_dist], D50data[1][n_dist - n_back:n_dist] ]);
+                    hv_sub.append([D50data[0][n_dist - n_back:n_dist], D50data[2][n_dist - n_back:n_dist] ]);
+                    hv_sub.append([D50data[0][n_dist - n_back:n_dist], D50data[3][n_dist - n_back:n_dist] ]);
+
+                    args.fig_name = theLaser + '_' + TheName + '_Combined_lin_fit'
+                    Plotting.plot_multiple_linear_fit_curves(hv_sub, args)
+
+                    # What are the slopes associated with the fits? 
+                    # for i in range(0, len(hv_sub), 1):
+                    #     Common.linear_fit(hv_sub[i][0], hv_sub[i][1], [1, 1], True)
+
+                    # What are the averages associated with the fits? 
+                    # for i in range(0, len(hv_sub), 1):
+                    #     print(numpy.mean(hv_sub[i][1]),",",numpy.std(hv_sub[i][1]))
+
+                    del hv_sub
+
+                del D10data; del D50data; del data; del deltadata; del hv_data; del marks; del labels;
 
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME

@@ -4268,7 +4268,8 @@ def Multi_Multi_LLM_Analysis():
         # loop the Multi-LLM Analysis calculations over a list of directories
         # gather the averaged data as a function of VOA bias / loop power Ratio
 
-        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_200/'
+        #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
         #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_CoBriteTLS_T_25_D_400/'
         #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_JDSU_DFB_T_20_D_400/'
 
@@ -4277,7 +4278,7 @@ def Multi_Multi_LLM_Analysis():
             print(os.getcwd())
 
             # Make a directory for storing the results
-            resDir = 'Loop_Power_Variation_Feb_25/'
+            resDir = 'Loop_Power_Variation_Mar_25/'
             #resDir = 'Loop_Power_Variation_FSpan_100/'
             #resDir = 'Loop_RBW_Variation/'
             #resDir = 'JDSU_I_Variation/'
@@ -4293,20 +4294,26 @@ def Multi_Multi_LLM_Analysis():
             
             #Ival = 100; Day = '17';  
             #Ival = 200; Day = '18';
-            Ival = 300; Day = '19';
-            Month = '02';            
-            Nmeas = 200
+            #Ival = 300; Day = '19';
+            #Month = '02';            
+            #Nmeas = 200
             
             #Ival = 100; Day = '25';  
             #Ival = 200; Day = '26';
             #Ival = 300; Day = '27';
             #Month = '02';
             #Nmeas = 100
+
+            #Ival = 100; Day = '03';  
+            Ival = 200; Day = '04';
+            #Ival = 300; Day = '05';
+            Month = '03';
+            Nmeas = 100
             
             # NKT parameters
             RBW = 100; theYunits = 'Hz' # RBW and its units for the NKT measurement
             Tmeas = 28.5; # Approximate measurement time in seconds for the NKT measurement
-            Deff = 400 # Effective loop length in km
+            Deff = 200 # Effective loop length in km
             theXunits = 'kHz' # Frequency units along X-axis
             
             # Parameters for the CoBrite measurement
@@ -4629,7 +4636,7 @@ def Summarise_Multi_LLM_Analysis():
             
             # Make plots of the gathered summarised data
             PLOT_RES_FILES = True # Generate the plots of the summarised data files
-            PLOT_VS_PRAT = True # Generate the plot with Power Ratio along the x-axis, other wise plot versus V_{VOA}
+            PLOT_VS_PRAT = False # Generate the plot with Power Ratio along the x-axis, other wise plot versus V_{VOA}
             
             if PLOT_RES_FILES:
                 os.chdir(resDir)
@@ -4760,7 +4767,7 @@ def Summarise_Multi_LLM_Analysis():
                 Plotting.plot_multiple_curves_with_errors(hv_data2, args)
 
                 # 3. LLest versus Power Ratio with Errors
-                args.loud = False
+                args.loud = True
                 args.crv_lab_list = labels3
                 args.mrk_list = marks3
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
@@ -4878,7 +4885,7 @@ def Summarise_Multi_LLM_Analysis():
                 Plotting.plot_multiple_curves(hv_data66, args)
 
                 # 7. Voigt_Lor_HWHM, Voigt_Gau_Stdev versus Power Ratio with Errors
-                args.loud = True
+                args.loud = False
                 args.crv_lab_list = labels7
                 args.mrk_list = marks7
                 args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'

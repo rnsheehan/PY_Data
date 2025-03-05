@@ -565,12 +565,12 @@ def Meas_Analysis(filename, LL_col, LL_col_Rsqr):
 
             # get average LL + error
             LLave = numpy.mean(data[LL_col])
-            LLstd = numpy.std(data[LL_col])
+            LLstd = numpy.std(data[LL_col], ddof = 1)
             LLspread = 0.5*(numpy.max(data[LL_col]) - numpy.min(data[LL_col]))
 
             # get average R^{2} + error
             Rave = numpy.mean(data[LL_col_Rsqr])
-            Rstd = numpy.std(data[LL_col_Rsqr])
+            Rstd = numpy.std(data[LL_col_Rsqr], ddof = 1)
             Rspread = 0.5*(numpy.max(data[LL_col_Rsqr]) - numpy.min(data[LL_col_Rsqr]))
 
             # get correlation between measured LLM and time data
@@ -649,12 +649,12 @@ def Meas_Analysis_Old(filename):
 
             # get average LL + error
             LLave = numpy.mean(data[3])
-            LLstd = numpy.std(data[3])
+            LLstd = numpy.std(data[3], ddof = 1)
             LLspread = 0.5*(numpy.max(data[3]) - numpy.min(data[3]))
 
             # get average R^{2} + error
             Rave = numpy.mean(data[5])
-            Rstd = numpy.std(data[5])
+            Rstd = numpy.std(data[5], ddof = 1)
             Rspread = 0.5*(numpy.max(data[5]) - numpy.min(data[5]))
 
             # get correlation between measured LLM and time data
@@ -2526,10 +2526,10 @@ def Multi_LLM_Analysis(DATA_HOME, RBW_Val = 500, Tmeas = 20, theXUnits = 'kHz', 
                 LOUD = False      
                 
                 # Perform Correlation calculations of the variables
-                RUN_CORRELATIONS = False
+                RUN_CORRELATIONS = True
 
                 # No need to check this, T_{AOM} is constant
-                RUN_TAOM_CORRELATIONS = RUN_PMAX_CORRELATIONS = RUN_LLEST_CORRELATIONS = False
+                RUN_TAOM_CORRELATIONS = RUN_PMAX_CORRELATIONS = RUN_LLEST_CORRELATIONS = True
 
                 if RUN_CORRELATIONS:
                     # Correlations with Time
@@ -2991,7 +2991,7 @@ def Multi_LLM_Fit_Params_Report(dataFrame, titles, errorIsstdev = True, loud = F
             columnStatistics(dataFrame, titles, 6, errorIsstdev, loud) # LL estimate from data
             columnStatistics(dataFrame, titles, 7, errorIsstdev, loud) # LL from Voigt Fit
             columnStatistics(dataFrame, titles, 8, errorIsstdev, loud) # LL from Lorentz Fit
-            columnStatistics(dataFrame, titles, 9, errorIsstdev, loud) # LL from Lorentz Fit
+            columnStatistics(dataFrame, titles, 9, errorIsstdev, loud) # LL-20 estimate from data
             
             print("\nVoigt Fit Parameters") # Averaged Voigt Model Fit Parameters
             columnStatistics(dataFrame, titles, 10, errorIsstdev, loud) # fitted height
@@ -3048,7 +3048,7 @@ def columnStatistics(dataFrame, titles, axisNo, errorIsstdev = True, loud = Fals
                 # Compute the statistics
                 average = dataFrame[titles[axisNo]].mean()
                 #stdev = math.sqrt( math.fabs( dataFrame[titles[axisNo]].var() ) )
-                stdev = dataFrame[titles[axisNo]].std()
+                stdev = dataFrame[titles[axisNo]].std(ddof = 1)
                 maxval = dataFrame[titles[axisNo]].max()
                 minval = dataFrame[titles[axisNo]].min()
                 errorRange = 0.5*( math.fabs(maxval) - math.fabs(minval) )
@@ -3487,7 +3487,7 @@ def Summarise_Beat_Analysis():
 
                     # What are the averages associated with the fits? 
                     # for i in range(0, len(hv_sub), 1):
-                    #     print(numpy.mean(hv_sub[i][1]),",",numpy.std(hv_sub[i][1]))
+                    #     print(numpy.mean(hv_sub[i][1]),",",numpy.std(hv_sub[i][1]), ddof = 1)
 
                     del hv_sub
 
@@ -4277,7 +4277,7 @@ def Multi_Multi_LLM_Analysis():
             print(os.getcwd())
 
             # Make a directory for storing the results
-            resDir = 'Loop_Power_Variation_Mar_25/'
+            resDir = 'Loop_Power_Variation_Feb_25/'
             #resDir = 'Loop_Power_Variation_FSpan_100/'
             #resDir = 'Loop_RBW_Variation/'
             #resDir = 'JDSU_I_Variation/'
@@ -4293,15 +4293,15 @@ def Multi_Multi_LLM_Analysis():
             
             #Ival = 100; Day = '17';  
             #Ival = 200; Day = '18';
-            #Ival = 300; Day = '19';
-            #Month = '02';            
-            #Nmeas = 200
+            Ival = 300; Day = '19';
+            Month = '02';            
+            Nmeas = 200
             
             #Ival = 100; Day = '25';  
             #Ival = 200; Day = '26';
-            Ival = 300; Day = '27';
-            Month = '02';
-            Nmeas = 100
+            #Ival = 300; Day = '27';
+            #Month = '02';
+            #Nmeas = 100
             
             # NKT parameters
             RBW = 100; theYunits = 'Hz' # RBW and its units for the NKT measurement
@@ -4340,7 +4340,7 @@ def Multi_Multi_LLM_Analysis():
             #dir_list = dir_list[2:len(dir_list)]
 
             # Obtain the loop power data from all the measurements
-            PARSE_ESA_FILES = False
+            PARSE_ESA_FILES = True
             LoopPowerFileName = 'Loop_Power_Values_I_%(v1)d.txt'%{"v1":Ival}
 
             # Create files for storing the accumulated data
@@ -4432,9 +4432,9 @@ def Summarise_Multi_LLM_Analysis():
             #Nmeas = 200; 
             
             # Mar 2025
-            Ival = 100; Day = '25';  Pin = 3.769; 
+            #Ival = 100; Day = '25';  Pin = 3.769; 
             #Ival = 200; Day = '26'; Pin = 9.519;
-            #Ival = 300; Day = '27'; Pin = 11.934;
+            Ival = 300; Day = '27'; Pin = 11.934;
             Month = '02'; 
             Nmeas = 100; 
             
@@ -4635,12 +4635,14 @@ def Summarise_Multi_LLM_Analysis():
                 os.chdir(resDir)
                 print(os.getcwd())
                 # make a plot of various measured values versus Power Ratio
-                # col 0: P1 / dBm col 1: P2 / dBm col 2: P2 / P1 col 3: Pmax / dBm col 4: LLest / units col 5: LLVfit / units col 6: LLLfit / units col 7: LL-20 / units col 8: LLVGau / units col 9: LLVLor / units
+                # col 0: P1 / dBm col 1: P2 / dBm col 2: P2 / P1 col 3: Pmax / dBm col 4: LLest / units col 5: LLVfit / units col 6: LLLfit / units col 7: LL-20 / units col 8: LLVLor / units col 9: LLVGau / units col 10: RBW / units
                 # 2. P1, P2 versus Power Ratio with Errors
                 # 1. Pmax versus Power Ratio with Errors
                 # 3. LLest versus Power Ratio with Errors
                 # 4. LL-20 versus Power Ratio with Errors
                 # 5. LLVfit versus Power Ratio with Errors
+                # 6. Voigt_Lor_HWHM, LLest_-20 versus Power Ratio with Errors
+                # 7. Voigt_Lor_HWHM, Voigt_Gau_Stdev versus Power Ratio with Errors
                 
                 Ivals = [100, 200, 300]
                 #Ivals = [100]
@@ -4672,12 +4674,19 @@ def Summarise_Multi_LLM_Analysis():
                 #VVOA = numpy.concatenate([numpy.arange(0, 2.6, 0.5), numpy.arange(2.8, 3.9, 0.2)] )
                 VVOA = [0, 0.5, 1.0, 1.5, 2.0, 2.5, 2.8, 3.0, 3.2, 3.5, 3.7]
                 Xvals = []
+                LL_20_scale = 2.0*math.sqrt(99.0) # constant for converting LL-20 values into LL-Lorentzian values
                 print(VVOA)
                 hv_data1 = []; labels1 = []; marks1 = []
                 hv_data2 = []; labels2 = []; marks2 = []
                 hv_data3 = []; labels3 = []; marks3 = []
                 hv_data4 = []; labels4 = []; marks4 = []
+                hv_data44 = []; labels44 = []; marks44 = []
                 hv_data5 = []; labels5 = []; marks5 = []
+                hv_data55 = []; labels55 = []; marks55 = []
+                hv_data6 = []; labels6 = []; marks6 = []
+                hv_data66 = []; labels66 = []; marks66 = []
+                hv_data7 = []; labels7 = []; marks7 = []
+                hv_data77 = []; labels77 = []; marks77 = []
                 for i in range(0, len(Ivals), 1):
                     esaResFileName = 'Measurement_Results_I_%(v1)d.txt'%{"v1":Ivals[i]}
                     esaErrFileName = 'Measurement_Errors_I_%(v1)d.txt'%{"v1":Ivals[i]}
@@ -4688,24 +4697,43 @@ def Summarise_Multi_LLM_Analysis():
 
                     Xvals = data[2] if PLOT_VS_PRAT else VVOA
 
+                    startVal = 0 # ignore the data at the start of the VVOA sweep? 
                     endVal = numpy.size(data[2])
                     #endVal = -1 + numpy.size(data[2]) # ignore the results of the V_{VOA} = 4V measurement, attenuation is too high, error bars too large, obscuring the result
 
                     # 1. Pmax versus Power Ratio with Errors
-                    hv_data1.append([Xvals[:endVal], data[3][:endVal], numpy.absolute( dataErr[3][:endVal] ) ] ); labels1.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks1.append(Plotting.labs_lins[i%(len(Plotting.labs))])
+                    hv_data1.append([Xvals[startVal:endVal], data[3][startVal:endVal], numpy.absolute( 0.5*dataErr[3][startVal:endVal] ) ] ); labels1.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks1.append(Plotting.labs_lins[i%(len(Plotting.labs))])
 
                     # 2. P1, P2 versus Power Ratio with Errors
-                    hv_data2.append([Xvals[:endVal], data[0][:endVal], dataErr[0][:endVal]]); labels2.append('P$_{1}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs_lins[i%(len(Plotting.labs))])
-                    hv_data2.append([Xvals[:endVal], data[1][:endVal], numpy.absolute( dataErr[1][:endVal] ) ]  ); labels2.append('P$_{2}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs_dashed[i%(len(Plotting.labs))])
+                    hv_data2.append([Xvals[startVal:endVal], data[0][startVal:endVal], 0.5*dataErr[0][startVal:endVal]]); labels2.append('P$_{1}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs_lins[i%(len(Plotting.labs))])
+                    hv_data2.append([Xvals[startVal:endVal], data[1][startVal:endVal], numpy.absolute( 0.5*dataErr[1][startVal:endVal] ) ]  ); labels2.append('P$_{2}$ I = %(v1)d (mA)'%{"v1":Ivals[i]}); marks2.append(Plotting.labs_dashed[i%(len(Plotting.labs))])
 
                     # 3. LLest versus Power Ratio with Errors
-                    hv_data3.append([Xvals[:endVal], data[4][:endVal], dataErr[4][:endVal]]); labels3.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks3.append(Plotting.labs[i%(len(Plotting.labs))])
+                    hv_data3.append([Xvals[startVal:endVal], data[4][startVal:endVal], 0.5*dataErr[4][startVal:endVal]]); labels3.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks3.append(Plotting.labs[i%(len(Plotting.labs))])
 
                     # 4. LL-20 versus Power Ratio with Errors
-                    hv_data4.append([Xvals[:endVal], data[7][:endVal], dataErr[7][:endVal]]); labels4.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks4.append(Plotting.labs[i%(len(Plotting.labs))])
+                    hv_data4.append([Xvals[startVal:endVal], data[7][startVal:endVal], 0.5*dataErr[7][startVal:endVal]]); labels4.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks4.append(Plotting.labs[i%(len(Plotting.labs))])
+                    
+                    hv_data44.append([Xvals[startVal:endVal], dataErr[7][startVal:endVal]]); labels44.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks44.append(Plotting.labs[i%(len(Plotting.labs))])
 
                     # 5. LLVfit versus Power Ratio with Errors
-                    hv_data5.append([Xvals[:endVal], data[5][:endVal], dataErr[5][:endVal]]); labels5.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks5.append(Plotting.labs[i%(len(Plotting.labs))])
+                    hv_data5.append([Xvals[startVal:endVal], data[5][startVal:endVal], 0.5*dataErr[5][startVal:endVal]]); labels5.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks5.append(Plotting.labs[i%(len(Plotting.labs))])
+                    
+                    hv_data55.append([Xvals[startVal:endVal], dataErr[5][startVal:endVal]]); labels55.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks55.append(Plotting.labs[i%(len(Plotting.labs))])
+
+                    # 6. Voigt_Lor_HWHM, LLest_-20 versus Power Ratio with Errors
+                    hv_data6.append([Xvals[startVal:endVal], data[8][startVal:endVal], 0.5*dataErr[8][startVal:endVal]]); labels6.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks6.append(Plotting.labs[i%(len(Plotting.labs))])
+                    hv_data6.append([Xvals[startVal:endVal], data[7][startVal:endVal] / LL_20_scale, dataErr[7][startVal:endVal] / (2.0*LL_20_scale)]); labels6.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks6.append(Plotting.labs_dashed[i%(len(Plotting.labs))]) # LL-20 converted to LL-Lor data
+                    
+                    hv_data66.append([Xvals[startVal:endVal], dataErr[8][startVal:endVal]]); labels66.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks66.append(Plotting.labs[i%(len(Plotting.labs))])
+                    hv_data66.append([Xvals[startVal:endVal], dataErr[7][startVal:endVal] / LL_20_scale]); labels66.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks66.append(Plotting.labs_dashed[i%(len(Plotting.labs))]) # LL-20 converted to LL-Lor data
+                    
+                    # 7. Voigt_Lor_HWHM, Voigt_Gau_Stdev versus Power Ratio with Errors
+                    hv_data7.append([Xvals[startVal:endVal], data[8][startVal:endVal], 0.5*dataErr[8][startVal:endVal]]); labels7.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks7.append(Plotting.labs[i%(len(Plotting.labs))])
+                    hv_data7.append([Xvals[startVal:endVal], data[9][startVal:endVal], 0.5*dataErr[9][startVal:endVal]]); labels7.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks7.append(Plotting.labs_dashed[i%(len(Plotting.labs))])
+                    
+                    hv_data77.append([Xvals[startVal:endVal], dataErr[8][startVal:endVal]]); labels77.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks77.append(Plotting.labs[i%(len(Plotting.labs))])
+                    hv_data77.append([Xvals[startVal:endVal], dataErr[9][startVal:endVal]]); labels77.append('P$_{1}$ = %(v1)0.3f (dBm)'%{"v1":Pvals[i]}); marks77.append(Plotting.labs_dashed[i%(len(Plotting.labs))])
 
                 DRAW_FULL_PLOT = True # Draw the figure over the whole range, otherwise draw the figure on the zoomed range
 
@@ -4761,6 +4789,21 @@ def Summarise_Multi_LLM_Analysis():
 
                 Plotting.plot_multiple_curves_with_errors(hv_data4, args)
 
+                # 44. LL-20 Error versus Power Ratio
+                args.loud = False
+                args.crv_lab_list = labels44
+                args.mrk_list = marks44
+                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                args.y_label = 'Laser Linewidth at -20 dB ( %(v1)s )'%{"v1":LLMunitstr}
+                args.fig_name = 'Error_Laser_Linewidth_20_vs_Prat' if PLOT_VS_PRAT else 'Error_Laser_Linewidth_20_vs_VVOA'
+                #args.plt_range = [2.7, 3.9, 8, 14]
+                #if PLOT_VS_PRAT:
+                #    args.plt_range = [0, 1.5, 8, 14] if DRAW_FULL_PLOT else [0, 0.4, 8, 14]
+                #else:
+                #    args.plt_range = [2.7, 3.9, 8, 14]
+
+                Plotting.plot_multiple_curves(hv_data44, args)
+
                 # 5. LLVfit versus Power Ratio with Errors
                 args.loud = True
                 args.crv_lab_list = labels5
@@ -4775,7 +4818,7 @@ def Summarise_Multi_LLM_Analysis():
                 #    args.plt_range = [2.7, 3.9, 1.5, 3.25]
 
                 Plotting.plot_multiple_curves_with_errors(hv_data5, args)
-
+                
                 print('\nAverage linewidth over all VVOA variation')
                 for i in range(0, len(hv_data5), 1): print('mean: ',numpy.mean(hv_data5[i][1]),' +/- ',0.5*(numpy.max(hv_data5[i][1]) - numpy.min(hv_data5[i][1]) ) )
 
@@ -4788,7 +4831,81 @@ def Summarise_Multi_LLM_Analysis():
                 # Is the slope the same in each case? No, not really
                 #for i in range(0, len(hv_data5), 1):
                 #    Common.linear_fit(hv_data5[i][0], hv_data5[i][1], [2.5, 2.5], True)
+                
+                # 55. LLVfit Error versus Power Ratio
+                args.loud = False
+                args.crv_lab_list = labels55
+                args.mrk_list = marks55
+                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                args.y_label = 'Laser Linewidth Voigt Fit ( %(v1)s )'%{"v1":LLMunitstr}
+                args.fig_name = 'Error_Laser_Linewidth_Voigt_vs_Prat' if PLOT_VS_PRAT else 'Error_Laser_Linewidth_Voigt_vs_VVOA'
+                #args.plt_range = [2.7, 3.9, 1.5, 3.25]
+                #if PLOT_VS_PRAT:
+                #    args.plt_range = [0, 1.5, 1.5, 3.25] if DRAW_FULL_PLOT else [0, 0.4, 1.5, 3.25]
+                #else:
+                #    args.plt_range = [2.7, 3.9, 1.5, 3.25]
 
+                Plotting.plot_multiple_curves(hv_data55, args)
+
+                # 6. Voigt_Lor_HWHM, LLest_-20 versus Power Ratio with Errors
+                args.loud = True
+                args.crv_lab_list = labels6
+                args.mrk_list = marks6
+                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                args.y_label = 'Intrinsic Linewidth Voigt Fit ( %(v1)s )'%{"v1":LLMunitstr}
+                args.fig_name = 'Intrinsic_Linewidth_Voigt_vs_Prat' if PLOT_VS_PRAT else 'Intrinsic_Linewidth_Voigt_vs_VVOA'
+                #args.plt_range = [2.7, 3.9, 1.5, 3.25]
+                #if PLOT_VS_PRAT:
+                #    args.plt_range = [0, 1.5, 1.5, 3.25] if DRAW_FULL_PLOT else [0, 0.4, 1.5, 3.25]
+                #else:
+                #    args.plt_range = [2.7, 3.9, 1.5, 3.25]
+
+                Plotting.plot_multiple_curves_with_errors(hv_data6, args)
+
+                # 66. Voigt_Lor_HWHM Error, LLest_-20 Error versus Power Ratio
+                args.loud = False
+                args.crv_lab_list = labels66
+                args.mrk_list = marks66
+                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                args.y_label = 'Intrinsic Linewidth Voigt Fit ( %(v1)s )'%{"v1":LLMunitstr}
+                args.fig_name = 'Error_Intrinsic_Linewidth_Voigt_vs_Prat' if PLOT_VS_PRAT else 'Error_Intrinsic_Linewidth_Voigt_vs_VVOA'
+                #args.plt_range = [2.7, 3.9, 1.5, 3.25]
+                #if PLOT_VS_PRAT:
+                #    args.plt_range = [0, 1.5, 1.5, 3.25] if DRAW_FULL_PLOT else [0, 0.4, 1.5, 3.25]
+                #else:
+                #    args.plt_range = [2.7, 3.9, 1.5, 3.25]
+
+                Plotting.plot_multiple_curves(hv_data66, args)
+
+                # 7. Voigt_Lor_HWHM, Voigt_Gau_Stdev versus Power Ratio with Errors
+                args.loud = True
+                args.crv_lab_list = labels7
+                args.mrk_list = marks7
+                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                args.y_label = 'Voigt Fit Parameters ( %(v1)s )'%{"v1":LLMunitstr}
+                args.fig_name = 'Voigt_Params_vs_Prat' if PLOT_VS_PRAT else 'Voigt_Params_vs_VVOA'
+                #args.plt_range = [2.7, 3.9, 1.5, 3.25]
+                #if PLOT_VS_PRAT:
+                #    args.plt_range = [0, 1.5, 1.5, 3.25] if DRAW_FULL_PLOT else [0, 0.4, 1.5, 3.25]
+                #else:
+                #    args.plt_range = [2.7, 3.9, 1.5, 3.25]
+
+                Plotting.plot_multiple_curves_with_errors(hv_data7, args)
+                
+                # 77. Voigt_Lor_HWHM, Voigt_Gau_Stdev versus Power Ratio with Errors
+                args.loud = False
+                args.crv_lab_list = labels77
+                args.mrk_list = marks77
+                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                args.y_label = 'Voigt Fit Parameters ( %(v1)s )'%{"v1":LLMunitstr}
+                args.fig_name = 'Error_Voigt_Params_vs_Prat' if PLOT_VS_PRAT else 'Error_Voigt_Params_vs_VVOA'
+                #args.plt_range = [2.7, 3.9, 1.5, 3.25]
+                #if PLOT_VS_PRAT:
+                #    args.plt_range = [0, 1.5, 1.5, 3.25] if DRAW_FULL_PLOT else [0, 0.4, 1.5, 3.25]
+                #else:
+                #    args.plt_range = [2.7, 3.9, 1.5, 3.25]
+
+                Plotting.plot_multiple_curves(hv_data77, args)
             
             PLOT_VS_RBW = False # Make the analysis plots of the measured data versus RBW
 

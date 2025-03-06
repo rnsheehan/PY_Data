@@ -97,9 +97,9 @@ if __name__ == '__main__':
 
     #General.PDA10CS_Calibration_3()
 
-    LLM.Multi_Multi_LLM_Analysis()
+    #LLM.Multi_Multi_LLM_Analysis()
 
-    #LLM.Summarise_Multi_LLM_Analysis()
+    LLM.Summarise_Multi_LLM_Analysis()
 
     #General.Data_Frame_Aggregation()
 

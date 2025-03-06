@@ -4305,8 +4305,8 @@ def Multi_Multi_LLM_Analysis():
             #Nmeas = 100
 
             #Ival = 100; Day = '03';  
-            Ival = 200; Day = '04';
-            #Ival = 300; Day = '05';
+            #Ival = 200; Day = '04';
+            Ival = 300; Day = '05';
             Month = '03';
             Nmeas = 100
             
@@ -4405,7 +4405,8 @@ def Summarise_Multi_LLM_Analysis():
         # loop the Multi-LLM directories gather the averaged data
         # In this case as a function of VOA bias / loop power Ratio
 
-        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_200/'
+        #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_400/'
         #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_CoBriteTLS_T_25_D_400/'
         #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_JDSU_DFB_T_20_D_400/'
 
@@ -4441,15 +4442,26 @@ def Summarise_Multi_LLM_Analysis():
             # Mar 2025
             #Ival = 100; Day = '25';  Pin = 3.769; 
             #Ival = 200; Day = '26'; Pin = 9.519;
-            Ival = 300; Day = '27'; Pin = 11.934;
-            Month = '02'; 
-            Nmeas = 100; 
-            
+            #Ival = 300; Day = '27'; Pin = 11.934;
+            #Month = '02'; 
+            #Nmeas = 100;
+
             ## Input powers for the NKT data set
             #Pvals = [3.356, 9.313, 11.767]
             #Perr = [0.016, 0.015, 0.013]
             
-            RBWstr = '100Hz'; LLMunitstr = 'kHz'; Deff = 400; RBWValue = 100; 
+            # Mar 2025
+            #Ival = 100; Day = '03';  Pin = 3.769; 
+            #Ival = 200; Day = '04'; Pin = 9.519;
+            Ival = 300; Day = '05'; Pin = 11.934;
+            Month = '03'; 
+            Nmeas = 100;
+            
+            # Input powers for the NKT data set
+            Pvals = [3.803, 9.507, 11.926]
+            Perr = [0.059, 0.009, 0.001]
+            
+            RBWstr = '100Hz'; LLMunitstr = 'kHz'; Deff = 200; RBWValue = 100; 
             
             # Parameters for the CoBrite measurement
             #Ival = 100; Day = '07'; Pin = 4.365; 
@@ -4560,8 +4572,8 @@ def Summarise_Multi_LLM_Analysis():
                     args.crv_lab_list = labels
                     args.mrk_list = marks
                     args.x_label = 'Frequency / %(v1)s'%{"v1":LLMunitstr}
-                    #args.y_label = 'Spectral Power / dBm / %(v1)s'%{"v1":RBWstr}
-                    args.y_label = 'Spectral Power / dBm'
+                    args.y_label = 'Spectral Power / dBm / %(v1)s'%{"v1":RBWstr}
+                    #args.y_label = 'Spectral Power / dBm'
                     args.fig_name = 'Fitted_Voigt_Lineshapes_I_%(v1)d'%{"v1":Ival}
                     args.plt_title = 'D$_{eff}$ = %(v1)d km, P$_{in}$ = %(v2)0.2f dBm'%{"v1":Deff, "v2":Pin}
                     #args.plt_range = [xlow, xhigh, -90, -20]
@@ -4636,7 +4648,7 @@ def Summarise_Multi_LLM_Analysis():
             
             # Make plots of the gathered summarised data
             PLOT_RES_FILES = True # Generate the plots of the summarised data files
-            PLOT_VS_PRAT = False # Generate the plot with Power Ratio along the x-axis, other wise plot versus V_{VOA}
+            PLOT_VS_PRAT = True # Generate the plot with Power Ratio along the x-axis, other wise plot versus V_{VOA}
             
             if PLOT_RES_FILES:
                 os.chdir(resDir)

@@ -5502,42 +5502,50 @@ def CNR_Analysis():
 
     try:
         Ival = 200
-        loopLength = 400
+        Deff = 400
 
         # CoBrite Parameters
-        theLaser = 'CoBriteTLS'
-        temperature = 25        
-        RBW = '5kHz' # RBW used in the measurement
-        FUnits = ' / MHz'
-        LWUNits = ' / MHz / ' + RBW
-        Pin = 4.91 # optical input power for measurement
+        # theLaser = 'CoBriteTLS'
+        # temperature = 25        
+        # RBW = '5kHz' # RBW used in the measurement
+        # FUnits = ' / MHz'
+        # LWUNits = ' / MHz / ' + RBW
+        # Pin = 4.91 # optical input power for measurement
 
         # NKT Parameters
-        #theLaser = 'NKT'
-        #temperature = 35        
-        #RBW = '100Hz' # RBW used in the measurement
-        #FUnits = ' / kHz'
-        #LWUNits = ' / kHz / ' + RBW
+        theLaser = 'NKT'
+        temperature = 35        
+        RBW = '100Hz' # RBW used in the measurement
+        FUnits = ' / kHz'
+        
         #Pin = 6.19 # optical input power for measurement
+        Pin = 9.5 # optical input power for measurement
 
-        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/Lineshape_vs_VOA/'%{"v2":theLaser, "v3":temperature, "v4":loopLength}
+        #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/Lineshape_vs_VOA/'%{"v2":theLaser, "v3":temperature, "v4":Deff}
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/CNR_Meas_6_3_2025/'%{"v2":theLaser, "v3":temperature, "v4":Deff}
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
             print(os.getcwd())
 
-            filestr = 'Lineshape_VVOA_%(v1)d.txt'
-            Deff = 400
+            #filestr = 'Lineshape_VVOA_%(v1)d.txt'
+            filestr = 'Lineshape_NKT_T_35_I_200_VVOA_%(v1)d.txt'
             #VVOA = [0, 1, 2, 3, 32, 34, 35, 36, 37, 38]
             #VVOA_vals = [0, 1, 2, 3, 3.2, 3.4, 3.5, 3.6, 3.7, 3.8]
-            VVOA = [0, 1, 2, 3, 35, 37]
-            VVOA_vals = [0, 1, 2, 3, 3.5, 3.7]
-            Fbeat = 640
+            #VVOA = [0, 1, 2, 3, 35, 37]
+            #VVOA_vals = [0, 1, 2, 3, 3.5, 3.7]
+            #Fbeat = 640
+            VVOA = [0, 1, 2, 3, 32, 35, 37]
+            VVOA_vals = [0, 1, 2, 3, 3.2, 3.5, 3.7]
+            Fbeat = 320
 
-            Plot_Lineshape_vs_VVOA(filestr, Deff, VVOA, VVOA_vals, Fbeat, theLaser, FUnits, LWUNits, Pin)
+            LWUNits = ' / ' + RBW
+            #Plot_Lineshape_vs_VVOA(filestr, Deff, VVOA, VVOA_vals, Fbeat, theLaser, FUnits, LWUNits, Pin, False)
 
-            filename = 'NKT_CNR_VVOA_3.txt'
-            #Plot_CNR(filename, Deff, Fbeat, theLaser, FUnits, LWUNits, Pin)
+            #filename = 'NKT_CNR_VVOA_3.txt'
+            filename = 'CNR_vs_VVOA_NKT_T_35_I_200.txt'
+            LWUNits = ' / kHz / ' + RBW
+            Plot_CNR(filename, Deff, Fbeat, theLaser, FUnits, LWUNits, Pin)
 
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
@@ -5568,11 +5576,11 @@ def Plot_Lineshape_vs_VVOA(filestr, looplength, VVOA, VVOA_vals, Fbeat, theLaser
         for i in range(0, len(VVOA), 1):
             filename = filestr%{"v1":VVOA[i]}
             if glob.glob(filename):
-                data = numpy.loadtxt(filename, delimiter = '\t', unpack = True)
-                if theLaser == 'NKT':
-                    data[0] = 1000.0*(data[0] - Fbeat) # rescale the freq data from kHz to MHz and subtract the beat note value
-                else:
-                    data[0] = (data[0] - Fbeat) # rescale the freq data from kHz to MHz and subtract the beat note value
+                data = numpy.loadtxt(filename, delimiter = '\t', unpack = False)
+                # if theLaser == 'NKT':
+                #     data[0] = 1000.0*(data[0] - Fbeat) # rescale the freq data from kHz to MHz and subtract the beat note value
+                # else:
+                #     data[0] = (data[0] - Fbeat) # rescale the freq data from kHz to MHz and subtract the beat note value
                 if ScaleVert:
                     Ymax = numpy.max(data[1])
                     data[1] = data[1] - Ymax
@@ -5589,11 +5597,11 @@ def Plot_Lineshape_vs_VVOA(filestr, looplength, VVOA, VVOA_vals, Fbeat, theLaser
         args.x_label = 'Frequency' + FUnits
         args.y_label = 'Power / dBm' + LWUNits
         args.fig_name = 'Lineshapes_Together_D_%(v2)d'%{"v2":looplength} if ScaleVert == False else 'Lineshapes_Together_D_%(v2)d_Scaled'%{"v2":looplength}
-        args.plt_title = '%(v1)s, P$_{1}$ = %(v2)0.2f dBm, D$_{eff}$ = %(v4)d km'%{"v1":theLaser, "v2":Pin, "v4":looplength}
+        #args.plt_title = '%(v1)s, P$_{1}$ = %(v2)0.2f dBm, D$_{eff}$ = %(v4)d km'%{"v1":theLaser, "v2":Pin, "v4":looplength}
         if ScaleVert:
             args.plt_range = [-50, 50, -40, 0] if theLaser == 'NKT' else [-1, 1, -30, 0]
         else:
-            args.plt_range = [-50, 50, -110, -30] if theLaser == 'NKT' else [-1, 1, -100, -30]
+            args.plt_range = [-50, 50, -90, -20] if theLaser == 'NKT' else [-1, 1, -100, -30]
 
         Plotting.plot_multiple_curves(hv_data, args)
 
@@ -5617,11 +5625,11 @@ def Plot_CNR(filename, looplength, Fbeat, theLaser, FUnits, LWUNits, Pin):
             args.loud = True
             args.x_label = 'VOA Voltage / V'
             args.y_label = 'CNR / dB / 100Hz'
-            args.fig_name = '%(v1)s_CNR'%{"v1":theLaser}
-            args.plt_title = '%(v1)s, P$_{1}$ = %(v2)0.2f dBm, D$_{eff}$ = %(v4)d km'%{"v1":theLaser, "v2":Pin, "v4":looplength}
-            args.plt_range = [0, 4, 24, 32] if theLaser == 'NKT' else [0, 4, 14, 24]
+            args.fig_name = '%(v1)s_CNR_D_%(v2)d'%{"v1":theLaser,"v2":looplength}
+            #args.plt_title = '%(v1)s, P$_{1}$ = %(v2)0.2f dBm, D$_{eff}$ = %(v4)d km'%{"v1":theLaser, "v2":Pin, "v4":looplength}
+            args.plt_range = [0, 4, 20, 32] if theLaser == 'NKT' else [0, 4, 14, 24]
 
-            Plotting.plot_single_curve_with_errors(data[0], data[1], data[2], args)
+            Plotting.plot_single_curve_with_errors(data[0], data[1], 0.5*data[2], args)
 
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate file: ' + filename
@@ -5808,6 +5816,158 @@ def Lineshape_Comparison():
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
             raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Pub_Figs():
+    
+    # Method for making publication figures
+    # R. Sheehan 7 - 3 - 2025
+
+    FUNC_NAME = ".Pub_Figs()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+    
+    try:
+
+        PAPER_HOME = 'C:/Users/robertsheehan/Research/Publications/LCRDSHI_LLM/'
+
+        if os.path.isdir(PAPER_HOME):
+            os.chdir(PAPER_HOME)
+            print(os.getcwd())
+
+            PLOT_CNR = False
+
+            if PLOT_CNR:
+                Deff = [200, 400]
+                theLaser = 'NKT'
+                temperature = 35    
+                RBW = '100Hz' # RBW used in the measurement
+                FUnits = ' / kHz'
+                LWUNits = ' / ' + RBW
+                
+                # PLot both CNR together
+                hv_data = []; marks = []; labs = []; 
+                
+                for i in range(0, len(Deff), 1):
+                    thefile = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/CNR_Meas_6_3_2025/CNR_vs_VVOA_NKT_T_35_I_200.txt'%{"v2":theLaser, "v3":temperature, "v4":Deff[i]}
+                    thedata = numpy.loadtxt(thefile, delimiter = '\t', unpack = True)
+                    thedata[2] = 0.5*thedata[2]
+                    hv_data.append(thedata); labs.append('D = %(v1)d km'%{"v1":Deff[i]}); marks.append(Plotting.labs[i])
+
+                args = Plotting.plot_arg_multiple()
+                args.loud = True
+                args.x_label = 'VOA Voltage / V'
+                args.y_label = 'CNR / dB / 100Hz'
+                args.crv_lab_list = labs
+                args.mrk_list = marks
+                args.fig_name = '%(v1)s_CNR'%{"v1":theLaser}
+                #args.plt_title = '%(v1)s, P$_{1}$ = %(v2)0.2f dBm, D$_{eff}$ = %(v4)d km'%{"v1":theLaser, "v2":Pin, "v4":looplength}
+                args.plt_range = [0, 4, 20, 32]
+
+                Plotting.plot_multiple_curves_with_errors(hv_data, args)
+
+                # PLot lineshapes together
+                hv_data = []; marks = []; labs = []; 
+                
+                # for i in range(0, len(Deff), 1):
+                #     thefile = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/CNR_Meas_6_3_2025/Lineshape_NKT_T_35_I_200_VVOA_35.txt'%{"v2":theLaser, "v3":temperature, "v4":Deff[i]}
+                #     thedata = numpy.loadtxt(thefile, delimiter = '\t', unpack = False)
+                #     Ymax = numpy.max(thedata[1])
+                #     thedata[1] = thedata[1] - Ymax
+                #     hv_data.append(thedata); labs.append('D = %(v1)d km, V$_{VOA}$ = 3.5V'%{"v1":Deff[i]}); marks.append(Plotting.labs_lins[i]);
+                    
+                for i in range(0, len(Deff), 1):
+                    thefile = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/CNR_Meas_6_3_2025/Lineshape_NKT_T_35_I_200_VVOA_0.txt'%{"v2":theLaser, "v3":temperature, "v4":Deff[i]}
+                    thedata = numpy.loadtxt(thefile, delimiter = '\t', unpack = False)
+                    Ymax = numpy.max(thedata[1])
+                    thedata[1] = thedata[1] - Ymax
+                    hv_data.append(thedata); labs.append('D = %(v1)d km, V$_{VOA}$ = 0V'%{"v1":Deff[i]}); marks.append(Plotting.labs_dotted[i]);
+
+                args = Plotting.plot_arg_multiple()
+                args.loud = True
+                args.x_label = 'Frequency' + FUnits
+                args.y_label = 'Power / dBm' + LWUNits
+                args.crv_lab_list = labs
+                args.mrk_list = marks
+                args.fig_name = '%(v1)s_CNR_Lineshapes_VVOA_0'%{"v1":theLaser}
+                args.plt_range = [-50, 50, -40, 0]
+
+                Plotting.plot_multiple_curves(hv_data, args)
+                
+                del hv_data; del marks; del labs; 
+
+            RESULTS_COMPAR = True
+            
+            if RESULTS_COMPAR: 
+
+                Deff = [200, 400]
+                theLaser = 'NKT'
+                temperature = 35    
+                RBW = '100Hz' # RBW used in the measurement
+                FUnits = ' / kHz'
+                LWUNits = ' / ' + RBW
+                
+                # Load the data into memory
+
+                thedata = []
+                for i in range(0, len(Deff), 1):
+                    thefile = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/Loop_Power_Variation_Mar_25/Measurement_Results_I_200.txt'%{"v2":theLaser, "v3":temperature, "v4":Deff[i]}
+                    if glob.glob(thefile):
+                        print("Reading: ",thefile)
+                        thedata.append(numpy.loadtxt(thefile, delimiter = '\t', unpack = True, skiprows = 1))
+
+                #theerror = numpy.array([]) # instantiate an empty numpy array
+                theerror = []
+                for i in range(0, len(Deff), 1):
+                    thefile = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/Loop_Power_Variation_Mar_25/Measurement_Errors_I_200.txt'%{"v2":theLaser, "v3":temperature, "v4":Deff[i]}
+                    if glob.glob(thefile):
+                        print("Reading: ",thefile)
+                        theerror.append(numpy.loadtxt(thefile, delimiter = '\t', unpack = True, skiprows = 1))
+                        
+                # Make some plots of the data
+                # make a plot of various measured values versus Power Ratio
+                # col 0: P1 / dBm col 1: P2 / dBm col 2: P2 / P1 col 3: Pmax / dBm col 4: LLest / units col 5: LLVfit / units col 6: LLLfit / units col 7: LL-20 / units col 8: LLVLor / units col 9: LLVGau / units col 10: RBW / units
+                # 2. P1, P2 versus Power Ratio with Errors
+                # 1. Pmax versus Power Ratio with Errors
+                # 3. LLest versus Power Ratio with Errors
+                # 4. LL-20 versus Power Ratio with Errors
+                # 5. LLVfit versus Power Ratio with Errors
+                # 6. Voigt_Lor_HWHM, LLest_-20 versus Power Ratio with Errors
+                # 7. Voigt_Lor_HWHM, Voigt_Gau_Stdev versus Power Ratio with Errors
+                #         
+                PLOT_VS_PRAT = True # Generate the plot with Power Ratio along the x-axis, other wise plot versus V_{VOA}
+                RBWstr = '100Hz'
+                LLMunitstr = 'kHz'
+                VVOA = [0, 0.5, 1.0, 1.5, 2.0, 2.5, 2.8, 3.0, 3.2, 3.5, 3.7]
+                Xvals = []
+                LL_20_scale = 2.0*math.sqrt(99.0) # constant for converting LL-20 values into LL-Lorentzian values
+                
+                col_indx = 3
+                hv_data = []; marks = []; labels = []; 
+                for i in range(0, len(Deff), 1):                  
+                    Xvals = thedata[0][2] if PLOT_VS_PRAT else VVOA
+
+                    startVal = 0 # ignore the data at the start of the VVOA sweep? 
+                    endVal = numpy.size(thedata[0][2])
+                    
+                    # 1. Pmax versus Power Ratio with Errors
+                    hv_data.append([Xvals[startVal:endVal], thedata[i][col_indx][startVal:endVal], numpy.absolute( 0.5*theerror[i][col_indx][startVal:endVal] ) ] )
+                    labels.append('D = %(v1)d (km)'%{"v1":Deff[i]})
+                    marks.append(Plotting.labs[i%(len(Plotting.labs))])
+                    
+                # 1. Pmax versus Power Ratio with Errors
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                args.y_label = 'Spectral Peak Value (dBm / %(v1)s )'%{"v1":RBWstr}
+                args.fig_name = 'Spectral_Peak_Value_vs_Prat' if PLOT_VS_PRAT else 'Spectral_Peak_Value_vs_VVOA'
+
+                Plotting.plot_multiple_curves_with_errors(hv_data, args)
+
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)

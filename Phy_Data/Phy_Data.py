@@ -99,7 +99,7 @@ if __name__ == '__main__':
 
     #LLM.Multi_Multi_LLM_Analysis()
 
-    LLM.Summarise_Multi_LLM_Analysis()
+    #LLM.Summarise_Multi_LLM_Analysis()
 
     #General.Data_Frame_Aggregation()
 
@@ -121,3 +121,4 @@ if __name__ == '__main__':
     
     #LLM.Lineshape_Comparison()
 
+    LLM.Pub_Figs()

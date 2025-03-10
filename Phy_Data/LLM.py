@@ -5502,7 +5502,7 @@ def CNR_Analysis():
 
     try:
         Ival = 200
-        Deff = 400
+        Deff = 200
 
         # CoBrite Parameters
         # theLaser = 'CoBriteTLS'
@@ -5540,12 +5540,12 @@ def CNR_Analysis():
             Fbeat = 320
 
             LWUNits = ' / ' + RBW
-            #Plot_Lineshape_vs_VVOA(filestr, Deff, VVOA, VVOA_vals, Fbeat, theLaser, FUnits, LWUNits, Pin, False)
+            Plot_Lineshape_vs_VVOA(filestr, Deff, VVOA, VVOA_vals, Fbeat, theLaser, FUnits, LWUNits, Pin, True)
 
             #filename = 'NKT_CNR_VVOA_3.txt'
             filename = 'CNR_vs_VVOA_NKT_T_35_I_200.txt'
             LWUNits = ' / kHz / ' + RBW
-            Plot_CNR(filename, Deff, Fbeat, theLaser, FUnits, LWUNits, Pin)
+            #Plot_CNR(filename, Deff, Fbeat, theLaser, FUnits, LWUNits, Pin)
 
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
@@ -5585,7 +5585,9 @@ def Plot_Lineshape_vs_VVOA(filestr, looplength, VVOA, VVOA_vals, Fbeat, theLaser
                     Ymax = numpy.max(data[1])
                     data[1] = data[1] - Ymax
                 hv_data.append(data); 
-                marks.append(Plotting.labs_lins[count%len(Plotting.labs_lins)]); labels.append( '%(v1)0.1f V'%{"v1":VVOA_vals[i]} )
+                marks.append(Plotting.labs_lins[count%len(Plotting.labs_lins)]); 
+                #labels.append( '%(v1)0.1f V'%{"v1":VVOA_vals[i]} )
+                labels.append( '%(v1)0.1f V'%{"v1":VVOA_vals[i]} )
                 count = count + 1
 
         args = Plotting.plot_arg_multiple()
@@ -5836,68 +5838,90 @@ def Pub_Figs():
             os.chdir(PAPER_HOME)
             print(os.getcwd())
 
-            PLOT_CNR = False
+            PLOT_CNR = True
 
             if PLOT_CNR:
-                Deff = [200, 400]
+                #Deff = [200, 400]
+                Deff = [200]
                 theLaser = 'NKT'
                 temperature = 35    
                 RBW = '100Hz' # RBW used in the measurement
                 FUnits = ' / kHz'
                 LWUNits = ' / ' + RBW
+
+                PLOT_VS_PRAT = False # Generate the plot with Power Ratio along the x-axis, otherwise plot versus V_{VOA}
                 
-                # PLot both CNR together
+                # Plot both CNR together
                 hv_data = []; marks = []; labs = []; 
                 
                 for i in range(0, len(Deff), 1):
                     thefile = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/CNR_Meas_6_3_2025/CNR_vs_VVOA_NKT_T_35_I_200.txt'%{"v2":theLaser, "v3":temperature, "v4":Deff[i]}
-                    thedata = numpy.loadtxt(thefile, delimiter = '\t', unpack = True)
-                    thedata[2] = 0.5*thedata[2]
+                    thedata = numpy.loadtxt(thefile, delimiter = '\t', unpack = True) if i==0 else numpy.loadtxt(thefile, delimiter = '\t', unpack = True, max_rows = 20)
+                    #thedata[2] = 0.5*thedata[2]
+                    
+                    # Make a plot of the Prat vs VVOA
+                    args = Plotting.plot_arg_single()
+                    
+                    args.loud = True
+                    args.x_label = 'VOA Bias (V)'
+                    args.y_label = 'Power Ratio P$_{2}$ / P$_{1}$'
+                    args.curve_label = 'P$_{1}$ = 9.5 dBm'
+                    args.fig_name = 'Prat_vs_Vvoa'
+                    
+                    Plotting.plot_single_curve(thedata[0], Compute_Prat(thedata[0]), args)
+
+                    if PLOT_VS_PRAT:
+                        thedata[0] = Compute_Prat(thedata[0])
+                        
                     hv_data.append(thedata); labs.append('D = %(v1)d km'%{"v1":Deff[i]}); marks.append(Plotting.labs[i])
 
                 args = Plotting.plot_arg_multiple()
                 args.loud = True
-                args.x_label = 'VOA Voltage / V'
+                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
                 args.y_label = 'CNR / dB / 100Hz'
                 args.crv_lab_list = labs
                 args.mrk_list = marks
-                args.fig_name = '%(v1)s_CNR'%{"v1":theLaser}
+                #args.fig_name = '%(v1)s_CNR_vs_Prat'%{"v1":theLaser} if PLOT_VS_PRAT else '%(v1)s_CNR_vs_VVOA'%{"v1":theLaser}
+                args.fig_name = '%(v1)s_CNR_vs_Prat_D_200'%{"v1":theLaser} if PLOT_VS_PRAT else '%(v1)s_CNR_vs_VVOA_D_200'%{"v1":theLaser}
                 #args.plt_title = '%(v1)s, P$_{1}$ = %(v2)0.2f dBm, D$_{eff}$ = %(v4)d km'%{"v1":theLaser, "v2":Pin, "v4":looplength}
-                args.plt_range = [0, 4, 20, 32]
+                args.plt_range = [0.05, 0.82, 25, 32] if PLOT_VS_PRAT else [0.0, 4.0, 25, 32]
 
                 Plotting.plot_multiple_curves_with_errors(hv_data, args)
 
-                # PLot lineshapes together
-                hv_data = []; marks = []; labs = []; 
+                PLOT_LINESHAPES = False
+
+                if PLOT_LINESHAPES:
+                    # Plot lineshapes together
+                    hv_data = []; marks = []; labs = []; 
                 
-                # for i in range(0, len(Deff), 1):
-                #     thefile = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/CNR_Meas_6_3_2025/Lineshape_NKT_T_35_I_200_VVOA_35.txt'%{"v2":theLaser, "v3":temperature, "v4":Deff[i]}
-                #     thedata = numpy.loadtxt(thefile, delimiter = '\t', unpack = False)
-                #     Ymax = numpy.max(thedata[1])
-                #     thedata[1] = thedata[1] - Ymax
-                #     hv_data.append(thedata); labs.append('D = %(v1)d km, V$_{VOA}$ = 3.5V'%{"v1":Deff[i]}); marks.append(Plotting.labs_lins[i]);
+                    # for i in range(0, len(Deff), 1):
+                    #     thefile = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/CNR_Meas_6_3_2025/Lineshape_NKT_T_35_I_200_VVOA_35.txt'%{"v2":theLaser, "v3":temperature, "v4":Deff[i]}
+                    #     thedata = numpy.loadtxt(thefile, delimiter = '\t', unpack = False)
+                    #     Ymax = numpy.max(thedata[1])
+                    #     thedata[1] = thedata[1] - Ymax
+                    #     hv_data.append(thedata); labs.append('D = %(v1)d km, V$_{VOA}$ = 3.5V'%{"v1":Deff[i]}); marks.append(Plotting.labs_lins[i]);
                     
-                for i in range(0, len(Deff), 1):
-                    thefile = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/CNR_Meas_6_3_2025/Lineshape_NKT_T_35_I_200_VVOA_0.txt'%{"v2":theLaser, "v3":temperature, "v4":Deff[i]}
-                    thedata = numpy.loadtxt(thefile, delimiter = '\t', unpack = False)
-                    Ymax = numpy.max(thedata[1])
-                    thedata[1] = thedata[1] - Ymax
-                    hv_data.append(thedata); labs.append('D = %(v1)d km, V$_{VOA}$ = 0V'%{"v1":Deff[i]}); marks.append(Plotting.labs_dotted[i]);
+                    for i in range(0, len(Deff), 1):
+                        thefile = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/CNR_Meas_6_3_2025/Lineshape_NKT_T_35_I_200_VVOA_0.txt'%{"v2":theLaser, "v3":temperature, "v4":Deff[i]}
+                        thedata = numpy.loadtxt(thefile, delimiter = '\t', unpack = False)
+                        Ymax = numpy.max(thedata[1])
+                        thedata[1] = thedata[1] - Ymax
+                        hv_data.append(thedata); labs.append('D = %(v1)d km, V$_{VOA}$ = 0V'%{"v1":Deff[i]}); marks.append(Plotting.labs_dotted[i]);
 
-                args = Plotting.plot_arg_multiple()
-                args.loud = True
-                args.x_label = 'Frequency' + FUnits
-                args.y_label = 'Power / dBm' + LWUNits
-                args.crv_lab_list = labs
-                args.mrk_list = marks
-                args.fig_name = '%(v1)s_CNR_Lineshapes_VVOA_0'%{"v1":theLaser}
-                args.plt_range = [-50, 50, -40, 0]
+                    args = Plotting.plot_arg_multiple()
+                    args.loud = True
+                    args.x_label = 'Frequency' + FUnits
+                    args.y_label = 'Power / dBm' + LWUNits
+                    args.crv_lab_list = labs
+                    args.mrk_list = marks
+                    args.fig_name = '%(v1)s_CNR_Lineshapes_VVOA_0'%{"v1":theLaser}
+                    args.plt_range = [-50, 50, -40, 0]
 
-                Plotting.plot_multiple_curves(hv_data, args)
+                    Plotting.plot_multiple_curves(hv_data, args)
                 
-                del hv_data; del marks; del labs; 
+                    del hv_data; del marks; del labs; 
 
-            RESULTS_COMPAR = True
+            RESULTS_COMPAR = False
             
             if RESULTS_COMPAR: 
 
@@ -5936,7 +5960,7 @@ def Pub_Figs():
                 # 6. Voigt_Lor_HWHM, LLest_-20 versus Power Ratio with Errors
                 # 7. Voigt_Lor_HWHM, Voigt_Gau_Stdev versus Power Ratio with Errors
                 #         
-                PLOT_VS_PRAT = False # Generate the plot with Power Ratio along the x-axis, other wise plot versus V_{VOA}
+                PLOT_VS_PRAT = True # Generate the plot with Power Ratio along the x-axis, other wise plot versus V_{VOA}
                 RBWstr = '100Hz'
                 LLMunitstr = 'kHz'
                 VVOA = [0, 0.5, 1.0, 1.5, 2.0, 2.5, 2.8, 3.0, 3.2, 3.5, 3.7]
@@ -5969,7 +5993,7 @@ def Pub_Figs():
                     
                     for i in range(0, len(Deff), 1):                                      
                         # read the data from the file
-                        hv_data.append([Xvals[startVal:endVal], thedata[i][ col_indices[j] ][startVal:endVal], numpy.absolute( 0.5*theerror[i][ col_indices[j] ][startVal:endVal] ) ] )
+                        hv_data.append([Xvals[startVal:endVal], thedata[i][ col_indices[j] ][startVal:endVal], numpy.absolute( theerror[i][ col_indices[j] ][startVal:endVal] ) ] )
                         labels.append('D = %(v1)d (km)'%{"v1":Deff[i]})
                         marks.append(Plotting.labs[i%(len(Plotting.labs))])
                     
@@ -5985,6 +6009,176 @@ def Pub_Figs():
 
                     Plotting.plot_multiple_curves_with_errors(hv_data, args)
 
+            INTERP_TEST = False
+            
+            if INTERP_TEST:
+                Vvoa = 3.8
+                Prat = Compute_Prat(Vvoa)
+                print("Vvoa = ",Vvoa,", Prat = ",Prat)
+                print()
+
+                # Vvoa_data = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 2.8, 3.0, 3.2, 3.5, 3.7]
+                # Prat_data = [0.804, 0.805, 0.8, 0.77, 0.683, 0.519, 0.389, 0.292, 0.209, 0.111, 0.065]
+                # VVOA = numpy.arange(0, 3.8, 0.2)
+                # Prat_val = numpy.interp(VVOA, Vvoa_data, Prat_data)
+
+                VVOA = numpy.arange(0, 3.8, 0.2)
+                PRAT = Compute_Prat(VVOA)
+                
+                print(VVOA)
+                print(PRAT)
+                
+            PLOT_SINGLE_DIST = False
+            
+            if PLOT_SINGLE_DIST:
+                Deff = [200, 400]
+                theLaser = 'NKT'
+                temperature = 35    
+                RBW = '100Hz' # RBW used in the measurement
+                FUnits = ' / kHz'
+                LWUNits = ' / ' + RBW
+                
+                PLOT_VS_PRAT = True
+                
+                # Load the data into memory
+                
+                # Linewidth measurement results
+                indx = 1
+                thedata = numpy.array([]) # instantiate an empty numpy array
+                thefile = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/Loop_Power_Variation_Mar_25/Measurement_Results_I_200.txt'%{"v2":theLaser, "v3":temperature, "v4":Deff[indx]}
+                if glob.glob(thefile):
+                    print("Reading: ",thefile)
+                    thedata = numpy.loadtxt(thefile, delimiter = '\t', unpack = True, skiprows = 1) 
+
+                # linewidth measurement error
+                theerror = numpy.array([]) # instantiate an empty numpy array
+                thefile = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/Loop_Power_Variation_Mar_25/Measurement_Errors_I_200.txt'%{"v2":theLaser, "v3":temperature, "v4":Deff[indx]}
+                if glob.glob(thefile):
+                    print("Reading: ",thefile)
+                    theerror = numpy.loadtxt(thefile, delimiter = '\t', unpack = True, skiprows = 1)
+                    
+                # CNR data
+                thefile = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/CNR_Meas_6_3_2025/CNR_vs_VVOA_NKT_T_35_I_200.txt'%{"v2":theLaser, "v3":temperature, "v4":Deff[indx]}
+                cnrdata = numpy.loadtxt(thefile, delimiter = '\t', unpack = True)
+                #thedata[2] = 0.5*thedata[2]
+                if PLOT_VS_PRAT:
+                    cnrdata[0] = Compute_Prat(cnrdata[0])
+                    
+                # Make some plots of the data
+                # make a plot of various measured values versus Power Ratio
+                # col 0: P1 / dBm col 1: P2 / dBm col 2: P2 / P1 col 3: Pmax / dBm col 4: LLest / units col 5: LLVfit / units col 6: LLLfit / units col 7: LL-20 / units col 8: LLVLor / units col 9: LLVGau / units col 10: RBW / units
+                # 2. P1, P2 versus Power Ratio with Errors
+                # 1. Pmax versus Power Ratio with Errors
+                # 3. LLest versus Power Ratio with Errors
+                # 4. LL-20 versus Power Ratio with Errors
+                # 5. LLVfit versus Power Ratio with Errors
+                # 6. Voigt_Lor_HWHM, LLest_-20 versus Power Ratio with Errors
+                # 7. Voigt_Lor_HWHM, Voigt_Gau_Stdev versus Power Ratio with Errors
+                #         
+                PLOT_VS_PRAT = False # Generate the plot with Power Ratio along the x-axis, other wise plot versus V_{VOA}
+                RBWstr = '100Hz'
+                LLMunitstr = 'kHz'
+                VVOA = [0, 0.5, 1.0, 1.5, 2.0, 2.5, 2.8, 3.0, 3.2, 3.5, 3.7]
+                Xvals = []
+                LL_20_scale = 2.0*math.sqrt(99.0) # constant for converting LL-20 values into LL-Lorentzian values
+
+                y_labels = ['Spectral Peak Value (dBm / %(v1)s )'%{"v1":RBWstr}, 
+                            'Laser Linewidth Estimate ( %(v1)s )'%{"v1":LLMunitstr}, 
+                            'Laser Linewidth at -20 dB ( %(v1)s )'%{"v1":LLMunitstr},
+                            'Laser Linewidth Voigt Fit ( %(v1)s )'%{"v1":LLMunitstr}, 
+                            'Intrinsic Linewidth ( %(v1)s )'%{"v1":LLMunitstr}, 
+                            '1/f Noise ( %(v1)s )'%{"v1":LLMunitstr}]
+
+                fig_names = ['Spectral_Peak_Value', 
+                            'Laser_Linewidth_Estimate',
+                            'Laser_Linewidth_20dB',
+                            'Laser_Linewidth_Voigt_Fit', 
+                            'Intrinsic_Linewidth', 
+                            '1_f_Noise']
+                
+                col_indices = [3, 4, 7, 5, 8, 9]
+                
+                Xvals = thedata[2] if PLOT_VS_PRAT else VVOA
+                startVal = 0 # ignore the data at the start of the VVOA sweep? 
+                endVal = numpy.size(thedata[2])
+
+                # for j in range(0, len(y_labels), 1):
+                #     # 1. Pmax versus Power Ratio with Errors
+                #     args = Plotting.plot_arg_multiple()
+
+                #     args.loud = False
+                #     args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                #     args.y_label = y_labels[j]
+                #     args.y_label_2 = 'CNR / dB / 100Hz'
+                #     args.fig_name = fig_names[j] + '_vs_Prat_D_%(v1)d'%{"v1":Deff[indx]} if PLOT_VS_PRAT else fig_names[j] + '_vs_VVOA_D_%(v1)d'%{"v1":Deff[indx]}
+
+                #     Plotting.plot_two_y_axis(Xvals, thedata[ col_indices[j] ], cnrdata[0], cnrdata[1], args)
+
+                # Plot the fitted lineshapes values together
+                hv_data = []; labels = []; marks = []; 
+                hv_data.append([ Xvals, thedata[5], theerror[5] ]); labels.append(r'$\Delta\nu_{Voigt}$'); marks.append(Plotting.labs[0])
+                hv_data.append([ Xvals, thedata[8], theerror[8] ]); labels.append(r'$\Delta\nu_{white}$'); marks.append(Plotting.labs[1]); 
+                hv_data.append([ Xvals, thedata[9], theerror[9] ]); labels.append(r'$\Delta\nu_{1/f}$'); marks.append(Plotting.labs[2]); 
+    
+                args = Plotting.plot_arg_multiple()
+                args.loud = True
+                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                args.y_label = 'Laser Linewidth ( %(v1)s )'%{"v1":LLMunitstr}
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.plt_range = [0, 0.82, 0, 3.5] if PLOT_VS_PRAT else [0, 3.8, 0, 3.5]
+                args.fig_name = 'Laser_Linewidth'+'_vs_Prat_D_%(v1)d'%{"v1":Deff[indx]} if PLOT_VS_PRAT else 'Laser_Linewidth'+'_vs_VVOA_D_%(v1)d'%{"v1":Deff[indx]}
+                
+                Plotting.plot_multiple_curves_with_errors(hv_data, args)
+
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Compute_Prat(Vvoa_val):
+    
+    # Use the known (Vvoa, Prat) values to compute new Prat values using interpolation
+    # R. Sheehan 10 - 3 - 2025
+    
+    FUNC_NAME = ".Compute_Prat()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME 
+    
+    try:
+        c1 = True if Vvoa_val >= 0.0 and Vvoa_val <= 4.0 else False
+        
+        if c1:
+            Vvoa_data = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 2.8, 3.0, 3.2, 3.5, 3.7]
+            Prat_data = [0.804, 0.805, 0.8, 0.77, 0.683, 0.519, 0.389, 0.292, 0.209, 0.111, 0.065]
+            Prat_val = numpy.interp(Vvoa_val, Vvoa_data, Prat_data)
+            return Prat_val
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + "\nCannot interpolate\nVvoa_val outside range [0, 4]\n"
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Compute_Prat(Vvoa_arr):
+    
+    # Use the known (Vvoa, Prat) values to compute new Prat values using interpolation
+    # R. Sheehan 10 - 3 - 2025
+    
+    FUNC_NAME = ".Compute_Prat()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME 
+    
+    try:
+        c1 = True if numpy.size(Vvoa_arr) > 0 else False
+        c2 = True if Vvoa_arr is not None else False
+        c3 = c1 and c2
+        
+        if c3:
+            Vvoa_data = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 2.8, 3.0, 3.2, 3.5, 3.7]
+            Prat_data = [0.804, 0.805, 0.8, 0.77, 0.683, 0.519, 0.389, 0.292, 0.209, 0.111, 0.065]
+            Prat_arr = numpy.interp(Vvoa_arr, Vvoa_data, Prat_data)
+            return Prat_arr
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + "\nCannot interpolate\nVvoa_val outside range [0, 4]\n"
+            raise Exception
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)

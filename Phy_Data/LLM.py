@@ -5936,37 +5936,54 @@ def Pub_Figs():
                 # 6. Voigt_Lor_HWHM, LLest_-20 versus Power Ratio with Errors
                 # 7. Voigt_Lor_HWHM, Voigt_Gau_Stdev versus Power Ratio with Errors
                 #         
-                PLOT_VS_PRAT = True # Generate the plot with Power Ratio along the x-axis, other wise plot versus V_{VOA}
+                PLOT_VS_PRAT = False # Generate the plot with Power Ratio along the x-axis, other wise plot versus V_{VOA}
                 RBWstr = '100Hz'
                 LLMunitstr = 'kHz'
                 VVOA = [0, 0.5, 1.0, 1.5, 2.0, 2.5, 2.8, 3.0, 3.2, 3.5, 3.7]
                 Xvals = []
                 LL_20_scale = 2.0*math.sqrt(99.0) # constant for converting LL-20 values into LL-Lorentzian values
-                
-                col_indx = 3
-                hv_data = []; marks = []; labels = []; 
-                for i in range(0, len(Deff), 1):                  
-                    Xvals = thedata[0][2] if PLOT_VS_PRAT else VVOA
 
-                    startVal = 0 # ignore the data at the start of the VVOA sweep? 
-                    endVal = numpy.size(thedata[0][2])
+                y_labels = ['Spectral Peak Value (dBm / %(v1)s )'%{"v1":RBWstr}, 
+                            'Laser Linewidth Estimate ( %(v1)s )'%{"v1":LLMunitstr}, 
+                            'Laser Linewidth at -20 dB ( %(v1)s )'%{"v1":LLMunitstr},
+                            'Laser Linewidth Voigt Fit ( %(v1)s )'%{"v1":LLMunitstr}, 
+                            'Intrinsic Linewidth ( %(v1)s )'%{"v1":LLMunitstr}, 
+                            '1/f Noise ( %(v1)s )'%{"v1":LLMunitstr}]
+
+                fig_names = ['Spectral_Peak_Value', 
+                            'Laser_Linewidth_Estimate',
+                            'Laser_Linewidth_20dB',
+                            'Laser_Linewidth_Voigt_Fit', 
+                            'Intrinsic_Linewidth', 
+                            '1_f_Noise']
+                
+                col_indices = [3, 4, 7, 5, 8, 9]
+                
+                Xvals = thedata[0][2] if PLOT_VS_PRAT else VVOA
+                startVal = 0 # ignore the data at the start of the VVOA sweep? 
+                endVal = numpy.size(thedata[0][2])
+
+                for j in range(0, len(y_labels), 1):
+                    
+                    hv_data = []; marks = []; labels = []; 
+                    
+                    for i in range(0, len(Deff), 1):                                      
+                        # read the data from the file
+                        hv_data.append([Xvals[startVal:endVal], thedata[i][ col_indices[j] ][startVal:endVal], numpy.absolute( 0.5*theerror[i][ col_indices[j] ][startVal:endVal] ) ] )
+                        labels.append('D = %(v1)d (km)'%{"v1":Deff[i]})
+                        marks.append(Plotting.labs[i%(len(Plotting.labs))])
                     
                     # 1. Pmax versus Power Ratio with Errors
-                    hv_data.append([Xvals[startVal:endVal], thedata[i][col_indx][startVal:endVal], numpy.absolute( 0.5*theerror[i][col_indx][startVal:endVal] ) ] )
-                    labels.append('D = %(v1)d (km)'%{"v1":Deff[i]})
-                    marks.append(Plotting.labs[i%(len(Plotting.labs))])
-                    
-                # 1. Pmax versus Power Ratio with Errors
-                args = Plotting.plot_arg_multiple()
+                    args = Plotting.plot_arg_multiple()
 
-                args.loud = True
-                args.crv_lab_list = labels
-                args.mrk_list = marks
-                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
-                args.y_label = 'Spectral Peak Value (dBm / %(v1)s )'%{"v1":RBWstr}
-                args.fig_name = 'Spectral_Peak_Value_vs_Prat' if PLOT_VS_PRAT else 'Spectral_Peak_Value_vs_VVOA'
+                    args.loud = True
+                    args.crv_lab_list = labels
+                    args.mrk_list = marks
+                    args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                    args.y_label = y_labels[j]
+                    args.fig_name = fig_names[j] + '_vs_Prat' if PLOT_VS_PRAT else fig_names[j] + '_vs_VVOA'
 
-                Plotting.plot_multiple_curves_with_errors(hv_data, args)
+                    Plotting.plot_multiple_curves_with_errors(hv_data, args)
 
     except Exception as e:
         print(ERR_STATEMENT)

@@ -3185,20 +3185,20 @@ def Beat_Analysis():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        Ival = 100
-        loopLength = 50
+        Ival = 300
+        loopLength = 10
 
         # CoBrite Parameters
-        theLaser = 'CoBriteTLS'
-        temperature = 25        
-        RBW = '5kHz' # RBW used in the measurement
-        LWUNits = ' / MHz / ' + RBW
+        # theLaser = 'CoBriteTLS'
+        # temperature = 25        
+        # RBW = '5kHz' # RBW used in the measurement
+        # LWUNits = ' / MHz / ' + RBW
 
         # NKT Parameters
-        #theLaser = 'NKT'
-        #temperature = 35        
-        #RBW = '100Hz' # RBW used in the measurement
-        #LWUNits = ' / kHz / ' + RBW
+        theLaser = 'NKT'
+        temperature = 35        
+        RBW = '100Hz' # RBW used in the measurement
+        LWUNits = ' / kHz / ' + RBW
 
         DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/I_%(v1)d/'%{"v1":Ival, "v2":theLaser, "v3":temperature, "v4":loopLength}
 
@@ -3231,8 +3231,8 @@ def Beat_Analysis():
 
             filename = 'Results_Summary_I_%(v1)d.txt'%{"v1":Ival}
             f_AOM = 80
-            f_start = 80; # it may be necessary to skip the first beat due to bad fitting
-            f_cutoff = (16) * f_AOM;
+            f_start = 240; # it may be necessary to skip the first beat due to bad fitting
+            f_cutoff = (9) * f_AOM;
             Beat_Data_Report(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, averaged_data, delta_data, filename)
 
             Plot_Beat_Data(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, averaged_data, delta_data)
@@ -3266,7 +3266,7 @@ def Beat_Analysis():
             TheUnits = LWUNits
             Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, Loud)
 
-            Loud = False
+            Loud = True
             Choices = [14, 15] # Plot the Voigt Fit Parameters together
             TheName = 'Voigt Parameters'
             TheUnits = LWUNits

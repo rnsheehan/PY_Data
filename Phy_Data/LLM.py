@@ -3307,7 +3307,14 @@ def Beat_Analysis():
 def Summarise_Beat_Analysis():
 
     # Make plots comparing the measured beat results from different measurements
+    # This is for making comparison between Beat Note Measurements at different optical input powers
+    # It only compares the fitted voigt linewidths for those powers
     # R. Sheehan 12 - 2 - 2024
+
+    # Need to change this method to update what I want to plot. 
+    # This method only applies for the June 2023 Data
+    # You want a more general method that can be used to generate plots for fitted Voigt linewidths, Gaussian LW and Lor LW
+    # R. Sheehan 28 - 3 - 2025
 
     FUNC_NAME = ".Summarise_Beat_Analysis()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
@@ -3330,7 +3337,7 @@ def Summarise_Beat_Analysis():
         RBW = '100Hz' # RBW used in the measurement
         LWUNits = ' / kHz / ' + RBW
         Pvals = [3.217, 9.217, 11.682]
-        Dstr = 'Distance / km'
+        Dstr = 'Distance/km'
         LLstr = 'LL_Vfit/kHz'
 
         #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/I_%(v1)d/'%{"v1":Ival, "v2":theLaser, "v3":temperature, "v4":loopLength}
@@ -3346,10 +3353,11 @@ def Summarise_Beat_Analysis():
 
             hv_data = []; marks = []; labels = []; 
 
-            EXTRACT_DATA = False
+            EXTRACT_DATA = True
             if EXTRACT_DATA:
                 # Extract the data from each of the summarised beat files
-                Ivals = [100, 200, 300]                
+                #Ivals = [100, 200, 300]                
+                Ivals = [200]                
                 count = 0
                 indx_start = 0; 
                 indx_end = 16; 
@@ -3357,7 +3365,7 @@ def Summarise_Beat_Analysis():
                 f_start = 80; # it may be necessary to skip the first beat due to bad fitting
                 f_cutoff = (16) * f_AOM;
                 for i in range(0, len(Ivals), 1):
-                    data_dir = 'I_%(v1)d/'%{"v1":Ivals[i]}
+                    data_dir = 'I_%(v1)d_Nb_20/'%{"v1":Ivals[i]}
                     if os.path.isdir(data_dir):
                         os.chdir(data_dir)
                         print(os.getcwd())
@@ -3389,7 +3397,7 @@ def Summarise_Beat_Analysis():
                 os.chdir(resDir)
                 print(os.getcwd())
 
-            WRITE_DATA = False
+            WRITE_DATA = True
             if WRITE_DATA:
                 # write the combined data set to a file
                 the_avg_filename = 'Averaged_Data_D_%(v1)d.txt'%{"v1":loopLength}
@@ -3406,15 +3414,30 @@ def Summarise_Beat_Analysis():
                 the_avg_file = open(the_avg_filename,'a')
                 the_err_file = open(the_err_filename,'a')
 
+                # Gather the fitted Voigt linewidth values from the data sets for the different optical powers
+
                 if loopLength == 10:
                     for i in range(0, len(hv_data[0][0]), 1):
-                        the_avg_file.write('%(v1)0.2f\t%(v2)0.9f\t%(v3)0.9f\t%(v4)0.9f\n'%{"v1":hv_data[0][0][i], "v2":hv_data[0][1][i], "v3":hv_data[1][1][i] if i<13 else 0.0, "v4":hv_data[2][1][i] if i<11 else 0.0 })
-                        the_err_file.write('%(v1)0.2f\t%(v2)0.9f\t%(v3)0.9f\t%(v4)0.9f\n'%{"v1":hv_data[0][0][i], "v2":hv_data[0][2][i], "v3":hv_data[1][2][i] if i<13 else 0.0, "v4":hv_data[2][2][i] if i<11 else 0.0})
+                        the_avg_file.write('%(v1)0.2f\t%(v2)0.9f\t%(v3)0.9f\t%(v4)0.9f\n'%{"v1":hv_data[0][0][i], 
+                                                                                           "v2":hv_data[0][1][i], 
+                                                                                           "v3":hv_data[1][1][i] if i<13 else 0.0, 
+                                                                                           "v4":hv_data[2][1][i] if i<11 else 0.0 }
+                                           )
+                        the_err_file.write('%(v1)0.2f\t%(v2)0.9f\t%(v3)0.9f\t%(v4)0.9f\n'%{"v1":hv_data[0][0][i], 
+                                                                                           "v2":hv_data[0][2][i], 
+                                                                                           "v3":hv_data[1][2][i] if i<13 else 0.0, 
+                                                                                           "v4":hv_data[2][2][i] if i<11 else 0.0})
 
                 if loopLength == 50:
                     for i in range(0, len(hv_data[0][0]), 1):
-                        the_avg_file.write('%(v1)0.2f\t%(v2)0.9f\t%(v3)0.9f\t%(v4)0.9f\n'%{"v1":hv_data[0][0][i], "v2":hv_data[0][1][i], "v3":hv_data[1][1][i], "v4":hv_data[2][1][i]})
-                        the_err_file.write('%(v1)0.2f\t%(v2)0.9f\t%(v3)0.9f\t%(v4)0.9f\n'%{"v1":hv_data[0][0][i], "v2":hv_data[0][2][i], "v3":hv_data[1][2][i], "v4":hv_data[2][2][i]})
+                        the_avg_file.write('%(v1)0.2f\t%(v2)0.9f\t%(v3)0.9f\t%(v4)0.9f\n'%{"v1":hv_data[0][0][i], 
+                                                                                           "v2":hv_data[0][1][i], 
+                                                                                           "v3":hv_data[1][1][i], 
+                                                                                           "v4":hv_data[2][1][i]})
+                        the_err_file.write('%(v1)0.2f\t%(v2)0.9f\t%(v3)0.9f\t%(v4)0.9f\n'%{"v1":hv_data[0][0][i], 
+                                                                                           "v2":hv_data[0][2][i], 
+                                                                                           "v3":hv_data[1][2][i], 
+                                                                                           "v4":hv_data[2][2][i]})
 
                 the_avg_file.close()
                 the_err_file.close()
@@ -3428,7 +3451,7 @@ def Summarise_Beat_Analysis():
                 args.crv_lab_list = labels
                 args.mrk_list = marks
                 args.x_label = 'Loop Length / km'
-                TheName = 'Linewidth'
+                TheName = 'Linewidth Voigt Fit'
                 TheUnits = LWUNits
                 args.y_label = TheName + TheUnits
                 args.plt_range = [0, 165, 0, 3]
@@ -3438,7 +3461,7 @@ def Summarise_Beat_Analysis():
 
             del hv_data; del marks; del labels; 
 
-            PLOT_COMBINE_DATA = True
+            PLOT_COMBINE_DATA = False
             if PLOT_COMBINE_DATA:
                 os.chdir(resDir)
                 print(os.getcwd())
@@ -3465,9 +3488,11 @@ def Summarise_Beat_Analysis():
                 # Make a plot of the combined data sets
                 hv_data = []; labels = []; marks = []; 
 
-                hv_data.append([data[0], data[1], deltadata[1]]); marks.append(Plotting.labs_pts[0]); labels.append('P$_{in}$ = %(v1)0.2f dBm'%{"v1":Pvals[0]})
-                hv_data.append([data[0], data[2], deltadata[2]]); marks.append(Plotting.labs_pts[1]); labels.append('P$_{in}$ = %(v1)0.2f dBm'%{"v1":Pvals[1]})
-                hv_data.append([data[0], data[3], deltadata[3]]); marks.append(Plotting.labs_pts[2]); labels.append('P$_{in}$ = %(v1)0.2f dBm'%{"v1":Pvals[2]})
+                # hv_data.append([data[0], data[1], deltadata[1]]); marks.append(Plotting.labs_pts[0]); labels.append('P$_{in}$ = %(v1)0.2f dBm'%{"v1":Pvals[0]})
+                # hv_data.append([data[0], data[2], deltadata[2]]); marks.append(Plotting.labs_pts[1]); labels.append('P$_{in}$ = %(v1)0.2f dBm'%{"v1":Pvals[1]})
+                # hv_data.append([data[0], data[3], deltadata[3]]); marks.append(Plotting.labs_pts[2]); labels.append('P$_{in}$ = %(v1)0.2f dBm'%{"v1":Pvals[2]})
+
+                hv_data.append([data[0], data[1], deltadata[1]]); marks.append(Plotting.labs_pts[0]); labels.append('P$_{in}$ = %(v1)0.1f dBm'%{"v1":Pvals[0]})
 
                 args = Plotting.plot_arg_multiple()
 

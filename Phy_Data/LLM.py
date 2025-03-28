@@ -3185,7 +3185,7 @@ def Beat_Analysis():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        Ival = 300
+        Ival = 200
         loopLength = 10
 
         # CoBrite Parameters
@@ -3200,12 +3200,15 @@ def Beat_Analysis():
         RBW = '100Hz' # RBW used in the measurement
         LWUNits = ' / kHz / ' + RBW
 
-        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/I_%(v1)d/'%{"v1":Ival, "v2":theLaser, "v3":temperature, "v4":loopLength}
+        #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/I_%(v1)d/'%{"v1":Ival, "v2":theLaser, "v3":temperature, "v4":loopLength}
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/I_%(v1)d_Nb_20/'%{"v1":Ival, "v2":theLaser, "v3":temperature, "v4":loopLength}
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
             print(os.getcwd())             
             
+            # Aggregate all the beat files together into an average beat file + error beat file
+            # 
             beatfiles = glob.glob('Beat_Data_Nmeas_*_I_%(v1)d*.txt'%{"v1":Ival})
 
             Nbeats, Titles, averaged_data, delta_data = Aggregate_Data_From_Beat_Files(beatfiles)
@@ -3231,8 +3234,8 @@ def Beat_Analysis():
 
             filename = 'Results_Summary_I_%(v1)d.txt'%{"v1":Ival}
             f_AOM = 80
-            f_start = 240; # it may be necessary to skip the first beat due to bad fitting
-            f_cutoff = (9) * f_AOM;
+            f_start = 80; # it may be necessary to skip the first beat due to bad fitting
+            f_cutoff = (15) * f_AOM;
             Beat_Data_Report(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, averaged_data, delta_data, filename)
 
             Plot_Beat_Data(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, averaged_data, delta_data)
@@ -3242,35 +3245,58 @@ def Beat_Analysis():
             # 9: LLest	10: LL_Vfit	11: LL_Lfit	12: LLest_-20	13: Voigt_h/nW	14: Voigt_Lor_HWHM	15: Voigt_Gau_Stdev	16: Lor_h/nW	
             # 17: Lor_HWHM 18: P1/dBm	19: P2/dBm	20: P2/P1
 
+            Loud = True
+            include_range = True
+            Choice = 10 # Plot the Voigt fitted dnu
+            TheName = 'Voigt Linewidth'
+            TheUnits = LWUNits
+            Plot_Beat_Data_Scatter(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choice, TheName, TheUnits, beatfiles, include_range, Loud)
+
+            Loud = True
+            Choice = 15+1 # Plot the Gaussian contribution to dnu, index is off by 1 for aggregration reasons
+            TheName = 'Gaussian Linewidth'
+            TheUnits = LWUNits
+            Plot_Beat_Data_Scatter(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choice, TheName, TheUnits, beatfiles, include_range, Loud)
+
+            Loud = True
+            Choice = 14+1 # Plot the Lorentzian contribution to dnu, index is off by 1 for aggregration reasons
+            TheName = 'Lorentzian Linewidth'
+            TheUnits = LWUNits
+            Plot_Beat_Data_Scatter(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choice, TheName, TheUnits, beatfiles, include_range, Loud)
+
             Loud = False
+            include_range = False
             Choices = [4, 5, 6] # Plot the temperatures together
             TheName = 'Temperature'
             TheUnits = ' / C'
-            Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, Loud)
+            Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, include_range, Loud)
 
             Loud = False
             Choices = [18, 19] # Plot the loop powers together
             TheName = 'Power'
             TheUnits = ' / dBm'
-            Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, Loud)
+            Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, include_range, Loud)
 
             Loud = True
+            include_range = True
             Choices = [9, 10, 11] # Plot the measured + fitted dnu together
             TheName = 'Linewidth'
             TheUnits = LWUNits
-            Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, Loud)
+            Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, include_range, Loud)
 
             Loud = False
+            include_range = False
             Choices = [9, 12] # Plot the estimated dnu together
             TheName = 'Estimated Linewidth'
             TheUnits = LWUNits
-            Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, Loud)
+            Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, include_range, Loud)
 
             Loud = True
+            include_range = True
             Choices = [14, 15] # Plot the Voigt Fit Parameters together
             TheName = 'Voigt Parameters'
             TheUnits = LWUNits
-            Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, Loud)
+            Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, include_range, Loud)
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
             raise Exception
@@ -3768,7 +3794,7 @@ def Aggregate_Data_From_Beat_Files(beatfiles, loud = False):
         print(ERR_STATEMENT)
         print(e)
 
-def Plot_Beat_Data_Combo(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, Choices, TheName, TheUnits, Average, Delta, loud = False):
+def Plot_Beat_Data_Combo(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, Choices, TheName, TheUnits, Average, Delta, INCLUDE_RNG = False, loud = False):
     # plot combinations of the averaged data with error bars
     # Nbeats is the no. beat measurements that were made
     # F_AOM is the AOM phase shift frequency
@@ -3828,8 +3854,88 @@ def Plot_Beat_Data_Combo(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, 
             args.crv_lab_list = labels
             args.mrk_list = marks
             args.fig_name = TheName + '_Err'
+            if INCLUDE_RNG: args.plt_range = [0, 160, 0, 4]
                 
             Plotting.plot_multiple_curves_with_errors(hv_data, args)
+
+            del hv_data
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nError with input values'
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Plot_Beat_Data_Scatter(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, Choice, TheName, TheUnits, beatfiles, INCLUDE_RNG = False, loud = False):
+    # plot combinations of all measured beat data, make a scatter plot from each of the measurement files for a given quantity
+    
+    # Nbeats is the no. beat measurements that were made
+    # F_AOM is the AOM phase shift frequency
+    # Loop_Length is the length of the fibre loop in the LCR-DSHI
+    # F_Start is beat frequency at which to start plotting, it can happen that the f_{b} = 80MHz signal may be bad so best to ignore it
+    # F_CUTOFF is beat frequency at which to stop plotting, it usually happens that higher order beat frequencies do not produce good data
+    # Titles is the list of names of the quantities that have been measured
+    # Choice is the index of the column containing the measured quantities that you want to plot
+    # TheName is a string that gives the figure name
+    # TheUnits is a string that gives the units to be plotted along the y-axis
+    # beatfiles is the list of all the filenames containing beat measurement data
+    # R. Sheehan 28 - 3 - 2025
+
+    FUNC_NAME = ".Plot_Beat_Data_Scatter()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        fbeats = numpy.arange(F_AOM, Nbeats*F_AOM + 1, F_AOM)
+        distance = numpy.arange(Loop_Length, Nbeats*Loop_Length + 1, Loop_Length )
+        fend_indx = 1 + numpy.where(fbeats == F_CUTOFF)[0][0]
+        fstart_indx = int( -1 + ( F_Start / F_AOM ) )
+        
+        c1 = True if Nbeats > 0 else False
+        c2 = True if beatfiles is not None else False
+        c3 = True if fstart_indx < fend_indx else False
+        c4 = True if Choice >= 0 and Choice < len(Titles) else False
+        c10 = c1 and c2 and c3 and c4
+        # must add more conditions here
+
+        if c10:
+            
+            # Plot data measured between F_Start and F_CUTOFF Only
+            PLOT_WITH_BEATS = False # Makes more sense to plot against distance rather than Beat Frequency
+
+            xvals = fbeats if PLOT_WITH_BEATS else distance
+            xlabel = 'Beat Frequency / MHz' if PLOT_WITH_BEATS else 'Loop Length / km'
+
+            hv_data = []; labels = []; marks = []
+
+            count = 0
+            # for i in Choices:
+            #     avg_val = numpy.mean(Average[i][fstart_indx:fend_indx])
+            #     avg_error = numpy.mean(Delta[i][fstart_indx:fend_indx])
+            #     hv_data.append([xvals[fstart_indx:fend_indx], Average[i][fstart_indx:fend_indx], Delta[i][fstart_indx:fend_indx]]); 
+            #     labels.append(Titles[i])
+            #     marks.append(Plotting.labs_pts[count])
+            #     count = count + 1
+            
+            for i in range(0, len(beatfiles), 1):
+                if glob.glob(beatfiles[i]):
+                    data = numpy.loadtxt(beatfiles[i], delimiter = '\t', skiprows = 1, unpack = True)
+                    hv_data.append([ xvals[fstart_indx:fend_indx],  data[Choice][fstart_indx:fend_indx] ] ); 
+                    marks.append( Plotting.labs_pts[ count%len( Plotting.labs_pts ) ] ); 
+                    labels.append('M%(v1)d'%{"v1":i}); 
+                    count = count + 1
+
+            args = Plotting.plot_arg_multiple()                
+
+            args.loud = loud
+            args.x_label = xlabel
+            args.y_label = TheName + TheUnits
+            args.crv_lab_list = labels
+            args.mrk_list = marks
+            args.fig_name = TheName + '_Scatter'
+            args.show_leg = False
+            if INCLUDE_RNG: args.plt_range = [0, 160, 0, 4]
+                
+            Plotting.plot_multiple_curves(hv_data, args)
 
             del hv_data
         else:

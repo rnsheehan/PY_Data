@@ -3681,15 +3681,20 @@ def Combine_Beat_Analysis():
 
                 print()
                 print("Line Fit Start point: ",theData[0][n_dist - n_back])
-                params = Common.linear_fit(theData[0][n_dist - n_back:n_dist], theData[1][n_dist - n_back:n_dist], [1, 1], True)
+                params1 = Common.linear_fit(theData[0][n_dist - n_back:n_dist], theData[1][n_dist - n_back:n_dist], [1, 1], True)
+                print()
+                print("Line Fit Start point: ",theData[0][n_dist - n_back - 6])
+                print("Line Fit End point: ",theData[0][n_dist - n_back])
+                params2 = Common.linear_fit(theData[0][n_dist - n_back - 6:n_dist - n_back], theData[1][n_dist - n_back - 6:n_dist-n_back], [1, 1], True)
 
                 # Combine the Linear Fit with the Log Scale
-                m = params[1]; c = params[0]; 
-                Dvals = [200, 1000]; nuvals = [(200.0*m)+c, (1000.0*m)+c]
+                m1 = params1[1]; c1 = params1[0]; 
+                m2 = params2[1]; c2 = params2[0]; 
+                Dvals = [200, 1000]; nuvals = [(200.0*m1)+c1, (1000.0*m1)+c1]
                 
                 args.log_x = True
                 args.add_line = True
-                args.lcList = [[(200, (200.0*m)+c), (1000, (1000.0*m)+c)]]
+                args.lcList = [ [(200, (200.0*m1)+c1), (1000, (1000.0*m1)+c1)], [(90, (90.0*m2)+c2), (200, (200.0*m2)+c2)] ]
                 args.lcListColours = ['b']
                 Plotting.plot_single_curve_with_errors(theData[0], theData[1], theData[2], args)
                 

@@ -89,7 +89,9 @@ if __name__ == '__main__':
 
     #LLM.Beat_Analysis()
 
-    LLM.Summarise_Beat_Analysis()
+    #LLM.Summarise_Beat_Analysis()
+    
+    LLM.Combine_Beat_Analysis()
 
     #General.Superlum_Amplification()
 

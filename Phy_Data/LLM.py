@@ -3551,6 +3551,268 @@ def Summarise_Beat_Analysis():
         print(ERR_STATEMENT)
         print(e)
 
+def Combine_Beat_Analysis():
+    
+    # Combine the beat analyses for the March 20225 measurements
+    # Read in the averaged 10km loop and 50km loop dataframes
+    # Make the plots from the data frames as needed
+    # R. Sheehan 31 - 3 - 2025
+    
+    FUNC_NAME = ".Combine_Beat_Analysis()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        # NKT Parameters
+        theLaser = 'NKT'
+        temperature = 35        
+        RBW = '100Hz' # RBW used in the measurement
+        LWUNits = ' / kHz / ' + RBW
+        Pval = 9.5
+        Dstr = 'Distance/km'
+        LLstr = 'LL_Vfit/kHz'
+        LLGstr = 'Voigt_Gau_Stdev/kHz'
+        LLLstr = 'Voigt_Lor_HWHM/kHz'
+        loopLength = 50
+
+        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/Comparisons_Mar_25/'%{"v2":theLaser, "v3":temperature, "v4":loopLength}
+
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+            
+            loopLs = [10, 50]
+            Ival = 200          
+            dfList = []; titList = []; errList = [];
+            
+            for i in range(0,len(loopLs), 1):
+                dataDir = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/I_%(v5)d_Nb_20/'%{"v2":theLaser, "v3":temperature, "v4":loopLs[i],"v5":Ival}
+                # Grab the averaged data
+                beatfile = dataDir + 'Averaged_Data_I_%(v1)d.txt'%{"v1":Ival}
+                if glob.glob(beatfile):
+                    df = pandas.read_csv(beatfile, delimiter = '\t')
+                    titles = list(df)
+
+                    dfList.append(df)
+                    titList.append(titles)
+                    
+                # Grab the error data
+                errorfile = dataDir + 'Delta_Data_I_%(v1)d.txt'%{"v1":Ival}            
+                if glob.glob(errorfile):
+                    delta_df = pandas.read_csv(errorfile, delimiter = '\t')
+                    errList.append(delta_df)
+
+            PLOT_LLV_FULL = False
+            if PLOT_LLV_FULL:
+                # I made a hypothesis after reading tsuchida2012limitationby H. Tsuchida, Opt. Expr., 20 (11), 2012
+                # ''Limitation and improvement in the performance of recirculating delayed self-heterodyne method for high-resolution laser lineshape measurement''
+                # that the 1/f noise kicks in once L_{D} > 9 L_{F}
+                # Seems to be a big issue for the D = 10 loop, not so much for the D = 50 loop
+                # Make a plot to see if that is the case
+                
+                col1 = Dstr; col2 = LLstr; 
+
+                hv_data = []; labels = []; marks = []
+                
+                xsel = dfList[0][ col1 ].to_numpy()
+                ysel = dfList[0][ col2 ].to_numpy()
+                deltasel = errList[0][ col2 ].to_numpy()
+                strt = 0; end = 11;
+                hv_data.append([xsel[strt:end], ysel[strt:end], deltasel[strt:end]]); 
+                labels.append(r'D = 10km, $%(v1)d\,\leq\,N_{b}\,\leq\,%(v2)d$'%{"v1":strt, "v2":end-1}); 
+                marks.append(Plotting.labs_pts[0]); 
+                strt = 11; end = 22;
+                hv_data.append([xsel[strt:end], ysel[strt:end], deltasel[strt:end]]); 
+                labels.append(r'D = 10km, $%(v1)d\,\leq\,N_{b}\,\leq\,%(v2)d$'%{"v1":strt, "v2":end-1});
+                marks.append(Plotting.labs_pts[1]); 
+                
+                xsel = dfList[1][ col1 ].to_numpy()
+                ysel = dfList[1][ col2 ].to_numpy()
+                deltasel = errList[1][ col2 ].to_numpy()
+                strt = 0; end = 11;
+                hv_data.append([xsel[strt:end], ysel[strt:end], deltasel[strt:end]]); 
+                labels.append(r'D = 50km, $%(v1)d\,\leq\,N_{b}\,\leq\,%(v2)d$'%{"v1":strt, "v2":end-1}); 
+                marks.append(Plotting.labs_pts[2]); 
+                strt = 11; end = 22;
+                hv_data.append([xsel[strt:end], ysel[strt:end], deltasel[strt:end]]); 
+                labels.append(r'D = 50km, $%(v1)d\,\leq\,N_{b}\,\leq\,%(v2)d$'%{"v1":strt, "v2":end-1});
+                marks.append(Plotting.labs_pts[3]); 
+            
+                # Make a plot
+                args = Plotting.plot_arg_multiple()
+                
+                args.loud = True
+                args.x_label = 'Loop Length / km'
+                args.y_label = 'Voigt Fit Linewidth / kHz / 100Hz'
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.log_x = True
+                args.fig_name = 'Full_Voigt_Fit_Linewidth'
+                args.plt_range = [10, 1000, 0, 3]
+                
+                #Plotting.plot_multiple_curves_with_errors(hv_data, args)
+                Plotting.plot_multiple_curves(hv_data, args)
+            
+            PLOT_LLV = True
+            if PLOT_LLV:
+                # Data is in memory, make the plots you want to make
+                subSet = True
+                iStrt = [0, 0]
+                iEnd = [11, 20]; 
+                theData = Extract_Data_From_Multiple_DataFrames(Dstr, LLstr, titList[0], dfList, errList, subSet, iStrt, iEnd)
+
+                # Make a plot
+                args = Plotting.plot_arg_single()
+            
+                args.loud = True
+                args.x_label = 'Loop Length / km'
+                args.y_label = 'Voigt Fit Linewidth / kHz / 100Hz'
+                args.marker = Plotting.labs_pts[0]
+                args.fig_name = 'Voigt_Fit_Linewidth'
+                args.log_x = True
+                args.plt_range = [10, 1000, 0, 3]
+            
+                Plotting.plot_single_curve_with_errors(theData[0], theData[1], theData[2], args)
+
+                args.fig_name = 'Voigt_Fit_Linewidth_Lin_Fit'
+                args.log_x = False
+                n_dist = len(theData[1])
+                n_back = 17 # no. of data points to examine
+                Plotting.plot_single_linear_fit_curve_with_errors(theData[0][n_dist - n_back:n_dist], theData[1][n_dist - n_back:n_dist], theData[2][n_dist - n_back:n_dist], args)
+
+                params = Common.linear_fit(theData[0][n_dist - n_back:n_dist], theData[1][n_dist - n_back:n_dist], [1, 1], True)
+
+                # Combine the Linear Fit with the Log Scale
+                m = params[1]; c = params[0]; 
+                Dvals = [200, 1000]; nuvals = [(200.0*m)+c, (1000.0*m)+c]
+                
+                hv_data = []; labels = []; marks = [];
+                hv_data.append([theData[0], theData[1]]); labels.append(r'Measured $\Delta\nu_{Voigt}$'); marks.append(Plotting.labs_pts[0]); 
+                hv_data.append([Dvals, nuvals]); labels.append(r'Linear Fit'); marks.append(Plotting.labs_lins[2]); 
+                
+                # Make a plot
+                args = Plotting.plot_arg_multiple()
+                
+                args.loud = True
+                args.x_label = 'Loop Length / km'
+                args.y_label = 'Voigt Fit Linewidth / kHz / 100Hz'
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.log_x = True
+                args.fig_name = 'Voigt_Fit_Linewidth_Lin_Fit_All'
+                args.plt_range = [10, 1000, 0, 3]
+                
+                #Plotting.plot_multiple_curves_with_errors(hv_data, args)
+                Plotting.plot_multiple_curves(hv_data, args)
+
+                # Check the following to see if you can add a line to the plot
+                # LineCollection should do what you want it to do. 
+                # https://stackoverflow.com/questions/12864294/adding-an-arbitrary-line-to-a-matplotlib-plot-in-ipython-notebook
+                
+            PLOT_LL_CONTRIB = False
+            if PLOT_LL_CONTRIB:
+                subSet = True
+                iStrt = [0, 0]
+                iEnd = [11, 20]; 
+
+                #cols = [LLstr, LLGstr, LLLstr]
+                #labs = [r'$\Delta\nu_{Voigt}$', r'$\Delta\nu_{Gauss}$', r'$\Delta\nu_{Lorentz}$']
+                
+                cols = [LLstr, LLLstr]
+                mrk_indx = [0 ,2]
+                labs = [r'$\Delta\nu_{Voigt}$', r'$\Delta\nu_{Lorentz}$']
+
+                hv_data = []; marks = []; labels = []
+
+                count = 0
+                for item in cols:
+                    theData = Extract_Data_From_Multiple_DataFrames(Dstr, item, titList[0], dfList, errList, subSet, iStrt, iEnd)
+                    hv_data.append([ theData[0], theData[1], theData[2] ]); 
+                    marks.append( Plotting.labs_pts[ mrk_indx[count] ] )
+                    labels.append('%(v1)s'%{ "v1":labs[ count ] } )
+                    count = count + 1
+
+                # Make a plot
+                args = Plotting.plot_arg_multiple()
+                
+                args.loud = True
+                args.x_label = 'Loop Length / km'
+                args.y_label = 'Fitted Linewidth / kHz / 100Hz'
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.fig_name = 'Combined_Fitted_Linewidth'
+                args.plt_range = [0, 1000, 0, 3]
+                
+                Plotting.plot_multiple_curves_with_errors(hv_data, args)
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Extract_Data_From_Multiple_DataFrames(colChoice1, colChoice2, Titles, dfList, errList, chooseSubset = True, indxStrt = [0, 0], indxEnd = [10, 20]):
+
+    # Extract and combine columns of data from multiple dataFrames
+    # R. Sheehan 31 - 3 - 2025
+    
+    # colChoice1 is the Title of the 1st column to be selected
+    # colChoice2 is the Title of the 2nd column to be selected
+    # Titles is the dictionary containing the titles from the dataframe
+    # dfList is the list of dataframes from which to extract data
+    # errList is the associated list of dataframes errors from which to extract data
+    
+    # chooseSubset is a boolean that tells the method whether or not to choose a subset of the data
+    # indxStart is a list of starting indices
+    # indxEnd is a list of ending indices
+    
+    # chooseSubset may cause an error is the values of indxStrt and indxEnd are outside the range of the column being selected
+    # hard to know how to think to deal with this in general, maybe a second method for choosing the subsets might be best
+
+    FUNC_NAME = ".Extract_Data_From_Multiple_DataFrames()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        c1 = True if dfList is not None else False
+        c2 = True if errList is not None else False
+        c3 = Common.dict_contains_key(Titles, colChoice1)
+        c4 = Common.dict_contains_key(Titles, colChoice2)
+        c5 = True if len(indxStrt) > 0 else False
+        c6 = True if len(indxEnd) > 0 else False
+        c7 = True if len(indxEnd) == len(indxStrt) else False
+        c10 = c1 and c2 and c3 and c4 and c5 and c6 and c7
+        
+        if c10:
+            # Data is in memory, make the plots you want to make
+            theData = numpy.array([]) # empty numpy array
+            for i in range(0,len(dfList), 1):
+                xsel = dfList[i][ colChoice1 ].to_numpy()
+                ysel = dfList[i][ colChoice2 ].to_numpy()
+                deltasel = errList[i][ colChoice2 ].to_numpy()
+                if i == 0:
+                    xdata = xsel[ indxStrt[0]:indxEnd[0] ] if chooseSubset else xsel
+                    ydata = ysel[ indxStrt[0]:indxEnd[0] ] if chooseSubset else ysel
+                    deltaydata = deltasel[ indxStrt[0]:indxEnd[0] ] if chooseSubset else deltasel
+                else:
+                    xdata = numpy.append( xdata, xsel[ indxStrt[1]:indxEnd[1] ] if chooseSubset else xsel )
+                    ydata = numpy.append( ydata, ysel[ indxStrt[1]:indxEnd[1] ] if chooseSubset else ysel )
+                    deltaydata = numpy.append( deltaydata, deltasel[ indxStrt[1]:indxEnd[1] ] if chooseSubset else deltasel )
+                    
+            theData = numpy.column_stack( ( xdata, ydata, deltaydata ) )
+            theData = theData[theData[:,0].argsort()] # sort according to the elements of the distance column
+            theData = theData.T # transpose the data for plotting
+
+            return theData
+        else:
+            if c1 is False: ERR_STATEMENT = ERR_STATEMENT + '\ndfList is empty'
+            if c2 is False: ERR_STATEMENT = ERR_STATEMENT + '\nerrList is empty'
+            if c3 is False: ERR_STATEMENT = ERR_STATEMENT + '\nTitles does not contain: ' + colChoice1
+            if c4 is False: ERR_STATEMENT = ERR_STATEMENT + '\nTitles does not contain: ' + colChoice2
+            if c5 is False or c6 is False or c7 is False: ERR_STATEMENT = ERR_STATEMENT + '\nIndexing arrays not input correctly'
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
 def Extract_Data_From_Beat_File(beatfile, loud = False):
 
     # Extract the data from a single beat measurement file

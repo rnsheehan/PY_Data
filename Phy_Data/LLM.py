@@ -3677,13 +3677,21 @@ def Combine_Beat_Analysis():
                 args.log_x = False
                 n_dist = len(theData[1])
                 n_back = 17 # no. of data points to examine
-                Plotting.plot_single_linear_fit_curve_with_errors(theData[0][n_dist - n_back:n_dist], theData[1][n_dist - n_back:n_dist], theData[2][n_dist - n_back:n_dist], args)
+                #Plotting.plot_single_linear_fit_curve_with_errors(theData[0][n_dist - n_back:n_dist], theData[1][n_dist - n_back:n_dist], theData[2][n_dist - n_back:n_dist], args)
 
+                print()
+                print("Line Fit Start point: ",theData[0][n_dist - n_back])
                 params = Common.linear_fit(theData[0][n_dist - n_back:n_dist], theData[1][n_dist - n_back:n_dist], [1, 1], True)
 
                 # Combine the Linear Fit with the Log Scale
                 m = params[1]; c = params[0]; 
                 Dvals = [200, 1000]; nuvals = [(200.0*m)+c, (1000.0*m)+c]
+                
+                args.log_x = True
+                args.add_line = True
+                args.lcList = [[(200, (200.0*m)+c), (1000, (1000.0*m)+c)]]
+                args.lcListColours = ['b']
+                Plotting.plot_single_curve_with_errors(theData[0], theData[1], theData[2], args)
                 
                 hv_data = []; labels = []; marks = [];
                 hv_data.append([theData[0], theData[1]]); labels.append(r'Measured $\Delta\nu_{Voigt}$'); marks.append(Plotting.labs_pts[0]); 
@@ -3700,6 +3708,7 @@ def Combine_Beat_Analysis():
                 args.log_x = True
                 args.fig_name = 'Voigt_Fit_Linewidth_Lin_Fit_All'
                 args.plt_range = [10, 1000, 0, 3]
+                
                 
                 #Plotting.plot_multiple_curves_with_errors(hv_data, args)
                 Plotting.plot_multiple_curves(hv_data, args)

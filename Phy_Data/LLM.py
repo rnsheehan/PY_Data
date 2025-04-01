@@ -3671,7 +3671,7 @@ def Combine_Beat_Analysis():
                 args.log_x = True
                 args.plt_range = [10, 1000, 0, 3]
             
-                Plotting.plot_single_curve_with_errors(theData[0], theData[1], theData[2], args)
+                #Plotting.plot_single_curve_with_errors(theData[0], theData[1], theData[2], args)
 
                 args.fig_name = 'Voigt_Fit_Linewidth_Lin_Fit'
                 args.log_x = False
@@ -3686,18 +3686,25 @@ def Combine_Beat_Analysis():
                 print("Line Fit Start point: ",theData[0][n_dist - n_back - 6])
                 print("Line Fit End point: ",theData[0][n_dist - n_back])
                 params2 = Common.linear_fit(theData[0][n_dist - n_back - 6:n_dist - n_back], theData[1][n_dist - n_back - 6:n_dist-n_back], [1, 1], True)
+                print()
+                print("Line Fit Start point: ",theData[0][1])
+                print("Line Fit End point: ",theData[0][n_dist - n_back - 6])
+                params3 = Common.linear_fit(theData[0][1:n_dist - n_back - 6], theData[1][1:n_dist - n_back - 6], [1, 1], True)
 
                 # Combine the Linear Fit with the Log Scale
                 m1 = params1[1]; c1 = params1[0]; 
                 m2 = params2[1]; c2 = params2[0]; 
+                m3 = params3[1]; c3 = params3[0]; 
                 Dvals = [200, 1000]; nuvals = [(200.0*m1)+c1, (1000.0*m1)+c1]
                 
-                args.log_x = True
+                args.log_x = False
                 args.add_line = True
-                args.lcList = [ [(200, (200.0*m1)+c1), (1000, (1000.0*m1)+c1)], [(90, (90.0*m2)+c2), (200, (200.0*m2)+c2)] ]
+                args.lcList = [ [(200, (200.0*m1)+c1), (1000, (1000.0*m1)+c1)], [(90, (90.0*m2)+c2), (200, (200.0*m2)+c2)], [(20, (20.0*m3)+c3), (80, (80*m3)+c3)] ]
                 args.lcListColours = ['b']
+                args.fig_name = 'Voigt_Fit_Linewidth_Lin_Fit_Lin_Scale'
                 Plotting.plot_single_curve_with_errors(theData[0], theData[1], theData[2], args)
                 
+                # Different Method, same plot
                 hv_data = []; labels = []; marks = [];
                 hv_data.append([theData[0], theData[1]]); labels.append(r'Measured $\Delta\nu_{Voigt}$'); marks.append(Plotting.labs_pts[0]); 
                 hv_data.append([Dvals, nuvals]); labels.append(r'Linear Fit'); marks.append(Plotting.labs_lins[2]); 
@@ -3705,15 +3712,14 @@ def Combine_Beat_Analysis():
                 # Make a plot
                 args = Plotting.plot_arg_multiple()
                 
-                args.loud = True
+                args.loud = False
                 args.x_label = 'Loop Length / km'
                 args.y_label = 'Voigt Fit Linewidth / kHz / 100Hz'
                 args.crv_lab_list = labels
                 args.mrk_list = marks
                 args.log_x = True
                 args.fig_name = 'Voigt_Fit_Linewidth_Lin_Fit_All'
-                args.plt_range = [10, 1000, 0, 3]
-                
+                args.plt_range = [10, 1000, 0, 3]                
                 
                 #Plotting.plot_multiple_curves_with_errors(hv_data, args)
                 Plotting.plot_multiple_curves(hv_data, args)

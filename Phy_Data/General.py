@@ -1652,23 +1652,60 @@ def Paddy_Mac_Statistics():
             os.chdir(DATA_HOME)
             print(os.getcwd())
             the_file = 'Rad_Decay_Raw_Time_Interval_Data.csv'
-            the_data = numpy.loadtxt(the_file, delimiter=',' ,unpack=True)
+            
+            time_intervals = numpy.loadtxt(the_file, delimiter=',' ,unpack=True)
+            n_data_pts = len(time_intervals) # total number of detected radioactive decay events (counts)
             
             # data should be cleaned of any values that are greater than 1 and less than 0
-            # decay probability is propool
+            # decay probability is proportional to ( 1 / exp( Delta t ) )
+            # Delta t > 1 => ( 1 / exp( Delta t ) ) is vanishingly small not physically correct
+            # Delta t < 0 is also physically non-sensical
             # data should be cleaned of any blank / empty lines
+            
+            # Next step is to generate the cumulative sum of the data in the distribution
+            # Do you actually need this an array? 
+            # cum_sum_time = numpy.array([])
+            # for i in range(0, n_data_pts):
+            #     if i == 0:
+            #         cum_sum_time = numpy.append(cum_sum_time, time_intervals[i])
+            #     else:
+            #         cum_sum_time = numpy.append(cum_sum_time,time_intervals[i] + cum_sum_time[i-1])
+            cum_sum_time = 0
+            for i in range(0, n_data_pts):
+                if i == 0:
+                    cum_sum_time = time_intervals[i]
+                else:
+                    cum_sum_time = cum_sum_time + time_intervals[i]
 
-            n_data_pts = len(the_data)
+            t_acquire = cum_sum_time # total time over which radioactive decay events (counts) were detected
+            decay_rate_approx = float(n_data_pts) / t_acquire # estimate of the decay rate
+            decay_rate_error_estimate = decay_rate_approx / math.sqrt(float(n_data_pts)) # estimate the error associated with the approximate decay rate
+            
             print()
             print(the_file,'contains',n_data_pts,'data points')
             print('The file contains the time intervals between',n_data_pts,'successive radioactive decays detectby the Geiger counter.')
-            print('Longest time between decays:',numpy.max(the_data))
-            print('Shortest time between decays:',numpy.min(the_data))
-            print('Average time between decays:',numpy.mean(the_data))
-            print('Std. Dev of time between decays:',numpy.std(the_data, ddof = 1) )
+            print('Longest time between decays: %(v1)0.6f secs'%{"v1":numpy.max(time_intervals)})
+            print('Shortest time between decays: %(v1)0.6f secs'%{"v1":numpy.min(time_intervals)})
+            print('Average time between decays: %(v1)0.6f secs'%{"v1":numpy.mean(time_intervals)})
+            print('Std. Dev of time between decays: %(v1)0.6f secs'%{"v1":numpy.std(time_intervals, ddof = 1)})
+            print('Median time between decays: %(v1)0.6f secs'%{"v1":numpy.median(time_intervals)})
+            # the mode of the distribution is the most common value
+            # determine the mode of the distribution, this may not be unique
+            #print(scipy.stats.mode(time_intervals)) 
+            print('Duration of Experiment: %(v1)0.6f secs'%{"v1":t_acquire})
+            print('Duration of Experiment: %(v1)0.6f mins'%{"v1":t_acquire/60.0})
+            print('Approximate Decay Rate of the Sample: %(v1)0.2f +/- %(v2)0.2f per sec'%{"v1":decay_rate_approx,"v2":decay_rate_error_estimate})
             print()
 
-            del the_data
+            # Make a histogram of the time-interval data
+            args = Plotting.plot_arg_single()
+            
+            args.loud = True
+            args.x_label = 'Time Intervals (secs)'
+            args.y_label = 'Samples per Time Interval'
+            Plotting.plot_histogram(time_intervals, args)
+
+            del time_intervals; 
         else:
             ERR_STATEMENT = ERR_STATEMENT + "\nCannot find:"+DATA_HOME
             raise(Exception)

@@ -1637,5 +1637,43 @@ def CoBrite_TLS_Characterisation():
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
+        
+def Paddy_Mac_Statistics():
+    
+    # Python implementation of the old Paddy Mac Statistics Lab
+    # R. Sheehan 19 - 5 - 2025
+    
+    FUNC_NAME = ".Paddy_Mac_Statistics()"
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = "C:/Users/robertsheehan/OneDrive - University College Cork/Documents/Teaching/PY4113/Re_ Radioactive Sources & Poisson Statistics/"
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+            the_file = 'Rad_Decay_Raw_Time_Interval_Data.csv'
+            the_data = numpy.loadtxt(the_file, delimiter=',' ,unpack=True)
+            
+            # data should be cleaned of any values that are greater than 1 and less than 0
+            # decay probability is propool
+            # data should be cleaned of any blank / empty lines
+
+            n_data_pts = len(the_data)
+            print()
+            print(the_file,'contains',n_data_pts,'data points')
+            print('The file contains the time intervals between',n_data_pts,'successive radioactive decays detectby the Geiger counter.')
+            print('Longest time between decays:',numpy.max(the_data))
+            print('Shortest time between decays:',numpy.min(the_data))
+            print('Average time between decays:',numpy.mean(the_data))
+            print('Std. Dev of time between decays:',numpy.std(the_data, ddof = 1) )
+            print()
+
+            del the_data
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + "\nCannot find:"+DATA_HOME
+            raise(Exception)
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
     
     

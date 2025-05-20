@@ -1786,6 +1786,18 @@ def Paddy_Mac_Statistics():
             print('Theoretical Std. Dev. of Variance: %(v1)0.6f secs'%{"v1":theor_var_var_6})    
             print()
 
+            # Make a plot of the time-interval data
+            PLOT_TIME_INTS = True
+            if PLOT_TIME_INTS:                
+                x_vals = numpy.arange(0, n_data_pts, 1)
+                args = Plotting.plot_arg_single()
+                args.loud = True
+                args.x_label = 'Decay No.'
+                args.y_label = 'Time Between Decays (secs)'
+                args.fig_name = 'Times_Interval_Values_%(v1)s'%{"v1":the_file.replace('.csv','')}
+
+                Plotting.plot_single_curve(x_vals, time_intervals, args)
+
             # Make a histogram of the time-interval data
             PLOT_HIST = False
             if PLOT_HIST:
@@ -1798,9 +1810,9 @@ def Paddy_Mac_Statistics():
                 args.fig_name = 'Histogram_%(v1)s'%{"v1":the_file.replace('.csv','')}
                 Plotting.plot_histogram(time_intervals, args)
 
+            # Make a plot of the time-per-bin data
             PLOT_TIMES = False
-            if PLOT_TIMES:
-                # Make a plot of the time-per-bin data
+            if PLOT_TIMES:                
                 x_vals = numpy.arange(0, n_bins, 1)
                 args = Plotting.plot_arg_single()
                 args.loud = True
@@ -1812,16 +1824,16 @@ def Paddy_Mac_Statistics():
 
                 Plotting.plot_single_curve(x_vals, time_per_bin, args)
             
+            # Make a plot of the std. difference as function of no. bins
             PLOT_STDEV = False
             if PLOT_STDEV:
-                # Make a plot of the std. difference as function of no. bins
                 args = Plotting.plot_arg_single()
                 args.loud = True
                 args.x_label = 'Number of Bins'
                 args.y_label = r'$\|\sigma_{theor} - \sigma_{exp}\|$ (secs)'
                 args.plt_title = ''
                 args.fig_name = 'Delta_Stdev_%(v1)s'%{"v1":the_file.replace('.csv','')}
-                #args.plt_range = [0, n_bins, 0, 7]
+                
                 Plotting.plot_single_curve(bins_arr, stdev_diff, args)
 
             del time_intervals; del time_per_bin; del bins_arr; del stdev_diff;

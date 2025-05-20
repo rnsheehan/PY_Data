@@ -1670,42 +1670,161 @@ def Paddy_Mac_Statistics():
             #         cum_sum_time = numpy.append(cum_sum_time, time_intervals[i])
             #     else:
             #         cum_sum_time = numpy.append(cum_sum_time,time_intervals[i] + cum_sum_time[i-1])
-            cum_sum_time = 0
-            for i in range(0, n_data_pts):
+            
+            # Find the cumulative sum of the data in the time interval distribution
+            # This represents the total acquisition time
+            t_acquire = 0 # total time over which radioactive decay events (counts) were detected
+            for i in range(0, n_data_pts, 1):
                 if i == 0:
-                    cum_sum_time = time_intervals[i]
+                    t_acquire = time_intervals[i]
                 else:
-                    cum_sum_time = cum_sum_time + time_intervals[i]
+                    t_acquire = t_acquire + time_intervals[i]
 
-            t_acquire = cum_sum_time # total time over which radioactive decay events (counts) were detected
+            # Estimate the decay rate of the sample 
             decay_rate_approx = float(n_data_pts) / t_acquire # estimate of the decay rate
+            
+            # Estimate the error associated with the approximate decay rate
             decay_rate_error_estimate = decay_rate_approx / math.sqrt(float(n_data_pts)) # estimate the error associated with the approximate decay rate
             
+            # Check for stationarity of the data
+            n_bins = 200 # no. of subdivisions of the time_interval data, put optimal value here
+            n_cnts_per_bin = n_data_pts / n_bins            
+            theor_std_dev = math.sqrt( float( n_cnts_per_bin ) ) / decay_rate_approx # Poisson Statistics Standard Deviation 
+            
+            # Check for stationarity requires that you sub-divide the data into equal numbers of counts
+            # note the time taken to acquire the counts in each of those bins
+            # examining the distribution of those times
+            #time_per_bin = numpy.zeros( n_bins )
+            time_per_bin = numpy.array([])
+            sum_val = 0.0
+            # compute the sum of the time-intervals every n_cnts_per_bin
+            for j in range(0, n_data_pts - int(n_cnts_per_bin), int(n_cnts_per_bin)):
+                sum_val = 0.0
+                for i in range(0, int(n_cnts_per_bin), 1):
+                    if i == 0:
+                        sum_val = time_intervals[j+i]
+                    else:
+                        sum_val = sum_val + time_intervals[j+(i-1)]
+                time_per_bin = numpy.append(time_per_bin, sum_val)
+                
+            exp_average = numpy.mean(time_per_bin)
+            exp_std_dev = numpy.std(time_per_bin, ddof = 1) # one estimate for the experimental std. dev.
+            
+            # what is the variance of the variance? 
+            # no idea what's going on with this, theor_var_var_3 gives the closest value to exp_var_var
+            # theor_var_var_2 is way off as expected
+            # theor_var_var_4 is meant to give the closest value but is off by factor of 10
+            # theor_var_var_5 and theor_var_var_5 are both off by factor of 100
+            exp_var_var = math.sqrt( math.fabs( (exp_std_dev**2) - (theor_std_dev**2) ) )
+            theor_var_var_2 = math.sqrt( (2.0*float(n_data_pts)**2 + 6.0*float(n_data_pts) )  / decay_rate_approx**4 ) # Erlang Distribution Standard Deviation?
+            theor_var_var_3 = math.sqrt( ( 2.0*float(n_cnts_per_bin)**2 + 6.0*float(n_cnts_per_bin) )  / ( decay_rate_approx**4) ) # Erlang Distribution Standard Deviation?
+            theor_var_var_4 = math.sqrt( ( 2.0*float(n_cnts_per_bin)**2 + 6.0*float(n_cnts_per_bin) )  / ( (n_bins - 1 ) * decay_rate_approx**4) ) # Erlang Distribution Standard Deviation?
+            theor_var_var_5 = math.sqrt( ( 2.0*float(n_data_pts)**2 + 6.0*float(n_data_pts) )  / ( (n_bins - 1 ) * decay_rate_approx**4) ) # Erlang Distribution Standard Deviation?
+            theor_var_var_6 = math.sqrt( ( 2.0*float(n_data_pts)**2 + 6.0*float(n_data_pts) )  / ( (n_cnts_per_bin - 1 ) * decay_rate_approx**4) ) # Erlang Distribution Standard Deviation?
+            
+            # The point here is to examine the effect of the no. of bins on the distribution of the data? 
+            # You can show there is a difference between the theoretical and the experimental time-per-bin std. dev. 
+            # based on the value of the no. of bins
+            # Make it a task to optimise the no. of bins? 
+            # What does the exp. std. dev. look like for different bin no?    
+            bins_arr = numpy.arange(50, 420, 25)
+            stdev_diff = numpy.zeros( len(bins_arr) )
+            for k in range(0, len(bins_arr), 1):
+                counts_per_bin = n_data_pts / bins_arr[k]
+                time_in_bin = numpy.array([])
+                sum_val = 0.0
+                # compute the sum of the time-intervals every n_cnts_per_bin
+                for j in range(0, n_data_pts - int(counts_per_bin), int(counts_per_bin)):
+                    sum_val = 0.0
+                    for i in range(0, int(counts_per_bin), 1):
+                        if i == 0:
+                            sum_val = time_intervals[j+i]
+                        else:
+                            sum_val = sum_val + time_intervals[j+(i-1)]
+                    time_in_bin = numpy.append(time_in_bin, sum_val)
+                # store the experimental std. dev. for each value of no. bins
+                stdev_diff[k] = math.fabs( theor_std_dev - numpy.std(time_in_bin,ddof = 1) )
+                del time_in_bin
+            
             print()
+            print('Data Set Report')
             print(the_file,'contains',n_data_pts,'data points')
-            print('The file contains the time intervals between',n_data_pts,'successive radioactive decays detectby the Geiger counter.')
+            print('The file contains the time intervals between',n_data_pts,'successive radioactive decays detected by the Geiger counter.')
             print('Longest time between decays: %(v1)0.6f secs'%{"v1":numpy.max(time_intervals)})
             print('Shortest time between decays: %(v1)0.6f secs'%{"v1":numpy.min(time_intervals)})
             print('Average time between decays: %(v1)0.6f secs'%{"v1":numpy.mean(time_intervals)})
             print('Std. Dev of time between decays: %(v1)0.6f secs'%{"v1":numpy.std(time_intervals, ddof = 1)})
             print('Median time between decays: %(v1)0.6f secs'%{"v1":numpy.median(time_intervals)})
+            print()
+                        
             # the mode of the distribution is the most common value
             # determine the mode of the distribution, this may not be unique
             #print(scipy.stats.mode(time_intervals)) 
+            
+            print('Approximation of the Decay rate')
             print('Duration of Experiment: %(v1)0.6f secs'%{"v1":t_acquire})
             print('Duration of Experiment: %(v1)0.6f mins'%{"v1":t_acquire/60.0})
             print('Approximate Decay Rate of the Sample: %(v1)0.2f +/- %(v2)0.2f per sec'%{"v1":decay_rate_approx,"v2":decay_rate_error_estimate})
             print()
+            
+            print('Check for stationarity')
+            print('No. bins: %(v1)d'%{"v1":n_bins})
+            print('No. counts per bin: %(v1)d'%{"v1":n_cnts_per_bin})
+            print('Average time per bin: %(v1)0.6f secs'%{"v1":exp_average})
+            #print('Average time per bin: %(v1)0.2f +/- %(v2)0.2f secs'%{"v1":exp_average,"v2":exp_std_dev} )
+            print('Experimental Std. Dev.: %(v1)0.6f secs'%{"v1":exp_std_dev})
+            print('Theoretical Std. Dev.: %(v1)0.6f secs'%{"v1":theor_std_dev})
+            print('Delta Std. Dev.: %(v1)0.6f secs'%{"v1":math.fabs(theor_std_dev - exp_std_dev)})
+            print()
+            
+            print('Examine the Variance of the Variance')
+            print('Experimental Std. Dev. of Variance: %(v1)0.6f secs'%{"v1":exp_var_var})
+            print('Theoretical Std. Dev. of Variance: %(v1)0.6f secs'%{"v1":theor_var_var_3})
+            print('Theoretical Std. Dev. of Variance: %(v1)0.6f secs'%{"v1":theor_var_var_2})    
+            print('Theoretical Std. Dev. of Variance: %(v1)0.6f secs'%{"v1":theor_var_var_4})    
+            print('Theoretical Std. Dev. of Variance: %(v1)0.6f secs'%{"v1":theor_var_var_5})    
+            print('Theoretical Std. Dev. of Variance: %(v1)0.6f secs'%{"v1":theor_var_var_6})    
+            print()
 
             # Make a histogram of the time-interval data
-            args = Plotting.plot_arg_single()
-            
-            args.loud = True
-            args.x_label = 'Time Intervals (secs)'
-            args.y_label = 'Samples per Time Interval'
-            Plotting.plot_histogram(time_intervals, args)
+            PLOT_HIST = False
+            if PLOT_HIST:
+                args = Plotting.plot_arg_single()
+                args.loud = True
+                args.bins = n_bins
+                args.x_label = 'Time Intervals (secs)'
+                args.y_label = 'No. Decays per Time Interval'
+                args.plt_title = 'Approximate Decay Rate: %(v1)0.2f +/- %(v2)0.2f per sec'%{"v1":decay_rate_approx,"v2":decay_rate_error_estimate}
+                args.fig_name = 'Histogram_%(v1)s'%{"v1":the_file.replace('.csv','')}
+                Plotting.plot_histogram(time_intervals, args)
 
-            del time_intervals; 
+            PLOT_TIMES = False
+            if PLOT_TIMES:
+                # Make a plot of the time-per-bin data
+                x_vals = numpy.arange(0, n_bins, 1)
+                args = Plotting.plot_arg_single()
+                args.loud = True
+                args.x_label = 'Bin No.'
+                args.y_label = 'Time per Bin (secs)'
+                args.plt_title = 'Average time per bin: %(v1)0.2f +/- %(v2)0.2f secs'%{"v1":exp_average,"v2":exp_std_dev}
+                args.fig_name = 'Times_Per_Bin_%(v1)s'%{"v1":the_file.replace('.csv','')}
+                args.plt_range = [0, n_bins, 0, 7]
+
+                Plotting.plot_single_curve(x_vals, time_per_bin, args)
+            
+            PLOT_STDEV = False
+            if PLOT_STDEV:
+                # Make a plot of the std. difference as function of no. bins
+                args = Plotting.plot_arg_single()
+                args.loud = True
+                args.x_label = 'Number of Bins'
+                args.y_label = r'$\|\sigma_{theor} - \sigma_{exp}\|$ (secs)'
+                args.plt_title = ''
+                args.fig_name = 'Delta_Stdev_%(v1)s'%{"v1":the_file.replace('.csv','')}
+                #args.plt_range = [0, n_bins, 0, 7]
+                Plotting.plot_single_curve(bins_arr, stdev_diff, args)
+
+            del time_intervals; del time_per_bin; del bins_arr; del stdev_diff;
         else:
             ERR_STATEMENT = ERR_STATEMENT + "\nCannot find:"+DATA_HOME
             raise(Exception)

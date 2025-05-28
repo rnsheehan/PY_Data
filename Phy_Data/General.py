@@ -1651,10 +1651,18 @@ def Paddy_Mac_Statistics():
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
             print(os.getcwd())
-            the_file = 'Rad_Decay_Raw_Time_Interval_Data.csv'
             
+            # The original data set of time intervals from P. MacCarthaig
+            the_file = 'Rad_Decay_Raw_Time_Interval_Data.csv'            
             time_intervals = numpy.loadtxt(the_file, delimiter=',' ,unpack=True)
             n_data_pts = len(time_intervals) # total number of detected radioactive decay events (counts)
+            
+            # Newer data obtained by R. Sheehan May 2025
+            # Data recorded is the time at which detection was measured
+            # Data needs to be screened for time-intervals that are less than the detector dead-time and the DAQ sampling time
+            GM_dead_time = 120e-6 # GM Tube dead time in units of s
+            DAQ_sampling_time = 50e-6 # NI-USB-600 sampling time for SR = 20kHz
+            the_file = 'Ra_5uC_Count_Data_1_1_plate_20_mins.txt'
             
             # data should be cleaned of any values that are greater than 1 and less than 0
             # decay probability is proportional to ( 1 / exp( Delta t ) )

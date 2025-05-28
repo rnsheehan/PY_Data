@@ -1752,6 +1752,7 @@ def Paddy_Mac_Statistics():
             print('The file contains the time intervals between',n_data_pts,'successive radioactive decays detected by the Geiger counter.')
             print('Longest time between decays: %(v1)0.6f secs'%{"v1":numpy.max(time_intervals)})
             print('Shortest time between decays: %(v1)0.6f secs'%{"v1":numpy.min(time_intervals)})
+            print('Shortest time between decays: %(v1)0.3f usecs'%{"v1":1e+6*numpy.min(time_intervals)})
             print('Average time between decays: %(v1)0.6f secs'%{"v1":numpy.mean(time_intervals)})
             print('Std. Dev of time between decays: %(v1)0.6f secs'%{"v1":numpy.std(time_intervals, ddof = 1)})
             print('Median time between decays: %(v1)0.6f secs'%{"v1":numpy.median(time_intervals)})

@@ -125,4 +125,6 @@ if __name__ == '__main__':
 
     #LLM.Pub_Figs()
     
-    General.Paddy_Mac_Statistics()
+    # General.Paddy_Mac_Statistics()
+    
+    General.Micram_DAC4_Characterisation()

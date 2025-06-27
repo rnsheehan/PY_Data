@@ -1873,83 +1873,175 @@ def Micram_DAC4_Characterisation():
             twp_file = 'Twin_Pulse_Width_Char_25_6_2025_Nw_%(v1)d_Nd_%(v2)d.txt'
 
             # Plot Square-Wave Meas
-            PLOT_SQR = True
+            PLOT_SQR = False
             if PLOT_SQR:
                 sqr_data = numpy.loadtxt(sqr_file, comments='#', delimiter = ',', unpack = True)
                 
                 # Make a plot of the measured sq-wave output frq versus clock frequency
                 args = Plotting.plot_arg_single(); 
         
-                args.loud = False
+                args.loud = True
                 args.x_label = 'Clock Frequency (GHz)'
                 args.y_label = 'Square Wave Frequency (GHz)'
                 args.plt_title = 'Nw = 5, Nd = 10'
-                args.fig_name = 'Sq_Wave_Output_Meas_Frq'
+                args.fig_name = sqr_file.replace(".txt","") + '_Output_Meas_Frq'
+                args.plt_range = [1, 37, 0, 5]
                 
                 Plotting.plot_single_linear_fit_curve(sqr_data[0], sqr_data[5], args)
 
                 # Make a linear fit of the measured sq-wave output frq versus clock frequency
                 Common.linear_fit(sqr_data[0], sqr_data[5], [1,1], True)
                 
-                # Make a plot of the measured pulse width versus clock frequency
-                args.loud = False
-                args.x_label = 'Clock Frequency (GHz)'
-                args.y_label = 'Square Wave Pulse Width (ps)'
-                args.plt_title = 'Nw = 5, Nd = 10'
-                args.fig_name = 'Sq_Wave_Output_Meas_Pulse_Width'
-                
-                Plotting.plot_single_curve_with_errors(sqr_data[0], sqr_data[1], sqr_data[2]/10.0, args)
-                
                 # Make a plot of the ratio of pulse separation to pulse width
                 # In this case the pulse separation should be twice the pulse width
-                args.loud = True
-                args.x_label = 'Clock Frequency (GHz)'
-                args.y_label = 'Square Wave Separation / Width'
-                args.plt_title = 'Nw = 5, Nd = 10'
-                args.fig_name = 'Sq_Wave_Output_Sep_Width_Ratio'
-                args.plt_range = [1, 35, 1, 3]
-
-                # Given the quantity z = x / y the error associated with z is given by 
-                # (delta z / z)^{2} = (delta x / x)^{2} + (delta y / y)^{2}
-                z = numpy.zeros( len(sqr_data[1]) )
-                dz = numpy.zeros( len(sqr_data[1]) )
-                for i in range(0, len(sqr_data[1]), 1):
-                    z[i] = ( sqr_data[3][i] / sqr_data[1][i] )
-                    dz[i] = z[i] * math.sqrt( ( (sqr_data[2][i]/10.0) / sqr_data[1][i] )**2 + ( (sqr_data[4][i]/10.0) / sqr_data[3][i] )**2 )
-                
-                Plotting.plot_single_linear_fit_curve_with_errors(sqr_data[0], z, dz, args)
-                
-                # Make a linear fit of the measured sq-wave (separation / width ) versus clock frequency
-                Common.linear_fit(sqr_data[0], z, [1,1], True)
+                NW = 5; ND = 10; 
+                Micram_Plot_Ratio(sqr_file, NW, ND)
                 
                 # Make a plot of the measured pulse width and measured separation versus clock frequency
-                hv_data = []; labels = []; marks = []; 
-                hv_data.append([sqr_data[0], sqr_data[1], sqr_data[2]/10.0]); labels.append('Pulse Width'); marks.append(Plotting.labs_pts[0]); 
-                hv_data.append([sqr_data[0], sqr_data[3], sqr_data[4]/10.0]); labels.append('Pulse Separation'); marks.append(Plotting.labs_pts[1]);
-        
-                args = Plotting.plot_arg_multiple()
-                
-                args.loud = False
-                args.x_label = 'Clock Frequency (GHz)'
-                args.y_label = 'Square Wave Pulse Timing (ps)'
-                args.plt_title = 'Nw = 5, Nd = 10'
-                args.fig_name = 'Sq_Wave_Output_Meas_Pulse_Timings'
-                args.mrk_list = marks
-                args.crv_lab_list = labels
-                
-                Plotting.plot_multiple_curves_with_errors(hv_data, args)
+                Micram_Plot_Two_Times(sqr_file, NW, ND)
                 
             # Plot Twin-Pulse versus Square-Wave Data
-            PLOT_TP_SQR = False
+            PLOT_TP_SQR = True
             if PLOT_TP_SQR:
-                sqr_data = numpy.loadtxt(sqr_file, comments='#', delimiter = ',', unpack = True)
-                hv_data = []; labels = []; marks = []; 
-                hv_data.append([sqr_data[0], sqr_data[1], sqr_data[2]/10.0]); labels.append('Sq Wave Pulse Width'); marks.append(Plotting.labs_pts[0]);
+                nwlist = [5, 5, 6, 6]
+                ndlist = [10, 20, 12, 24]
+                
+                filelist = []
+                labels = []
+                filelist.append(sqr_file); labels.append('Sqr Nw = 5, Nd = 10'); 
+                for i in range(0, len(nwlist), 1):
+                    filename = twp_file%{"v1":nwlist[i], "v2":ndlist[i]}
+                    if glob.glob(filename):
+                        filelist.append(filename)
+                        labels.append( 'Twn Nw = %(v1)d, Nd = %(v2)d'%{"v1":nwlist[i], "v2":ndlist[i]} ); 
+                        #Micram_Plot_Two_Times(filename, nwlist[i], ndlist[i])
+                        #Micram_Plot_Ratio(filename, nwlist[i], ndlist[i])
+                    
+                # Plot the pulse widths relative to the square wave
+                Micram_Plot_Multiple_Pulses(filelist, labels, col_choice = 1)        
+                        
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate ' + DATA_HOME
             raise Exception
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
+        
+def Micram_Plot_Two_Times(filename, Nw, Nd):
+
+    # Make a plot of the micram pulse width and pulse delay data on the same graph
+    # R. Sheehan 27 - 6 - 2025
+
+    FUNC_NAME = ".Micram_Plot_Two_Times()"
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
     
+    try:
+        if glob.glob(filename):
+            
+            data = numpy.loadtxt(filename, comments='#', delimiter = ',', unpack = True)
+
+            # Make a plot of the measured pulse width and measured separation versus clock frequency
+            hv_data = []; labels = []; marks = []; 
+            hv_data.append([data[0], data[1], data[2]/10.0]); labels.append('Pulse Width'); marks.append(Plotting.labs_pts[0]); 
+            hv_data.append([data[0], data[3], data[4]/10.0]); labels.append('Pulse Separation'); marks.append(Plotting.labs_pts[1]);
+        
+            args = Plotting.plot_arg_multiple()
+                
+            args.loud = True
+            args.x_label = 'Clock Frequency (GHz)'
+            args.y_label = 'Pulse Timing (ps)'
+            args.plt_title = 'Nw = %(v1)d, Nd = %(v2)d'%{"v1":Nw, "v2":Nd}
+            args.fig_name = filename.replace(".txt","") + '_Meas_Pulse_Timings'
+            args.mrk_list = marks
+            args.crv_lab_list = labels
+            args.plt_range = [1, 25, 0, 2000]
+                
+            Plotting.plot_multiple_curves_with_errors(hv_data, args)
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate file: ' + filename
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+        
+def Micram_Plot_Multiple_Pulses(filelist, labels, col_choice):
+
+    # Make a plot of the micram pulse width data for multiple files
+    # R. Sheehan 27 - 6 - 2025
+
+    FUNC_NAME = ".Micram_Plot_Multiple_Pulses()"
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+    
+    try:
+        # read and store the data
+        hv_data = []
+        marks = []
+        for i in range(0, len(filelist), 1):
+            data = numpy.loadtxt(filelist[i], comments='#', delimiter = ',', unpack = True)
+            hv_data.append([data[0], data[col_choice], data[col_choice+1]/10.0]); 
+            marks.append(Plotting.labs_pts[i])
+        
+        # Make a plot of the pulse width data
+        args = Plotting.plot_arg_multiple()
+        
+        args.loud = True
+        args.x_label = 'Clock Frequency (GHz)'
+        args.y_label = 'Pulse Width (ps)' if col_choice == 1 else 'Pulse Separation (ps)'
+        args.fig_name = 'Pulse_Widths_Zm' if col_choice == 1 else 'Pulse_Separations'
+        args.mrk_list = marks
+        args.crv_lab_list = labels
+        args.plt_range = [7, 25, 100, 400] if col_choice == 1 else [1, 25, 0, 2000]
+                
+        Plotting.plot_multiple_curves_with_errors(hv_data, args)
+
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Micram_Plot_Ratio(filename, Nw, Nd):
+    
+    # Make a plot of the pulse delay / width ratio
+    # R. Sheehan 27 - 6 - 2025
+
+    FUNC_NAME = ".Micram_Plot_Ratio()"
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        if glob.glob(filename):
+            data = numpy.loadtxt(filename, comments='#', delimiter = ',', unpack = True)
+            
+            # Make a plot of the ratio of pulse separation to pulse width
+            # In this case the pulse separation should be twice the pulse width
+            
+            args = Plotting.plot_arg_single()
+            
+            args.loud = True
+            args.x_label = 'Clock Frequency (GHz)'
+            args.y_label = 'Separation / Width'
+            args.plt_title = 'Nw = %(v1)d, Nd = %(v2)d'%{"v1":Nw, "v2":Nd}
+            args.fig_name = filename.replace(".txt","") + '_Sep_Width_Ratio'
+            args.plt_range = [1, 25, 1, 5]
+
+            # Given the quantity z = x / y the error associated with z is given by 
+            # (delta z / z)^{2} = (delta x / x)^{2} + (delta y / y)^{2}
+            z = numpy.zeros( len(data[1]) )
+            dz = numpy.zeros( len(data[1]) )
+            for i in range(0, len(data[1]), 1):
+                z[i] = ( data[3][i] / data[1][i] )
+                dz[i] = z[i] * math.sqrt( ( (data[2][i]/10.0) / data[1][i] )**2 + 
+                                            ( (data[4][i]/10.0) / data[3][i] )**2 )
+                
+            Plotting.plot_single_linear_fit_curve_with_errors(data[0], z, dz, args)
+                
+            # Make a linear fit of the measured sq-wave (separation / width ) versus clock frequency
+            Common.linear_fit(data[0], z, [1,1], True)
+
+            del data; del z; del dz; 
+
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate file: ' + filename
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
     

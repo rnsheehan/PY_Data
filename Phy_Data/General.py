@@ -1900,6 +1900,9 @@ def Micram_DAC4_Characterisation():
                 # Make a plot of the measured pulse width and measured separation versus clock frequency
                 Micram_Plot_Two_Times(sqr_file, NW, ND)
                 
+                # Make a plot of of the inverse measured pulse width versus clock Frequency
+                Micram_Plot_Inverse_Pulse_Width(sqr_file, NW, ND)
+                
             # Plot Twin-Pulse versus Square-Wave Data
             PLOT_TP_SQR = True
             if PLOT_TP_SQR:
@@ -1916,9 +1919,11 @@ def Micram_DAC4_Characterisation():
                         labels.append( 'Twn Nw = %(v1)d, Nd = %(v2)d'%{"v1":nwlist[i], "v2":ndlist[i]} ); 
                         #Micram_Plot_Two_Times(filename, nwlist[i], ndlist[i])
                         #Micram_Plot_Ratio(filename, nwlist[i], ndlist[i])
+                        #Micram_Plot_Inverse_Pulse_Width(filename, nwlist[i], ndlist[i])
                     
                 # Plot the pulse widths relative to the square wave
-                Micram_Plot_Multiple_Pulses(filelist, labels, col_choice = 1)        
+                #Micram_Plot_Multiple_Pulses(filelist, labels, col_choice = 1)     
+                Micram_Plot_Multiple_Inverse_Pulses(filelist, labels, col_choice = 1)
                         
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate ' + DATA_HOME
@@ -1997,6 +2002,44 @@ def Micram_Plot_Multiple_Pulses(filelist, labels, col_choice):
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
+        
+def Micram_Plot_Multiple_Inverse_Pulses(filelist, labels, col_choice):
+
+    # Make a plot of the micram inverse pulse width data for multiple files
+    # R. Sheehan 30 - 6 - 2025
+
+    FUNC_NAME = ".Micram_Plot_Multiple_Inverse_Pulses()"
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+    
+    try:
+        # read and store the data
+        hv_data = []
+        marks = []
+        count = 0
+        for i in range(0, len(filelist), 1):
+            data = numpy.loadtxt(filelist[i], comments='#', delimiter = ',', unpack = True)
+            z, dz = Compute_Inverse_Data(data[col_choice], data[col_choice+1]) # compute the inverse data and its error
+            hv_data.append([data[0], z, dz]); 
+            marks.append(Plotting.labs_pts[count])
+            count = count + 1
+        
+        # Make a plot of the pulse width data
+        args = Plotting.plot_arg_multiple()
+        
+        args.loud = True
+        args.x_label = 'Clock Frequency (GHz)'
+        args.y_label = 'Pulse Width (GHz)' if col_choice == 1 else 'Pulse Separation (GHz)'
+        args.fig_name = 'Inverse_Pulse_Widths' if col_choice == 1 else 'Inverse_Pulse_Separations'
+        args.mrk_list = marks
+        args.crv_lab_list = labels
+        args.plt_range = [0, 37, 0, 15] if col_choice == 1 else [1, 25, 0, 2000]
+                
+        Plotting.plot_multiple_curves_with_errors(hv_data, args)
+        #Plotting.plot_multiple_linear_fit_curves(hv_data, args)
+
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
 
 def Micram_Plot_Ratio(filename, Nw, Nd):
     
@@ -2044,4 +2087,83 @@ def Micram_Plot_Ratio(filename, Nw, Nd):
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
+
+def Micram_Plot_Inverse_Pulse_Width(filename, Nw, Nd):
     
+    # Make a plot of the inverse of the pulse width
+    # R. Sheehan 30 - 6 - 2025
+
+    FUNC_NAME = ".Micram_Plot_Inverse_Pulse_Width()"
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        if glob.glob(filename):
+            data = numpy.loadtxt(filename, comments='#', delimiter = ',', unpack = True)
+            
+            # Make a plot of the ratio of pulse separation to pulse width
+            # In this case the pulse separation should be twice the pulse width
+            
+            args = Plotting.plot_arg_single()
+            
+            args.loud = True
+            args.x_label = 'Clock Frequency (GHz)'
+            args.y_label = 'Pulse Width (GHz)'
+            args.plt_title = 'Nw = %(v1)d, Nd = %(v2)d'%{"v1":Nw, "v2":Nd}
+            args.fig_name = filename.replace(".txt","") + '_Inverse_Pulse_Width'
+            #args.plt_range = [1, 25, 1, 5]
+
+            # Given the quantity z = 1 / y the error associated with z is given by 
+            # (delta z / z)^{2} = (delta y / y)^{2} => delta z = delta y / y^{2}
+            # z = numpy.zeros( len(data[1]) )
+            # dz = numpy.zeros( len(data[1]) )
+            # for i in range(0, len(data[1]), 1):
+            #     z[i] = ( 1000.0 / data[1][i] ) # convert pulse width in (ps) to pulse width in (GHz)
+            #     dz[i] = (z[i]/ data[1][i]) * (data[4][i]/10.0) # convert the timing error from (ps) to (GHz)
+            
+            z, dz = Compute_Inverse_Data(data[1], data[2])
+                
+            Plotting.plot_single_linear_fit_curve_with_errors(data[0], z, dz, args)
+            #Plotting.plot_single_curve(data[0], z, args)
+                
+            # Make a linear fit of the measured sq-wave (separation / width ) versus clock frequency
+            Common.linear_fit(data[0], z, [1,1], True)
+
+            del data; del z; del dz; 
+
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate file: ' + filename
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Compute_Inverse_Data(y, deltay):
+    
+    # Given the set of (y, delta-y) data, compute its inverse
+    # R. Sheehan 30 - 6 - 2025
+
+    FUNC_NAME = ".Compute_Inverse_Data()"
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        c1 = True if len(y) > 0 else False
+        c2 = True if len(deltay) > 0 else False
+        c3 = True if len(y) == len(deltay) else False
+        c10 = c1 and c2 and c3
+        
+        if c10:
+            # Given the quantity z = 1 / y the error associated with z is given by 
+            # (delta z / z)^{2} = (delta y / y)^{2} => delta z = delta y / y^{2}
+            z = numpy.zeros( len(y) )
+            dz = numpy.zeros( len(y) )
+            for i in range(0, len(y), 1):
+                z[i] = ( 1000.0 / y[i] ) # convert pulse width in (ps) to pulse width in (GHz)
+                dz[i] = (z[i]/ y[i]) * (deltay[i]/10.0) # convert the timing error from (ps) to (GHz)
+            return [z, dz]
+        else:
+            if c1 or c2 or c3:
+                ERR_STATEMENT = ERR_STATEMENT + '\nInput arrays not sized correctly\n'
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)

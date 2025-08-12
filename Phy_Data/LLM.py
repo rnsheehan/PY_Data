@@ -1263,6 +1263,33 @@ def Parse_OEWaves_file(filename, loud = False):
     # Frequency Noise units Hz^{2} / Hz
     # Frequency Noise units Hz / Hz^{1/2}
 
+    # For Phase Noise Measurements
+    # method returns data in the form [meas_type, measured_data, LL_data, instantaneous_ll]
+    # meas_type tells you the type of measurement that was undertaken, Phase Noise or RIN
+    #
+    # measured_data is an array that contains the measured data in various units
+    # measured_data[0] column storing the Scanning Frequency data in units of Hz
+    # measured_data[1] column storing the Phase Noise data in units of dBc / Hz
+    # measured_data[2] column storing the Spurious Noise data in units of dBc / Hz
+    # measured_data[3] column storing the FNPSD data in units of Hz^{2} / Hz
+    # measured_data[4] column storing the FNPSD data in units of Hz / Hz^{1/2}
+    # 
+    # LL_data is an array that contains what OE4000 calls extended linewidth measurement data
+    # Manual is not very clear as to how this data should be interpreted
+    # LL_data[0] contains the times at which the measurements were taken (?)
+    # LL_data[1] contains the contains estimates of the LL at various times (?)
+    # 
+    # instantaneous_ll is another estimate of LL obtained by the OE4000
+    # Not clear what method is being used to obtain this estimate
+    # 
+    # All LL values output in units of kHz
+    #
+    # This method also work for RIN measurement data
+    # measured_data will only contain two columns
+    # measured_data[0] column storing the Scanning Frequency data in units of Hz
+    # measured_data[1] column storing the RIN data in units of dBc / Hz
+    # RIN measurement returns no LL estimates so LL_data, instantaneous_ll will be empty in the case of RIN measurements
+
     FUNC_NAME = ".Parse_OEWaves_file()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
@@ -1274,9 +1301,11 @@ def Parse_OEWaves_file(filename, loud = False):
             preamble = Common.head(filename, n_preamble_rows)
                         
             meas_type = preamble[0].replace(' Measurement Data\n','') # extract meas. type from preamble
-            print('Measurement Type: ',meas_type)
+            if loud: print('Measurement Type: ',meas_type)
 
-            LL_data = []
+            # only used in the case of Phase Noise Measurements
+            LL_data = [] # placeholder for the extended laser linewidth data
+            instantaneous_ll = 0.0 # placeholder for the instantaneous laser linewidth measurement value
 
             if 'Phase' in meas_type:
                 vals = Common.extract_values_from_string(preamble[-1]) # extract measured LL from preample
@@ -1370,8 +1399,8 @@ def OEWaves_Analysis_Single(filename, loud = False):
 
                     #plt_indx = 1 # this is the indx of the column storing the Phase Noise data in units of dBc / Hz
                     #plt_indx = 2 # this is the indx of the column storing the Spurious Noise data in units of dBc / Hz
-                    #plt_indx = 4 # this is the indx of the column storing the FNPSD data in units of Hz / Hz^{1/2}
                     plt_indx = 3 # this is the indx of the column storing the FNPSD data in units of Hz^{2} / Hz
+                    #plt_indx = 4 # this is the indx of the column storing the FNPSD data in units of Hz / Hz^{1/2}
 
                     hv_data = []; marks = []; labels = []
 
@@ -1647,8 +1676,8 @@ def OEWaves_FNPSD_Integration(filelst, laser_name, loud = False):
                     # not contribute significantly to LL
                     if hv_data[i][0][j] < 1e+5 and hv_data[i][1][j] > beta_slope * hv_data[i][0][j]:
                         integral = integral + ( hv_data[i][0][j] - hv_data[i][0][j-1] ) * hv_data[i][1][j]
-                print('Integral ',i,': ',integral,', HWHM: ',0.5*math.sqrt(8.0*integral))
-                appr_lst.append( 0.5*math.sqrt(8.0*integral) ) # Are you sure this is correct? Is there a multiplicative factor of log(2) missing? RNS 12 - 2 - 2025
+                print('Integral ',i,': ',integral,', HWHM: ',0.5*math.sqrt(8.0*math.log(2.0)*integral))
+                appr_lst.append( 0.5*math.sqrt(8.0*math.log(2.0)*integral) ) # Are you sure this is correct? Is there a multiplicative factor of log(2) missing? RNS 12 - 2 - 2025
 
             #appr_lst = []
             #for i in range(0, len(hv_data), 1):
@@ -1798,6 +1827,75 @@ def OEWaves_Analysis():
         #    ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
         #    raise Exception
 
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def OEWaves_FNPSD_Analysis():
+    
+    # Parse the output file from the OE4000 measurement
+    # Make a plot of the measured FNPSD
+    # Extract the OE4000 estimate of laser linewidth
+    # Estimate laser linewidth based on the Domenico method
+    #
+    # Domenico et al, ``Simple approach to the relation between laser frequency 
+    # noise and laser line shape'', Appl. Opt., 49 (25), 2010
+    #
+    # R. Sheehan 3 - 3 - 2022
+    
+    FUNC_NAME = ".OEWaves_FNPSD_Analysis()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = 'c:/users/robertsheehan/Research/Laser_Physics/Linewidth/Data/OE4000_Init/BaseLine_Data/'
+
+        if(os.path.isdir(DATA_HOME)):
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+
+            #filename = "Ref_DFB_I_50_Hi_Avg.txt" # DFB laser LL = 5MHz
+            #filename = "CoBrite_TLS_P_7_Hi_Avg.txt" # ECL TLS LL = 100kHz
+            filename = "NKT_I_125_Hi_Avg.txt" # Fibre Laser LL = 2kHz
+
+            fnpsd_data = Parse_OEWaves_file(filename, loud = False)
+            
+            # Make a plot of the FNPSD data using the array
+            #plt_indx = 1 # this is the indx of the column storing the Phase Noise data in units of dBc / Hz
+            #plt_indx = 2 # this is the indx of the column storing the Spurious Noise data in units of dBc / Hz
+            #plt_indx = 3 # this is the indx of the column storing the FNPSD data in units of Hz^{2} / Hz
+            #plt_indx = 4 # this is the indx of the column storing the FNPSD data in units of Hz / Hz^{1/2}
+            # frequency_vals = fnpsd_data[1][0] # units of Hz
+            # phase_noise = fnpsd_data[1][plt_indx] # units depend on the value of plot_indx
+            
+            # Make an estimate of the laser linewidth using the Domenico method
+            # Ideally, this estimate would be close to the estimate obtained from the OE4000
+            # Must use the FNPSD data in units of Hz^{2} / Hz => plt_indx = 3
+            frequency_vals = fnpsd_data[1][0] # Frequency in units of Hz
+            plt_indx = 3
+            phase_noise = fnpsd_data[1][plt_indx] # FNPSD data in units of Hz^{2} / Hz
+            
+            # beta-line
+            # For details on the beta-line argument see Domenico et al, Appl. Opt., 49 (25), 2010 for details
+            beta_slope = (8.0*math.log(2.0)) / (math.pi**2)
+            integral = 0
+            for j in range(1, len(frequency_vals), 1):
+                # only compute the integral in the regions where S > beta-slope * f
+                # and for frequencies where noise is dominated by 1/f noise, i.e. f < 100 kHz
+                # argument goes that for f > 100 kHz noise is purely Gaussian and therefore does not contribute significantly to LL
+                if frequency_vals[j] < 1e+5 and phase_noise[j] > beta_slope * frequency_vals[j]:
+                    integral = integral + ( frequency_vals[j] - frequency_vals[j-1] ) * phase_noise[j]
+            dom_LL = (0.5*math.sqrt(8.0*math.log(2.0)*integral)) / 1000.0 # convert the computed integral to a LL estimate in units of kHz
+
+            # print('Integral: ',integral,', HWHM: ',0.5*math.sqrt(8.0*math.log(2.0)*integral))
+
+            print("Measurement File: ",filename)
+            print("OE4000 Average of Extended Laser Linewidth: ",numpy.mean(fnpsd_data[2][1]),' kHz')
+            print("OE4000 Instantaneous Laser Linewidth: ",fnpsd_data[3],' kHz')
+            print("Domenico Estimate of Laser Linewidth: ",dom_LL,' kHz')           
+
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME
+            raise Exception
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)

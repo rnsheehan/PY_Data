@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
     #LLM.OEWaves_Analysis()
     
-    LLM.OEWaves_FNPSD_Analysis()
+    #LLM.OEWaves_FNPSD_Analysis()
 
     #General.PDA10CS_Calibration()
 
@@ -127,6 +127,8 @@ if __name__ == '__main__':
 
     #LLM.Pub_Figs()
     
-    # General.Paddy_Mac_Statistics()
+    #General.Paddy_Mac_Statistics()
     
     #General.Micram_DAC4_Characterisation()
+    
+    General.PI_Poster_2025()

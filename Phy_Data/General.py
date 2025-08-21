@@ -2167,3 +2167,29 @@ def Compute_Inverse_Data(y, deltay):
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
+        
+def PI_Poster_2025():
+    
+    # Make the plots for the PI Poster 2025
+    # R. Sheehan 21 - 8 - 2025
+    
+    FUNC_NAME = ".PI_Poster_2025()"
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = 'c:/users/robertsheehan/Research/Publications/Photonics_Ireland_2025/'; 
+    
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+            
+        # Take a look at the long time measurement data
+        PLOT_LONG = True
+        
+        if PLOT_LONG:
+            LDC_Long = "Power_mW_Data_LDC210C_75mA_T_25C_1hr_30s.txt"
+            SMD_Long = "Vload_V_Power_mW_Data_IBM4_75mA_T_25C_60min_30s.txt"
+
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)

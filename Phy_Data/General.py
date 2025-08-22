@@ -2187,8 +2187,171 @@ def PI_Poster_2025():
         PLOT_LONG = True
         
         if PLOT_LONG:
-            LDC_Long = "Power_mW_Data_LDC210C_75mA_T_25C_1hr_30s.txt"
-            SMD_Long = "Vload_V_Power_mW_Data_IBM4_75mA_T_25C_60min_30s.txt"
+            LDC_Long = numpy.loadtxt("Power_mW_Data_LDC210C_75mA_T_25C_1hr_30s.txt")
+            SMD_Long = numpy.loadtxt("Vload_V_Power_mW_Data_IBM4_75mA_T_25C_60min_30s.txt", delimiter = '\t', unpack = True)
+            K2602_Long = numpy.loadtxt("Vload_V_Power_mW_Data_K2602_75mA_T_25C_60min_30s.txt", delimiter = '\t', unpack = True)
+            
+            # Optical Power
+            LDC_avg_p = numpy.mean(LDC_Long); LDC_err_p = numpy.std(LDC_Long,ddof = 1); LDC_var_p = numpy.var(LDC_Long,ddof = 1); 
+            SMD_avg_p = numpy.mean(SMD_Long[1]); SMD_err_p = numpy.std(SMD_Long[1],ddof = 1); SMD_var_p = numpy.var(SMD_Long[1],ddof = 1); 
+            K2602_avg_p = numpy.mean(K2602_Long[1]); K2602_err_p = numpy.std(K2602_Long[1],ddof = 1); K2602_var_p = numpy.var(K2602_Long[1],ddof = 1); 
+
+            print("\nMeasured Power at I = 75 ( mA ) and T = 25 C")
+            print("LDC Power = %(v1)0.3f +/- %(v2)0.3f ( mW )"%{"v1":LDC_avg_p, "v2":LDC_err_p})
+            print("K2602 Power = %(v1)0.3f +/- %(v2)0.3f ( mW )"%{"v1":K2602_avg_p, "v2":K2602_err_p})
+            print("SMD Power = %(v1)0.3f +/- %(v2)0.3f ( mW )"%{"v1":SMD_avg_p, "v2":SMD_err_p})
+            print("Power Difference = %(v1)0.2f"%{"v1":K2602_avg_p - SMD_avg_p})
+                        
+            print("\nMeasured Variances")
+            print("LDC Power Var = %(v1)0.9f ( mW )"%{"v1":LDC_var_p})
+            print("K2602 Power Var = %(v1)0.9f ( mW )"%{"v1":K2602_var_p})
+            print("SMD Power Var = %(v1)0.9f ( mW )"%{"v1":SMD_var_p})
+            
+            # Diode Voltage
+            SMD_avg_v = numpy.mean(SMD_Long[0]); SMD_err_v = numpy.std(SMD_Long[0],ddof = 1); 
+            K2602_avg_v = numpy.mean(K2602_Long[0]); K2602_err_v = numpy.std(K2602_Long[0],ddof = 1);
+            
+            print("\nMeasured Voltage at I = 75 ( mA ) and T = 25 C")
+            print("K2602 Vload = %(v1)0.4f +/- %(v2)0.4f ( V )"%{"v1":K2602_avg_v, "v2":K2602_err_v})
+            print("SMD Vload = %(v1)0.4f +/- %(v2)0.4f ( v )"%{"v1":SMD_avg_v, "v2":SMD_err_v})
+            print("Voltage Difference = %(v1)0.3f"%{"v1":K2602_avg_v - SMD_avg_v})
+            
+            # Scale the data for zero mean and unity sigma
+            SMD_scl_data = (SMD_Long[1] - SMD_avg_p) / SMD_err_p
+            LDC_scl_data = (LDC_Long - LDC_avg_p) / LDC_err_p
+            K2602_scl_data = (K2602_Long[1] - K2602_avg_p) / K2602_err_p
+
+            # Use the F-test to determine if there is a significant difference between the distribution standard deviations
+            # Apparently, F-test is only good is data is normal
+            # Use Levene test instead
+            # https://stackoverflow.com/questions/21494141/how-do-i-do-a-f-test-in-python
+            
+            """
+            https://en.wikipedia.org/wiki/Levene%27s_test
+            In statistics, Levene's test is an inferential statistic used to assess the equality of variances for a variable calculated for two or more groups. This test is used because some common
+            statistical procedures assume that variances of the populations from which different samples are drawn are equal. Levene's test assesses this assumption. It tests the null hypothesis
+            that the population variances are equal (called homogeneity of variance or homoscedasticity). If the resulting p-value of Levene's test is less than some significance level (typically
+            0.05), the obtained differences in sample variances are unlikely to have occurred based on random sampling from a population with equal variances. Thus, the null hypothesis of equal
+            variances is rejected and it is concluded that there is a difference between the variances in the population. 
+            """
+            
+            #F_stat = (SMD_err_p**2) / (K2602_err_p**2) # 
+            #df1 = len(SMD_Long[1]-1)
+            #df2 = len(K2602_Long[1]-1)         
+            #alpha = 0.05 # significance level
+            # p_value = 1.0 - scipy.stats.f.sf(F_stat, df1, df2)
+            #stat, p_value = scipy.stats.bartlett(SMD_Long[1], K2602_Long[1])
+            
+            alpha = 0.05 # significance level
+            stat, p_value = scipy.stats.levene(SMD_Long[1], K2602_Long[1])
+            print("\np_value = %(v1)0.9f"%{"v1":p_value})
+            print("K2602 Power Var = %(v1)0.9f ( mW )"%{"v1":K2602_var_p})
+            print("SMD Power Var = %(v1)0.9f ( mW )"%{"v1":SMD_var_p})
+            if p_value < alpha:
+                print("The obtained differences in sample variances are unlikely to have occurred based on random sampling from a population with equal variances")
+                print("The null hypothesis of equal variances is rejected and it is concluded that there is a difference between the variances in the population")
+            else:
+                print("The null hypothesis of equal variances is accepted.\n It is concluded that there is no difference between the variances in the population.")
+            
+            stat, p_value = scipy.stats.levene(SMD_Long[1], LDC_Long)
+            print("\np_value = %(v1)0.9f"%{"v1":p_value})
+            print("LDC Power Var = %(v1)0.9f ( mW )"%{"v1":LDC_var_p})
+            print("SMD Power Var = %(v1)0.9f ( mW )"%{"v1":SMD_var_p})
+            if p_value < alpha:
+                print("The obtained differences in sample variances are unlikely to have occurred based on random sampling from a population with equal variances")
+                print("The null hypothesis of equal variances is rejected and it is concluded that there is a difference between the variances in the population")
+            else:
+                print("The null hypothesis of equal variances is accepted.\n It is concluded that there is no difference between the variances in the population.")
+            
+
+            # Make a histogram of the data
+            # scale the data horizontally so that the distributions sit on top of one another
+            # emphasise the similarities between the distributions
+
+            # Use Sturges' Rule to compute the no. of bins required
+            n_bins = int( 1.0 + 3.322*math.log( len(LDC_Long) ) )
+
+            PLOT_SCALED_HIST = True
+            if PLOT_SCALED_HIST:
+                plt.hist(SMD_scl_data, bins = n_bins, label = r'SMD $\sigma$ = 2 $\mu$W', alpha=0.9, color = 'green')
+                plt.hist(LDC_scl_data, bins = n_bins, label = r'LDC210C $\sigma$ = 1 $\mu$W', alpha=0.65, color = 'red' )
+                plt.hist(K2602_scl_data, bins = n_bins, label = r'K2602 $\sigma$ = 3 $\mu$W', alpha=0.4, color = 'blue' )
+                plt.xlim(xmin=-2.5, xmax = 2.5)
+                plt.xlabel(r'Scaled Measurements $( P_{i} - \mu ) / \sigma$', fontsize = 14)
+                plt.ylabel('Counts', fontsize = 14)
+                plt.legend(loc = 'best')
+                plt.savefig('Scaled_Power_Hist')
+                #plt.show()            
+                plt.clf()
+                plt.cla()
+                plt.close()
+            else:
+                plt.hist(SMD_Long[1], bins = n_bins, label = r'SMD $\sigma$ = 2 $\mu$W', alpha=0.9, color = 'green')
+                plt.hist(LDC_Long-LDC_avg_p+SMD_avg_p, bins = n_bins, label = r'LDC210C $\sigma$ = 1 $\mu$W', alpha=0.65, color = 'red' )
+                plt.hist(K2602_Long[1]-K2602_avg_p+SMD_avg_p, bins = n_bins, label = r'K2602 $\sigma$ = 3 $\mu$W', alpha=0.4, color = 'blue' )
+                plt.xlim(xmin=3.573, xmax = 3.586)
+                plt.xlabel('Optical Power ( mW )', fontsize = 14)
+                plt.ylabel('Counts', fontsize = 14)
+                plt.legend(loc = 'best')
+                plt.savefig('Power_Hist')
+                plt.show()            
+                plt.clf()
+                plt.cla()
+                plt.close()
+            
+        PLOT_LIV = False
+        if PLOT_LIV:
+            SMD_LIV = numpy.loadtxt("Laser_LIV_Data_IBM4_T_25C.txt", delimiter = '\t', unpack = True)
+            K2602_LIV = numpy.loadtxt("Laser_LIV_Data_K2602_T_25C.txt", delimiter = '\t', unpack = True)
+            
+            # What exactly is the difference in voltage at I = 75 ( mA )
+
+            # make a plot of the LIV data
+            args = Plotting.plot_arg_multiple()
+            
+            args.loud = False
+            args.x_label = 'Current ( mA )'
+            args.y_label = 'Voltage ( V )'
+            args.y_label_2 = 'Power ( mW )'
+
+            args.fig_name = 'K2602_LIV'            
+            Plotting.plot_two_y_axis(K2602_LIV[0], K2602_LIV[1], K2602_LIV[2], args)
+            
+            args.fig_name = 'SMD_LIV'            
+            Plotting.plot_two_y_axis(SMD_LIV[0], SMD_LIV[1], SMD_LIV[2], args)
+            
+            # Plot the voltages together
+            hv_data = []; labels = []; marks = []; 
+            hv_data.append([K2602_LIV[0], K2602_LIV[1]]); labels.append('K2602'); marks.append(Plotting.labs_lins[0])
+            hv_data.append([SMD_LIV[0], SMD_LIV[1]]); labels.append('SMD'); marks.append(Plotting.labs_lins[1])
+            
+            args.crv_lab_list = labels
+            args.mrk_list = marks
+            args.fig_name = 'SMD_K2602_Voltage'
+            Plotting.plot_multiple_curves(hv_data, args)
+            del hv_data; 
+    
+            hv_data = []; 
+            hv_data.append([K2602_LIV[0], K2602_LIV[2]]);
+            hv_data.append([SMD_LIV[0], SMD_LIV[2]]);
+            
+            args.crv_lab_list = labels
+            args.mrk_list = marks
+            args.y_label = 'Power ( mW )'
+            args.fig_name = 'SMD_K2602_Power'
+            Plotting.plot_multiple_curves(hv_data, args)
+            del hv_data; 
+            
+            # Make a plot of the difference in measured power and voltage values         
+            delta_v = 1000*(SMD_LIV[1] - K2602_LIV[1])
+            delta_p = K2602_LIV[2] - SMD_LIV[2]
+                        
+            args.loud = True
+            args.y_label = 'Voltage ( mV )'
+            args.y_label_2 = 'Power ( mW )'
+            args.fig_name = 'K2602_SMD_Diff'            
+            Plotting.plot_two_y_axis(K2602_LIV[0][1:], delta_v[1:], delta_p[1:], args)
+            
 
     except Exception as e:
         print(ERR_STATEMENT)

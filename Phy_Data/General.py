@@ -2221,47 +2221,49 @@ def PI_Poster_2025():
             LDC_scl_data = (LDC_Long - LDC_avg_p) / LDC_err_p
             K2602_scl_data = (K2602_Long[1] - K2602_avg_p) / K2602_err_p
 
-            # Use the F-test to determine if there is a significant difference between the distribution standard deviations
-            # Apparently, F-test is only good is data is normal
-            # Use Levene test instead
-            # https://stackoverflow.com/questions/21494141/how-do-i-do-a-f-test-in-python
+            RUN_F_TEST = False
+            if RUN_F_TEST:
+                # Use the F-test to determine if there is a significant difference between the distribution standard deviations
+                # Apparently, F-test is only good is data is normal
+                # Use Levene test instead
+                # https://stackoverflow.com/questions/21494141/how-do-i-do-a-f-test-in-python
             
-            """
-            https://en.wikipedia.org/wiki/Levene%27s_test
-            In statistics, Levene's test is an inferential statistic used to assess the equality of variances for a variable calculated for two or more groups. This test is used because some common
-            statistical procedures assume that variances of the populations from which different samples are drawn are equal. Levene's test assesses this assumption. It tests the null hypothesis
-            that the population variances are equal (called homogeneity of variance or homoscedasticity). If the resulting p-value of Levene's test is less than some significance level (typically
-            0.05), the obtained differences in sample variances are unlikely to have occurred based on random sampling from a population with equal variances. Thus, the null hypothesis of equal
-            variances is rejected and it is concluded that there is a difference between the variances in the population. 
-            """
+                """
+                https://en.wikipedia.org/wiki/Levene%27s_test
+                In statistics, Levene's test is an inferential statistic used to assess the equality of variances for a variable calculated for two or more groups. This test is used because some common
+                statistical procedures assume that variances of the populations from which different samples are drawn are equal. Levene's test assesses this assumption. It tests the null hypothesis
+                that the population variances are equal (called homogeneity of variance or homoscedasticity). If the resulting p-value of Levene's test is less than some significance level (typically
+                0.05), the obtained differences in sample variances are unlikely to have occurred based on random sampling from a population with equal variances. Thus, the null hypothesis of equal
+                variances is rejected and it is concluded that there is a difference between the variances in the population. 
+                """
             
-            #F_stat = (SMD_err_p**2) / (K2602_err_p**2) # 
-            #df1 = len(SMD_Long[1]-1)
-            #df2 = len(K2602_Long[1]-1)         
-            #alpha = 0.05 # significance level
-            # p_value = 1.0 - scipy.stats.f.sf(F_stat, df1, df2)
-            #stat, p_value = scipy.stats.bartlett(SMD_Long[1], K2602_Long[1])
+                #F_stat = (SMD_err_p**2) / (K2602_err_p**2) # 
+                #df1 = len(SMD_Long[1]-1)
+                #df2 = len(K2602_Long[1]-1)         
+                #alpha = 0.05 # significance level
+                # p_value = 1.0 - scipy.stats.f.sf(F_stat, df1, df2)
+                #stat, p_value = scipy.stats.bartlett(SMD_Long[1], K2602_Long[1])
             
-            alpha = 0.05 # significance level
-            stat, p_value = scipy.stats.levene(SMD_Long[1], K2602_Long[1])
-            print("\np_value = %(v1)0.9f"%{"v1":p_value})
-            print("K2602 Power Var = %(v1)0.9f ( mW )"%{"v1":K2602_var_p})
-            print("SMD Power Var = %(v1)0.9f ( mW )"%{"v1":SMD_var_p})
-            if p_value < alpha:
-                print("The obtained differences in sample variances are unlikely to have occurred based on random sampling from a population with equal variances")
-                print("The null hypothesis of equal variances is rejected and it is concluded that there is a difference between the variances in the population")
-            else:
-                print("The null hypothesis of equal variances is accepted.\n It is concluded that there is no difference between the variances in the population.")
+                alpha = 0.05 # significance level
+                stat, p_value = scipy.stats.levene(SMD_Long[1], K2602_Long[1])
+                print("\np_value = %(v1)0.9f"%{"v1":p_value})
+                print("K2602 Power Var = %(v1)0.9f ( mW )"%{"v1":K2602_var_p})
+                print("SMD Power Var = %(v1)0.9f ( mW )"%{"v1":SMD_var_p})
+                if p_value < alpha:
+                    print("The obtained differences in sample variances are unlikely to have occurred based on random sampling from a population with equal variances")
+                    print("The null hypothesis of equal variances is rejected and it is concluded that there is a difference between the variances in the population")
+                else:
+                    print("The null hypothesis of equal variances is accepted.\n It is concluded that there is no difference between the variances in the population.")
             
-            stat, p_value = scipy.stats.levene(SMD_Long[1], LDC_Long)
-            print("\np_value = %(v1)0.9f"%{"v1":p_value})
-            print("LDC Power Var = %(v1)0.9f ( mW )"%{"v1":LDC_var_p})
-            print("SMD Power Var = %(v1)0.9f ( mW )"%{"v1":SMD_var_p})
-            if p_value < alpha:
-                print("The obtained differences in sample variances are unlikely to have occurred based on random sampling from a population with equal variances")
-                print("The null hypothesis of equal variances is rejected and it is concluded that there is a difference between the variances in the population")
-            else:
-                print("The null hypothesis of equal variances is accepted.\n It is concluded that there is no difference between the variances in the population.")
+                stat, p_value = scipy.stats.levene(SMD_Long[1], LDC_Long)
+                print("\np_value = %(v1)0.9f"%{"v1":p_value})
+                print("LDC Power Var = %(v1)0.9f ( mW )"%{"v1":LDC_var_p})
+                print("SMD Power Var = %(v1)0.9f ( mW )"%{"v1":SMD_var_p})
+                if p_value < alpha:
+                    print("The obtained differences in sample variances are unlikely to have occurred based on random sampling from a population with equal variances")
+                    print("The null hypothesis of equal variances is rejected and it is concluded that there is a difference between the variances in the population")
+                else:
+                    print("The null hypothesis of equal variances is accepted.\n It is concluded that there is no difference between the variances in the population.")
             
 
             # Make a histogram of the data
@@ -2273,21 +2275,21 @@ def PI_Poster_2025():
 
             PLOT_SCALED_HIST = True
             if PLOT_SCALED_HIST:
-                plt.hist(SMD_scl_data, bins = n_bins, label = r'SMD $\sigma$ = 2 $\mu$W', alpha=0.9, color = 'green')
-                plt.hist(LDC_scl_data, bins = n_bins, label = r'LDC210C $\sigma$ = 1 $\mu$W', alpha=0.65, color = 'red' )
-                plt.hist(K2602_scl_data, bins = n_bins, label = r'K2602 $\sigma$ = 3 $\mu$W', alpha=0.4, color = 'blue' )
+                plt.hist(SMD_scl_data, bins = n_bins, label = r'SMD $\sigma$ = 2 $\mu$W', alpha=0.9, color = 'red', edgecolor = 'black', linestyle = '-')
+                #plt.hist(LDC_scl_data, bins = n_bins, label = r'LDC210C $\sigma$ = 1 $\mu$W', alpha=0.65, color = 'red' , edgecolor = 'black', linestyle = '--')
+                plt.hist(K2602_scl_data, bins = n_bins, label = r'K2602 $\sigma$ = 3 $\mu$W', alpha=0.6, color = 'green', edgecolor = 'black', linestyle = ':' )
                 plt.xlim(xmin=-2.5, xmax = 2.5)
                 plt.xlabel(r'Scaled Measurements $( P_{i} - \mu ) / \sigma$', fontsize = 14)
                 plt.ylabel('Counts', fontsize = 14)
                 plt.legend(loc = 'best')
                 plt.savefig('Scaled_Power_Hist')
-                #plt.show()            
+                plt.show()            
                 plt.clf()
                 plt.cla()
                 plt.close()
             else:
                 plt.hist(SMD_Long[1], bins = n_bins, label = r'SMD $\sigma$ = 2 $\mu$W', alpha=0.9, color = 'green')
-                plt.hist(LDC_Long-LDC_avg_p+SMD_avg_p, bins = n_bins, label = r'LDC210C $\sigma$ = 1 $\mu$W', alpha=0.65, color = 'red' )
+                #plt.hist(LDC_Long-LDC_avg_p+SMD_avg_p, bins = n_bins, label = r'LDC210C $\sigma$ = 1 $\mu$W', alpha=0.65, color = 'red' )
                 plt.hist(K2602_Long[1]-K2602_avg_p+SMD_avg_p, bins = n_bins, label = r'K2602 $\sigma$ = 3 $\mu$W', alpha=0.4, color = 'blue' )
                 plt.xlim(xmin=3.573, xmax = 3.586)
                 plt.xlabel('Optical Power ( mW )', fontsize = 14)

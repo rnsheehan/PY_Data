@@ -2184,7 +2184,7 @@ def PI_Poster_2025():
             print(os.getcwd())
             
         # Take a look at the long time measurement data
-        PLOT_LONG = True
+        PLOT_LONG = False
         
         if PLOT_LONG:
             LDC_Long = numpy.loadtxt("Power_mW_Data_LDC210C_75mA_T_25C_1hr_30s.txt")
@@ -2203,9 +2203,9 @@ def PI_Poster_2025():
             print("Power Difference = %(v1)0.2f"%{"v1":K2602_avg_p - SMD_avg_p})
                         
             print("\nMeasured Variances")
-            print("LDC Power Var = %(v1)0.9f ( mW )"%{"v1":LDC_var_p})
-            print("K2602 Power Var = %(v1)0.9f ( mW )"%{"v1":K2602_var_p})
-            print("SMD Power Var = %(v1)0.9f ( mW )"%{"v1":SMD_var_p})
+            print("LDC Power Var = %(v1)0.3f ( uW )"%{"v1":1000*LDC_var_p})
+            print("K2602 Power Var = %(v1)0.3f ( uW )"%{"v1":1000*K2602_var_p})
+            print("SMD Power Var = %(v1)0.3f ( uW )"%{"v1":1000*SMD_var_p})
             
             # Diode Voltage
             SMD_avg_v = numpy.mean(SMD_Long[0]); SMD_err_v = numpy.std(SMD_Long[0],ddof = 1); 
@@ -2289,7 +2289,7 @@ def PI_Poster_2025():
                 plt.close()
             else:
                 plt.hist(SMD_Long[1], bins = n_bins, label = r'SMD $\sigma$ = 2 $\mu$W', alpha=0.9, color = 'green')
-                #plt.hist(LDC_Long-LDC_avg_p+SMD_avg_p, bins = n_bins, label = r'LDC210C $\sigma$ = 1 $\mu$W', alpha=0.65, color = 'red' )
+                # plt.hist(LDC_Long-LDC_avg_p+SMD_avg_p, bins = n_bins, label = r'LDC210C $\sigma$ = 1 $\mu$W', alpha=0.65, color = 'red' )
                 plt.hist(K2602_Long[1]-K2602_avg_p+SMD_avg_p, bins = n_bins, label = r'K2602 $\sigma$ = 3 $\mu$W', alpha=0.4, color = 'blue' )
                 plt.xlim(xmin=3.573, xmax = 3.586)
                 plt.xlabel('Optical Power ( mW )', fontsize = 14)
@@ -2353,6 +2353,59 @@ def PI_Poster_2025():
             args.y_label_2 = 'Power ( mW )'
             args.fig_name = 'K2602_SMD_Diff'            
             Plotting.plot_two_y_axis(K2602_LIV[0][1:], delta_v[1:], delta_p[1:], args)
+            
+        PLOT_ISRC_CAL = False
+        if PLOT_ISRC_CAL:
+            Isrc_cal_10 = numpy.loadtxt('Isrc_Test_AD8227_RG_10.txt',skiprows = 1, unpack = True, delimiter = '\t')
+            Isrc_cal_12 = numpy.loadtxt('Isrc_Test_AD8227_RG_12.txt',skiprows = 1, unpack = True, delimiter = '\t')
+            Isrc_cal_15 = numpy.loadtxt('Isrc_Test_AD8227_RG_15.txt',skiprows = 1, unpack = True, delimiter = '\t')
+            Isrc_smd_12 = numpy.loadtxt('Isrc_Test_SMD_RG_12.txt',skiprows = 1, unpack = True, delimiter = '\t')
+            
+            # Make a plot of the Gain Resistor Optimisation Data
+            hv_data = []; labels = []; marks = []; 
+    
+            hv_data.append([Isrc_cal_15[0], Isrc_cal_15[5]]); labels.append(r'TH R$_{G}$ = 15 k$\Omega$, m = 96.65 $(k\Omega)^{-1}$'); marks.append(Plotting.labs[0]); 
+            hv_data.append([Isrc_cal_12[0], Isrc_cal_12[5]]); labels.append(r'TH R$_{G}$ = 12 k$\Omega$, m = 84.08 $(k\Omega)^{-1}$'); marks.append(Plotting.labs[1]); 
+            hv_data.append([Isrc_cal_10[0], Isrc_cal_10[5]]); labels.append(r'TH R$_{G}$ = 10 k$\Omega$, m = 75.83 $(k\Omega)^{-1}$'); marks.append(Plotting.labs[2]); 
+            hv_data.append([Isrc_smd_12[0], Isrc_smd_12[1]]); labels.append(r'SMD R$_{G}$ = 12 k$\Omega$, m = 87.09 $(k\Omega)^{-1}$'); marks.append(Plotting.labs[3]); 
+    
+            args = Plotting.plot_arg_multiple()
+            
+            args.loud = True
+            args.crv_lab_list = labels
+            args.mrk_list = marks
+            args.x_label = r'Input Voltage $V_{in}$ ( V )'
+            args.y_label = r'Sense Current $I_{s}$ ( mA )'
+            args.plt_range = [0, 4, 0, 350]
+            args.fig_name = 'Isrc_Cal_Data'
+            
+            Plotting.plot_multiple_curves(hv_data, args)
+            
+        PLOT_ISRC_VLIM = True
+        if PLOT_ISRC_VLIM:
+            Isrc_vlim_3 = numpy.loadtxt('Isrc_Test_SMD_RG_12_Vlim_3.txt',skiprows = 1, unpack = True, delimiter = '\t')
+            Isrc_vlim_2 = numpy.loadtxt('Isrc_Test_SMD_RG_12_Vlim_2.txt',skiprows = 1, unpack = True, delimiter = '\t')
+            Isrc_vlim_1 = numpy.loadtxt('Isrc_Test_SMD_RG_12_Vlim_1.txt',skiprows = 1, unpack = True, delimiter = '\t')
+            
+            # Make a plot of the Gain Resistor Optimisation Data
+            hv_data = []; labels = []; marks = []; 
+    
+            hv_data.append([Isrc_vlim_3[0], Isrc_vlim_3[1]]); labels.append(r'V$_{lim}$ = 3 ( V )'); marks.append(Plotting.labs[0]); 
+            hv_data.append([Isrc_vlim_2[0], Isrc_vlim_2[1]]); labels.append(r'V$_{lim}$ = 2 ( V )'); marks.append(Plotting.labs[1]); 
+            hv_data.append([Isrc_vlim_1[0], Isrc_vlim_1[1]]); labels.append(r'V$_{lim}$ = 1 ( V )'); marks.append(Plotting.labs[2]); 
+    
+            args = Plotting.plot_arg_multiple()
+            
+            args.loud = True
+            args.crv_lab_list = labels
+            args.mrk_list = marks
+            args.x_label = r'Input Voltage $V_{in}$ ( V )'
+            args.y_label = r'Sense Current $I_{s}$ ( mA )'
+            args.plt_range = [0, 3.1, 0, 270]
+            args.fig_name = 'Isrc_Vlim_Data'
+            
+            Plotting.plot_multiple_curves(hv_data, args)          
+
             
 
     except Exception as e:

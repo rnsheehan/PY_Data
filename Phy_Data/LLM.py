@@ -5141,7 +5141,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.loud = False
                 args.crv_lab_list = labels1
                 args.mrk_list = marks1
-                args.x_label = 'VOA Bias (V)'
+                args.x_label = 'VOA Bias ( V )'
                 args.y_label = 'Power (dBm)'
                 args.fig_name = 'Input_Loop_Power'
 
@@ -5149,8 +5149,8 @@ def Summarise_Multi_LLM_Analysis():
 
                 args.crv_lab_list = labels2
                 args.mrk_list = marks2
-                args.x_label = 'VOA Bias (V)'
-                args.y_label = 'Power Ratio P$_{2}$ / P$_{1}$'
+                args.x_label = 'VOA Bias ( V )'
+                args.y_label = r'Power Ratio $\rho =$ P$_{2}$ / P$_{1}$'
                 args.fig_name = 'Input_Loop_Power_Ratio'
 
                 Plotting.plot_multiple_curves(hv_data2, args)
@@ -5273,7 +5273,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.loud = False
                 args.crv_lab_list = labels1
                 args.mrk_list = marks1
-                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                args.x_label = r'Power Ratio $\rho =$ P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias ( V )'
                 args.y_label = 'Spectral Peak Value (dBm / %(v1)s )'%{"v1":RBWstr}
                 args.fig_name = 'Spectral_Peak_Value_vs_Prat' if PLOT_VS_PRAT else 'Spectral_Peak_Value_vs_VVOA'
 
@@ -5283,7 +5283,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.loud = False
                 args.crv_lab_list = labels2
                 args.mrk_list = marks2
-                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                args.x_label = r'Power Ratio $\rho =$ P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias ( V )'
                 args.y_label = 'Optical Power ( dBm )'
                 args.fig_name = 'Optical_Power_vs_Prat' if PLOT_VS_PRAT else 'Optical_Power_vs_VVOA'
 
@@ -5293,7 +5293,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.loud = True
                 args.crv_lab_list = labels3
                 args.mrk_list = marks3
-                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                args.x_label = r'Power Ratio $\rho =$ P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias ( V )'
                 args.y_label = 'Laser Linewidth ( %(v1)s )'%{"v1":LLMunitstr}
                 args.fig_name = 'Laser_Linewidth_vs_Prat' if PLOT_VS_PRAT else 'Laser_Linewidth_vs_VVOA'
                 #args.plt_range = [2.7, 3.9, 1.5, 3.25]
@@ -5308,7 +5308,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.loud = False
                 args.crv_lab_list = labels4
                 args.mrk_list = marks4
-                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                args.x_label = r'Power Ratio $\rho =$ P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias ( V )'
                 args.y_label = 'Laser Linewidth at -20 dB ( %(v1)s )'%{"v1":LLMunitstr}
                 args.fig_name = 'Laser_Linewidth_20_vs_Prat' if PLOT_VS_PRAT else 'Laser_Linewidth_20_vs_VVOA'
                 #args.plt_range = [2.7, 3.9, 8, 14]
@@ -5323,7 +5323,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.loud = False
                 args.crv_lab_list = labels44
                 args.mrk_list = marks44
-                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                args.x_label = r'Power Ratio $\rho =$ P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias ( V )'
                 args.y_label = 'Laser Linewidth at -20 dB ( %(v1)s )'%{"v1":LLMunitstr}
                 args.fig_name = 'Error_Laser_Linewidth_20_vs_Prat' if PLOT_VS_PRAT else 'Error_Laser_Linewidth_20_vs_VVOA'
                 #args.plt_range = [2.7, 3.9, 8, 14]
@@ -5338,7 +5338,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.loud = True
                 args.crv_lab_list = labels5
                 args.mrk_list = marks5
-                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                args.x_label = r'Power Ratio $\rho =$ P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias ( V )'
                 args.y_label = 'Laser Linewidth Voigt Fit ( %(v1)s )'%{"v1":LLMunitstr}
                 args.fig_name = 'Laser_Linewidth_Voigt_vs_Prat' if PLOT_VS_PRAT else 'Laser_Linewidth_Voigt_vs_VVOA'
                 #args.plt_range = [2.7, 3.9, 1.5, 3.25]
@@ -5366,7 +5366,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.loud = False
                 args.crv_lab_list = labels55
                 args.mrk_list = marks55
-                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                args.x_label = r'Power Ratio $\rho =$ P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias ( V )'
                 args.y_label = 'Laser Linewidth Voigt Fit ( %(v1)s )'%{"v1":LLMunitstr}
                 args.fig_name = 'Error_Laser_Linewidth_Voigt_vs_Prat' if PLOT_VS_PRAT else 'Error_Laser_Linewidth_Voigt_vs_VVOA'
                 #args.plt_range = [2.7, 3.9, 1.5, 3.25]
@@ -5381,7 +5381,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.loud = True
                 args.crv_lab_list = labels6
                 args.mrk_list = marks6
-                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                args.x_label = r'Power Ratio $\rho =$ P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias ( V )'
                 args.y_label = 'Intrinsic Linewidth Voigt Fit ( %(v1)s )'%{"v1":LLMunitstr}
                 args.fig_name = 'Intrinsic_Linewidth_Voigt_vs_Prat' if PLOT_VS_PRAT else 'Intrinsic_Linewidth_Voigt_vs_VVOA'
                 #args.plt_range = [2.7, 3.9, 1.5, 3.25]
@@ -5396,7 +5396,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.loud = False
                 args.crv_lab_list = labels66
                 args.mrk_list = marks66
-                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                args.x_label = r'Power Ratio $\rho =$ P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias ( V )'
                 args.y_label = 'Intrinsic Linewidth Voigt Fit ( %(v1)s )'%{"v1":LLMunitstr}
                 args.fig_name = 'Error_Intrinsic_Linewidth_Voigt_vs_Prat' if PLOT_VS_PRAT else 'Error_Intrinsic_Linewidth_Voigt_vs_VVOA'
                 #args.plt_range = [2.7, 3.9, 1.5, 3.25]
@@ -5411,7 +5411,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.loud = False
                 args.crv_lab_list = labels7
                 args.mrk_list = marks7
-                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                args.x_label = r'Power Ratio $\rho =$ P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias ( V )'
                 args.y_label = 'Voigt Fit Parameters ( %(v1)s )'%{"v1":LLMunitstr}
                 args.fig_name = 'Voigt_Params_vs_Prat' if PLOT_VS_PRAT else 'Voigt_Params_vs_VVOA'
                 #args.plt_range = [2.7, 3.9, 1.5, 3.25]
@@ -5426,7 +5426,7 @@ def Summarise_Multi_LLM_Analysis():
                 args.loud = False
                 args.crv_lab_list = labels77
                 args.mrk_list = marks77
-                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                args.x_label = r'Power Ratio $\rho =$ P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias ( V )'
                 args.y_label = 'Voigt Fit Parameters ( %(v1)s )'%{"v1":LLMunitstr}
                 args.fig_name = 'Error_Voigt_Params_vs_Prat' if PLOT_VS_PRAT else 'Error_Voigt_Params_vs_VVOA'
                 #args.plt_range = [2.7, 3.9, 1.5, 3.25]
@@ -6137,7 +6137,7 @@ def Plot_CNR(filename, looplength, Fbeat, theLaser, FUnits, LWUNits, Pin):
             args = Plotting.plot_arg_single()
             args.loud = True
             args.x_label = 'VOA Voltage / V'
-            args.y_label = 'CNR / dB / 100Hz'
+            args.y_label = 'CNR ( dB / 100Hz )'
             args.fig_name = '%(v1)s_CNR_D_%(v2)d'%{"v1":theLaser,"v2":looplength}
             #args.plt_title = '%(v1)s, P$_{1}$ = %(v2)0.2f dBm, D$_{eff}$ = %(v4)d km'%{"v1":theLaser, "v2":Pin, "v4":looplength}
             args.plt_range = [0, 4, 20, 32] if theLaser == 'NKT' else [0, 4, 14, 24]
@@ -6360,7 +6360,7 @@ def Pub_Figs():
                 FUnits = ' / kHz'
                 LWUNits = ' / ' + RBW
 
-                PLOT_VS_PRAT = False # Generate the plot with Power Ratio along the x-axis, otherwise plot versus V_{VOA}
+                PLOT_VS_PRAT = True # Generate the plot with Power Ratio along the x-axis, otherwise plot versus V_{VOA}
                 
                 # Plot both CNR together
                 hv_data = []; marks = []; labs = []; 
@@ -6374,8 +6374,8 @@ def Pub_Figs():
                     args = Plotting.plot_arg_single()
                     
                     args.loud = True
-                    args.x_label = 'VOA Bias (V)'
-                    args.y_label = 'Power Ratio P$_{2}$ / P$_{1}$'
+                    args.x_label = 'VOA Bias ( V )'
+                    args.y_label = r'Power Ratio $\rho =$ P$_{2}$ / P$_{1}$'
                     args.curve_label = 'P$_{1}$ = 9.5 dBm'
                     args.fig_name = 'Prat_vs_Vvoa'
                     
@@ -6388,8 +6388,8 @@ def Pub_Figs():
 
                 args = Plotting.plot_arg_multiple()
                 args.loud = True
-                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
-                args.y_label = 'CNR / dB / 100Hz'
+                args.x_label = r'Power Ratio $\rho =$ P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias ( V )'
+                args.y_label = 'CNR ( dB / 100Hz )'
                 args.crv_lab_list = labs
                 args.mrk_list = marks
                 #args.fig_name = '%(v1)s_CNR_vs_Prat'%{"v1":theLaser} if PLOT_VS_PRAT else '%(v1)s_CNR_vs_VVOA'%{"v1":theLaser}
@@ -6399,10 +6399,12 @@ def Pub_Figs():
 
                 Plotting.plot_multiple_curves_with_errors(hv_data, args)
 
-                PLOT_LINESHAPES = False
+                del hv_data; del marks; del labs;
 
-                if PLOT_LINESHAPES:
-                    # Plot lineshapes together
+                PLOT_LINESHAPES_DIST = False
+
+                if PLOT_LINESHAPES_DIST:
+                    # Plot lineshapes together at the different distances but same bias
                     hv_data = []; marks = []; labs = []; 
                 
                     # for i in range(0, len(Deff), 1):
@@ -6417,12 +6419,12 @@ def Pub_Figs():
                         thedata = numpy.loadtxt(thefile, delimiter = '\t', unpack = False)
                         Ymax = numpy.max(thedata[1])
                         thedata[1] = thedata[1] - Ymax
-                        hv_data.append(thedata); labs.append('D = %(v1)d km, V$_{VOA}$ = 0V'%{"v1":Deff[i]}); marks.append(Plotting.labs_dotted[i]);
+                        hv_data.append(thedata); labs.append(r'D = %(v1)d km, V$_{VOA}$ = 0V'%{"v1":Deff[i]}); marks.append(Plotting.labs_dotted[i]);
 
                     args = Plotting.plot_arg_multiple()
                     args.loud = True
                     args.x_label = 'Frequency' + FUnits
-                    args.y_label = 'Power / dBm' + LWUNits
+                    args.y_label = 'Power ( dBm' + LWUNits + ' )'
                     args.crv_lab_list = labs
                     args.mrk_list = marks
                     args.fig_name = '%(v1)s_CNR_Lineshapes_VVOA_0'%{"v1":theLaser}
@@ -6432,10 +6434,38 @@ def Pub_Figs():
                 
                     del hv_data; del marks; del labs; 
 
+                PLOT_LINESHAPES_VOLT = True
+                if PLOT_LINESHAPES_VOLT:
+                    # plot lineshapes together at different bias values
+                    hv_data = []; marks = []; labs = [];
+                    volts = [0, 35]
+                    indx = 0 # which of the distance values do you want
+                    count = 5
+                    for i in range(0, len(volts), 1):
+                        thefile = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/CNR_Meas_6_3_2025/Lineshape_NKT_T_35_I_200_VVOA_%(v5)d.txt'%{"v2":theLaser, "v3":temperature, "v4":Deff[indx], "v5":volts[i]}
+                        thedata = numpy.loadtxt(thefile, delimiter = '\t', unpack = False)
+                        Ymax = numpy.max(thedata[1])
+                        thedata[1] = thedata[1] - Ymax
+                        hv_data.append(thedata); labs.append(r'V$_{VOA}$ = %(v1)0.1f (V)'%{"v1":volts[i]/10.0}); marks.append(Plotting.labs_lins[count]);
+                        count = count - 3
+
+                    args = Plotting.plot_arg_multiple()
+                    args.loud = True
+                    args.x_label = 'Frequency' + FUnits
+                    args.y_label = 'Power ( dBm' + LWUNits + ' )'
+                    args.crv_lab_list = labs
+                    args.mrk_list = marks
+                    args.fig_name = 'Lineshapes_Together_D_%(v1)d'%{"v1":Deff[indx]}
+                    args.plt_range = [-50, 50, -40, 0]
+
+                    Plotting.plot_multiple_curves(hv_data, args)
+                
+                    del hv_data; del marks; del labs;
+
             RESULTS_COMPAR = False
             
             if RESULTS_COMPAR: 
-
+                # make plots showing the results obtained for the two distances
                 Deff = [200, 400]
                 theLaser = 'NKT'
                 temperature = 35    
@@ -6478,7 +6508,7 @@ def Pub_Figs():
                 Xvals = []
                 LL_20_scale = 2.0*math.sqrt(99.0) # constant for converting LL-20 values into LL-Lorentzian values
 
-                y_labels = ['Spectral Peak Value (dBm / %(v1)s )'%{"v1":RBWstr}, 
+                y_labels = ['Spectral Peak Value ( dBm / %(v1)s )'%{"v1":RBWstr}, 
                             'Laser Linewidth Estimate ( %(v1)s )'%{"v1":LLMunitstr}, 
                             'Laser Linewidth at -20 dB ( %(v1)s )'%{"v1":LLMunitstr},
                             'Laser Linewidth Voigt Fit ( %(v1)s )'%{"v1":LLMunitstr}, 
@@ -6514,7 +6544,7 @@ def Pub_Figs():
                     args.loud = True
                     args.crv_lab_list = labels
                     args.mrk_list = marks
-                    args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
+                    args.x_label = r'Power Ratio $\rho =$ P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias ( V )'
                     args.y_label = y_labels[j]
                     args.fig_name = fig_names[j] + '_vs_Prat' if PLOT_VS_PRAT else fig_names[j] + '_vs_VVOA'
 
@@ -6523,6 +6553,7 @@ def Pub_Figs():
             INTERP_TEST = False
             
             if INTERP_TEST:
+                # test the operation of the python interpolation methods on your data
                 Vvoa = 3.8
                 Prat = Compute_Prat(Vvoa)
                 print("Vvoa = ",Vvoa,", Prat = ",Prat)
@@ -6542,6 +6573,7 @@ def Pub_Figs():
             PLOT_SINGLE_DIST = False
             
             if PLOT_SINGLE_DIST:
+                # Make a set of plots for a single distance instead of combining the data from two different distances
                 Deff = [200, 400]
                 theLaser = 'NKT'
                 temperature = 35    
@@ -6554,7 +6586,8 @@ def Pub_Figs():
                 # Load the data into memory
                 
                 # Linewidth measurement results
-                indx = 1
+                indx = 1 # choose the distance for which the plots will be generated
+                
                 thedata = numpy.array([]) # instantiate an empty numpy array
                 thefile = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/Loop_Power_Variation_Mar_25/Measurement_Results_I_200.txt'%{"v2":theLaser, "v3":temperature, "v4":Deff[indx]}
                 if glob.glob(thefile):
@@ -6575,7 +6608,7 @@ def Pub_Figs():
                 if PLOT_VS_PRAT:
                     cnrdata[0] = Compute_Prat(cnrdata[0])
                     
-                # Make some plots of the data
+                # Make some plots of the measured data including CNR on the same plot
                 # make a plot of various measured values versus Power Ratio
                 # col 0: P1 / dBm col 1: P2 / dBm col 2: P2 / P1 col 3: Pmax / dBm col 4: LLest / units col 5: LLVfit / units col 6: LLLfit / units col 7: LL-20 / units col 8: LLVLor / units col 9: LLVGau / units col 10: RBW / units
                 # 2. P1, P2 versus Power Ratio with Errors
@@ -6586,7 +6619,7 @@ def Pub_Figs():
                 # 6. Voigt_Lor_HWHM, LLest_-20 versus Power Ratio with Errors
                 # 7. Voigt_Lor_HWHM, Voigt_Gau_Stdev versus Power Ratio with Errors
                 #         
-                PLOT_VS_PRAT = False # Generate the plot with Power Ratio along the x-axis, other wise plot versus V_{VOA}
+                PLOT_VS_PRAT = True # Generate the plot with Power Ratio along the x-axis, other wise plot versus V_{VOA}
                 RBWstr = '100Hz'
                 LLMunitstr = 'kHz'
                 VVOA = [0, 0.5, 1.0, 1.5, 2.0, 2.5, 2.8, 3.0, 3.2, 3.5, 3.7]
@@ -6613,34 +6646,40 @@ def Pub_Figs():
                 startVal = 0 # ignore the data at the start of the VVOA sweep? 
                 endVal = numpy.size(thedata[2])
 
-                # for j in range(0, len(y_labels), 1):
-                #     # 1. Pmax versus Power Ratio with Errors
-                #     args = Plotting.plot_arg_multiple()
+                RUN_CNR_COMBO_PLOTS = False
+                if RUN_CNR_COMBO_PLOTS:
+                    # Make some plots of the measured data including CNR on the same plot
+                    for j in range(0, len(y_labels), 1):
+                        # 1. Pmax versus Power Ratio with Errors
+                        args = Plotting.plot_arg_multiple()
 
-                #     args.loud = False
-                #     args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
-                #     args.y_label = y_labels[j]
-                #     args.y_label_2 = 'CNR / dB / 100Hz'
-                #     args.fig_name = fig_names[j] + '_vs_Prat_D_%(v1)d'%{"v1":Deff[indx]} if PLOT_VS_PRAT else fig_names[j] + '_vs_VVOA_D_%(v1)d'%{"v1":Deff[indx]}
+                        args.loud = False
+                        args.x_label = r'Power Ratio $\rho =$ P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias ( V )'
+                        args.y_label_2 = y_labels[j]
+                        args.y_label = 'CNR ( dB / 100Hz )'
+                        args.fig_name = fig_names[j] + '_vs_Prat_D_%(v1)d'%{"v1":Deff[indx]} if PLOT_VS_PRAT else fig_names[j] + '_vs_VVOA_D_%(v1)d'%{"v1":Deff[indx]}
 
-                #     Plotting.plot_two_y_axis(Xvals, thedata[ col_indices[j] ], cnrdata[0], cnrdata[1], args)
+                        #Plotting.plot_two_y_axis_diffX(Xvals, thedata[ col_indices[j] ], cnrdata[0], cnrdata[1], args)
+                        Plotting.plot_two_y_axis_diffX(cnrdata[0], cnrdata[1], Xvals, thedata[ col_indices[j] ], args) # plot looks a little better with CNR data going first
 
-                # Plot the fitted lineshapes values together
-                hv_data = []; labels = []; marks = []; 
-                hv_data.append([ Xvals, thedata[5], theerror[5] ]); labels.append(r'$\Delta\nu_{Voigt}$'); marks.append(Plotting.labs[0])
-                hv_data.append([ Xvals, thedata[8], theerror[8] ]); labels.append(r'$\Delta\nu_{white}$'); marks.append(Plotting.labs[1]); 
-                hv_data.append([ Xvals, thedata[9], theerror[9] ]); labels.append(r'$\Delta\nu_{1/f}$'); marks.append(Plotting.labs[2]); 
+                PLOT_LW_TOGETHER = False
+                if PLOT_LW_TOGETHER:
+                    # Plot the fitted linewidth values together
+                    hv_data = []; labels = []; marks = []; 
+                    hv_data.append([ Xvals, thedata[5], theerror[5] ]); labels.append(r'$\Delta\nu_{Voigt}$'); marks.append(Plotting.labs[0])
+                    hv_data.append([ Xvals, thedata[8], theerror[8] ]); labels.append(r'$\Delta\nu_{white}$'); marks.append(Plotting.labs[1]); 
+                    hv_data.append([ Xvals, thedata[9], theerror[9] ]); labels.append(r'$\Delta\nu_{1/f}$'); marks.append(Plotting.labs[2]); 
     
-                args = Plotting.plot_arg_multiple()
-                args.loud = True
-                args.x_label = 'Power Ratio P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias (V)'
-                args.y_label = 'Laser Linewidth ( %(v1)s )'%{"v1":LLMunitstr}
-                args.crv_lab_list = labels
-                args.mrk_list = marks
-                args.plt_range = [0, 0.82, 0, 3.5] if PLOT_VS_PRAT else [0, 3.8, 0, 3.5]
-                args.fig_name = 'Laser_Linewidth'+'_vs_Prat_D_%(v1)d'%{"v1":Deff[indx]} if PLOT_VS_PRAT else 'Laser_Linewidth'+'_vs_VVOA_D_%(v1)d'%{"v1":Deff[indx]}
+                    args = Plotting.plot_arg_multiple()
+                    args.loud = True
+                    args.x_label = r'Power Ratio $\rho =$ P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias ( V )'
+                    args.y_label = 'Laser Linewidth ( %(v1)s )'%{"v1":LLMunitstr}
+                    args.crv_lab_list = labels
+                    args.mrk_list = marks
+                    args.plt_range = [0, 0.82, 0, 3.5] if PLOT_VS_PRAT else [0, 3.8, 0, 3.5]
+                    args.fig_name = 'Laser_Linewidth'+'_vs_Prat_D_%(v1)d'%{"v1":Deff[indx]} if PLOT_VS_PRAT else 'Laser_Linewidth'+'_vs_VVOA_D_%(v1)d'%{"v1":Deff[indx]}
                 
-                Plotting.plot_multiple_curves_with_errors(hv_data, args)
+                    Plotting.plot_multiple_curves_with_errors(hv_data, args)
 
     except Exception as e:
         print(ERR_STATEMENT)

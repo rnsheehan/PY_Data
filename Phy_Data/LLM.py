@@ -6349,7 +6349,7 @@ def Pub_Figs():
             os.chdir(PAPER_HOME)
             print(os.getcwd())
 
-            PLOT_CNR = True
+            PLOT_CNR = False
 
             if PLOT_CNR:
                 #Deff = [200, 400]
@@ -6451,11 +6451,11 @@ def Pub_Figs():
 
                     args = Plotting.plot_arg_multiple()
                     args.loud = True
-                    args.x_label = 'Frequency' + FUnits
+                    args.x_label = 'Frequency (' + FUnits + ' )'
                     args.y_label = 'Power ( dBm' + LWUNits + ' )'
                     args.crv_lab_list = labs
                     args.mrk_list = marks
-                    args.fig_name = 'Lineshapes_Together_D_%(v1)d'%{"v1":Deff[indx]}
+                    args.fig_name = 'Lineshapes_Together_D_%(v1)d_Scaled'%{"v1":Deff[indx]}
                     args.plt_range = [-50, 50, -40, 0]
 
                     Plotting.plot_multiple_curves(hv_data, args)
@@ -6570,7 +6570,7 @@ def Pub_Figs():
                 print(VVOA)
                 print(PRAT)
                 
-            PLOT_SINGLE_DIST = False
+            PLOT_SINGLE_DIST = True
             
             if PLOT_SINGLE_DIST:
                 # Make a set of plots for a single distance instead of combining the data from two different distances
@@ -6586,7 +6586,7 @@ def Pub_Figs():
                 # Load the data into memory
                 
                 # Linewidth measurement results
-                indx = 1 # choose the distance for which the plots will be generated
+                indx = 0 # choose the distance for which the plots will be generated
                 
                 thedata = numpy.array([]) # instantiate an empty numpy array
                 thefile = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/Loop_Power_Variation_Mar_25/Measurement_Results_I_200.txt'%{"v2":theLaser, "v3":temperature, "v4":Deff[indx]}
@@ -6624,7 +6624,11 @@ def Pub_Figs():
                 LLMunitstr = 'kHz'
                 VVOA = [0, 0.5, 1.0, 1.5, 2.0, 2.5, 2.8, 3.0, 3.2, 3.5, 3.7]
                 Xvals = []
-                LL_20_scale = 2.0*math.sqrt(99.0) # constant for converting LL-20 values into LL-Lorentzian values
+                # constant for converting LL-20 values into LL-Lorentzian values
+                # where does this come from? chen2015ultra
+                # \Delta\nu_{L}\,\approx\,\frac{ \Delta\nu_{-20} }{ 2\,\sqrt{99} }\,\approx\,\frac{ \Delta\nu_{-20} }{ 19.8997 } 
+                # Error associated with this approximation is given by \sigma\Delta\nu_{L}\,\approx\,\frac{ \sigma\Delta\nu_{-20} }{ 2\,\sqrt{99} }
+                LL_20_scale = 2.0*math.sqrt(99.0) 
 
                 y_labels = ['Spectral Peak Value (dBm / %(v1)s )'%{"v1":RBWstr}, 
                             'Laser Linewidth Estimate ( %(v1)s )'%{"v1":LLMunitstr}, 
@@ -6678,6 +6682,24 @@ def Pub_Figs():
                     args.mrk_list = marks
                     args.plt_range = [0, 0.82, 0, 3.5] if PLOT_VS_PRAT else [0, 3.8, 0, 3.5]
                     args.fig_name = 'Laser_Linewidth'+'_vs_Prat_D_%(v1)d'%{"v1":Deff[indx]} if PLOT_VS_PRAT else 'Laser_Linewidth'+'_vs_VVOA_D_%(v1)d'%{"v1":Deff[indx]}
+                
+                    Plotting.plot_multiple_curves_with_errors(hv_data, args)
+
+                PLOT_INT_LW_APPR = True
+                if PLOT_INT_LW_APPR:
+                    # make a plot of the voigt fitted intrinsic LW \Delta\nu_{white} with the intrinsic LW estimate obtained from \Delta\nu_{-20}
+                    hv_data = []; labels = []; marks = []; 
+                    hv_data.append([ Xvals, thedata[8], theerror[8] ]); labels.append(r'$\Delta\nu_{white}$'); marks.append(Plotting.labs[1]); 
+                    hv_data.append([ Xvals, thedata[7]/LL_20_scale, theerror[7]/LL_20_scale ]); labels.append(r'$\Delta\nu_{20} / 2 \sqrt{99}$'); marks.append(Plotting.labs[3]);
+    
+                    args = Plotting.plot_arg_multiple()
+                    args.loud = True
+                    args.x_label = r'Power Ratio $\rho =$ P$_{2}$ / P$_{1}$' if PLOT_VS_PRAT else 'VOA Bias ( V )'
+                    args.y_label = 'Intrinsic Laser Linewidth ( %(v1)s )'%{"v1":LLMunitstr}
+                    args.crv_lab_list = labels
+                    args.mrk_list = marks
+                    args.plt_range = [0, 0.82, 0, 1.25] if PLOT_VS_PRAT else [0, 3.8, 0, 1.25]
+                    args.fig_name = 'Intrinsic_Laser_Linewidth'+'_vs_Prat_D_%(v1)d'%{"v1":Deff[indx]} if PLOT_VS_PRAT else 'Intrinsic_Laser_Linewidth'+'_vs_VVOA_D_%(v1)d'%{"v1":Deff[indx]}
                 
                     Plotting.plot_multiple_curves_with_errors(hv_data, args)
 

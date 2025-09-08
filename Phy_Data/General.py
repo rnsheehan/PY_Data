@@ -2317,10 +2317,10 @@ def PI_Poster_2025():
             args.y_label_2 = 'Power ( mW )'
 
             args.fig_name = 'K2602_LIV'            
-            Plotting.plot_two_y_axis(K2602_LIV[0], K2602_LIV[1], K2602_LIV[2], args)
+            Plotting.plot_two_y_axis_sameX(K2602_LIV[0], K2602_LIV[1], K2602_LIV[2], args)
             
             args.fig_name = 'SMD_LIV'            
-            Plotting.plot_two_y_axis(SMD_LIV[0], SMD_LIV[1], SMD_LIV[2], args)
+            Plotting.plot_two_y_axis_sameX(SMD_LIV[0], SMD_LIV[1], SMD_LIV[2], args)
             
             # Plot the voltages together
             hv_data = []; labels = []; marks = []; 
@@ -2352,7 +2352,7 @@ def PI_Poster_2025():
             args.y_label = 'Voltage ( mV )'
             args.y_label_2 = 'Power ( mW )'
             args.fig_name = 'K2602_SMD_Diff'            
-            Plotting.plot_two_y_axis(K2602_LIV[0][1:], delta_v[1:], delta_p[1:], args)
+            Plotting.plot_two_y_axis_sameX(K2602_LIV[0][1:], delta_v[1:], delta_p[1:], args)
             
         PLOT_ISRC_CAL = False
         if PLOT_ISRC_CAL:

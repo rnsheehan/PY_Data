@@ -6691,6 +6691,17 @@ def Pub_Figs():
                     hv_data = []; labels = []; marks = []; 
                     hv_data.append([ Xvals, thedata[8], theerror[8] ]); labels.append(r'$\Delta\nu_{white}$'); marks.append(Plotting.labs[1]); 
                     hv_data.append([ Xvals, thedata[7]/LL_20_scale, theerror[7]/LL_20_scale ]); labels.append(r'$\Delta\nu_{20} / 2 \sqrt{99}$'); marks.append(Plotting.labs[3]);
+
+                    # Estimate the intrinsic LL inside the region where CNR is maximised
+                    indx_strt = 5
+                    avg_val = numpy.mean(thedata[8][indx_strt:-1])
+                    std_val = numpy.std(thedata[8][indx_strt:-1], ddof = 1)
+                    print("Intrinsic LL = %(v1)0.2f +/- %(v2)0.2f"%{"v1":avg_val, "v2":std_val})
+                    
+                    LL20 = thedata[7]/LL_20_scale
+                    avg_val = numpy.mean(LL20[indx_strt:-1])
+                    std_val = numpy.std(LL20[indx_strt:-1], ddof = 1)
+                    print("Intrinsic LL-20 = %(v1)0.2f +/- %(v2)0.2f"%{"v1":avg_val, "v2":std_val})
     
                     args = Plotting.plot_arg_multiple()
                     args.loud = True

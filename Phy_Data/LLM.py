@@ -3701,7 +3701,7 @@ def Combine_Beat_Analysis():
                     delta_df = pandas.read_csv(errorfile, delimiter = '\t')
                     errList.append(delta_df)
 
-            PLOT_LLV_FULL = True
+            PLOT_LLV_FULL = False
             if PLOT_LLV_FULL:
                 
                 # Make a plot of LL versus Distance or Fbeat
@@ -3793,8 +3793,41 @@ def Combine_Beat_Analysis():
                 
                 #Plotting.plot_multiple_curves_with_errors(hv_data, args)
                 Plotting.plot_multiple_curves(hv_data, args)
+                
+            PLOT_DIFF = False
+            if PLOT_DIFF:
+                # Make a plot of the differences between the D=10km and D=50km loop data
+                # There's no need to pursue this
+                # It turns out that in this case the optical reaching the VOA is different for the D=10km and D=50km loops
+                # The power difference is caused by the excess insertion loss due to the excess fibre attenuation in the D=50km loop
+                # The optical input power and EDFA gain is the same for both cases, excess fibre attenuation causes the optical power
+                # reaching the VOA to be 4dB less in the D=50km loop than in the D=10km loop. This means that power ratio is not the
+                # same in each measurement
+                # R. Sheehan 15 - 9 - 2025
+
+                #col1 = Dstr; col2 = LLstr; 
+                #col1 = Dstr; col2 = Pstr; 
+                #col1 = Dstr; col2 = LLGstr; 
+                col1 = Dstr; col2 = LLLstr; 
+                
+                # select out the D=10km data
+                xsel_10 = dfList[0][ col1 ].to_numpy()
+                ysel_10 = dfList[0][ col2 ].to_numpy()
+                deltasel_10 = errList[0][ col2 ].to_numpy()
+
+                # select out the D=50km data
+                xsel_50 = dfList[1][ col1 ].to_numpy()
+                ysel_50 = dfList[1][ col2 ].to_numpy()
+                deltasel_50 = errList[1][ col2 ].to_numpy()
+
+                # Create an estimate of the difference between the two data sets where they should overlap
+                strt = 0; end = 7;
+                for i in range(strt, end, 1):
+                    sel_50 = numpy.interp(xsel_10[i+4], xsel_50, ysel_50)
+                    print("D = %(v1)0.1f ( km ), dnu10 = %(v3)0.2f, dnu50 = %(v4)0.2f, delta=%(v2)0.2f"%{"v1":xsel_10[i+4], "v3":ysel_10[i+4], 
+                                                                                                         "v4":sel_50, "v2":math.fabs(ysel_10[i+4])-math.fabs(sel_50)})
             
-            PLOT_LLV = False
+            PLOT_LLV = True
             if PLOT_LLV:
                 # Data is in memory, make the plots you want to make
                 # Combine the D=10 and D=50 data frames
@@ -3858,8 +3891,8 @@ def Combine_Beat_Analysis():
                 args = Plotting.plot_arg_multiple()
                 
                 args.loud = False
-                args.x_label = 'Loop Length / km'
-                args.y_label = 'Voigt Fit Linewidth / kHz / 100Hz'
+                args.x_label = 'Loop Length ( km )'
+                args.y_label = 'Laser Linewidth ( kHz / 100 Hz )'
                 args.crv_lab_list = labels
                 args.mrk_list = marks
                 args.log_x = True
@@ -6877,6 +6910,58 @@ def Pub_Figs():
                 # See Combine_Beat_Analysis() above
 
                 pass
+
+            POWER_BUDGET_ANALYSIS = True
+            if POWER_BUDGET_ANALYSIS:
+                
+                # Want to know why the measured lineshape increases for longer loop lengths
+                # Expect that excess attenuation due to optical fibre loop length is the issue. Is it? 
+                #
+                # How do you account for the phase shift? 
+                # How does the phase shift mean that you actually take an extra pass of the loop? 
+                #
+                # R. Sheehan 15 - 9 - 2025
+
+                dist = numpy.array([]) # instantiate an empty numpy array
+                pvoa = numpy.array([]) # instantiate an empty numpy array
+                pdet = numpy.array([]) # instantiate an empty numpy array
+
+                G = 11 # EDFA Gain in units of dB
+                Fatt = 0.1 # Fibre attenuation in units of dB/km
+                Lfibre = 50 # length of fibre loop in units of km
+                FibLoss = Fatt*Lfibre # Loss due to fibre loop in units of dB
+                CoupRat = 0.1 # Coupler transmission coefficient for power into fibre loop, no units
+                VOAtrans = 0.14 # VOA transmission coefficient at V = 3.5V, no units
+                
+                Pin = 9.5 # Optical input power into LLM-loop in units of dBm
+                Pcoup = Common.convert_PmW_PdBm( Common.convert_PdBm_PmW(Pin)*CoupRat ) # power emitted from coupler unit of dBm
+
+                print("D (km)\tP1 (dBm)\tPcoup (dBm)\tPfibre (dBm)\tPEDFA (dBm)\tP2 (dBm)")
+                Linit = 25
+                Lfinal = 251
+                deltaL = Linit
+                for x in range(Linit, Lfinal, deltaL):
+                    FibLoss = Fatt*x
+                    Pfibre = Pcoup - FibLoss # power level after propagation in OF units of dBm                    
+                    PEDFA = Pfibre + G # power level after amplication through EDFA in units of dBm
+                    PVOA = Common.convert_PmW_PdBm( Common.convert_PdBm_PmW(PEDFA)*VOAtrans ) # power level after passing through VOA in units of dBm
+                    dist = numpy.append(dist, x)
+                    pvoa = numpy.append(pvoa, PVOA) # power coming from LLM loop
+                    pdet = numpy.append(pdet, Pin) # power reaching detector
+                    print("%(v6)0.2f\t%(v1)0.2f\t%(v2)0.2f\t%(v3)0.2f\t%(v4)0.2f\t%(v5)0.2f"%{"v6":x, "v1":Pin, "v2":Pcoup, "v3":Pfibre, "v4":PEDFA, "v5":PVOA})
+                    
+                    Pin = Common.convert_PmW_PdBm( Common.convert_PdBm_PmW(Pin) + Common.convert_PdBm_PmW(PVOA) ) # combine optical powers in the coupler
+                    Pcoup = Common.convert_PmW_PdBm( Common.convert_PdBm_PmW(Pin)*CoupRat ) # power emitted from coupler unit of dBm
+
+                # Make a plot of the loop power at point P2
+                args = Plotting.plot_arg_multiple()
+                
+                args.loud = True
+                args.x_label = 'Fibre Loop Length ( km )'
+                args.y_label = r'LLM Loop Output Power $P_{2}$ ( dBm )'
+                args.y_label_2 = r'Power at Detector ( dBm )'
+
+                Plotting.plot_two_y_axis_sameX(dist, pvoa, pdet, args)
 
     except Exception as e:
         print(ERR_STATEMENT)

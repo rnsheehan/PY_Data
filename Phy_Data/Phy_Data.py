@@ -93,7 +93,7 @@ if __name__ == '__main__':
 
     #LLM.Summarise_Beat_Analysis()
     
-    #LLM.Combine_Beat_Analysis()
+    LLM.Combine_Beat_Analysis()
 
     #General.Superlum_Amplification()
 
@@ -125,7 +125,7 @@ if __name__ == '__main__':
     
     #LLM.Lineshape_Comparison()
 
-    LLM.Pub_Figs()
+    #LLM.Pub_Figs()
     
     #General.Paddy_Mac_Statistics()
     

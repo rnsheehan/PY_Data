@@ -3667,6 +3667,8 @@ def Combine_Beat_Analysis():
         LWUNits = ' / kHz / ' + RBW
         Pval = 9.5
         Dstr = 'Distance/km'
+        Fstr = 'Fbeat/MHz'
+        Pstr = 'Pmax/dBm'
         LLstr = 'LL_Vfit/kHz'
         LLGstr = 'Voigt_Gau_Stdev/kHz'
         LLLstr = 'Voigt_Lor_HWHM/kHz'
@@ -3699,26 +3701,42 @@ def Combine_Beat_Analysis():
                     delta_df = pandas.read_csv(errorfile, delimiter = '\t')
                     errList.append(delta_df)
 
-            PLOT_LLV_FULL = False
+            PLOT_LLV_FULL = True
             if PLOT_LLV_FULL:
+                
+                # Make a plot of LL versus Distance or Fbeat
+
                 # I made a hypothesis after reading tsuchida2012limitationby H. Tsuchida, Opt. Expr., 20 (11), 2012
                 # ''Limitation and improvement in the performance of recirculating delayed self-heterodyne method for high-resolution laser lineshape measurement''
                 # that the 1/f noise kicks in once L_{D} > 9 L_{F}
                 # Seems to be a big issue for the D = 10 loop, not so much for the D = 50 loop
                 # Make a plot to see if that is the case
+                # RNS 31 - 3 - 2025
+                # I don't think it's quite as simple as L_{D} > 9 L_{F}, but what is it? 
+                # What's happening to the peak power in each case? 
                 
                 col1 = Dstr; col2 = LLstr; 
+                #col1 = Dstr; col2 = Pstr; 
+                #col1 = Dstr; col2 = LLGstr; 
+                #col1 = Dstr; col2 = LLLstr; 
+                
+                #col1 = Fstr; col2 = LLstr; 
+                #col1 = Fstr; col2 = Pstr; 
+                #col1 = Fstr; col2 = LLGstr; 
+                #col1 = Fstr; col2 = LLLstr;
 
                 hv_data = []; labels = []; marks = []
                 
                 xsel = dfList[0][ col1 ].to_numpy()
                 ysel = dfList[0][ col2 ].to_numpy()
                 deltasel = errList[0][ col2 ].to_numpy()
+                
                 strt = 0; end = 11;
                 hv_data.append([xsel[strt:end], ysel[strt:end], deltasel[strt:end]]); 
                 labels.append(r'D = 10km, $%(v1)d\,\leq\,N_{b}\,\leq\,%(v2)d$'%{"v1":strt, "v2":end-1}); 
                 marks.append(Plotting.labs_pts[0]); 
-                strt = 11; end = 22;
+                
+                strt = end; end = 22;
                 hv_data.append([xsel[strt:end], ysel[strt:end], deltasel[strt:end]]); 
                 labels.append(r'D = 10km, $%(v1)d\,\leq\,N_{b}\,\leq\,%(v2)d$'%{"v1":strt, "v2":end-1});
                 marks.append(Plotting.labs_pts[1]); 
@@ -3726,11 +3744,13 @@ def Combine_Beat_Analysis():
                 xsel = dfList[1][ col1 ].to_numpy()
                 ysel = dfList[1][ col2 ].to_numpy()
                 deltasel = errList[1][ col2 ].to_numpy()
-                strt = 0; end = 11;
+                
+                strt = 0; end = 5;
                 hv_data.append([xsel[strt:end], ysel[strt:end], deltasel[strt:end]]); 
                 labels.append(r'D = 50km, $%(v1)d\,\leq\,N_{b}\,\leq\,%(v2)d$'%{"v1":strt, "v2":end-1}); 
                 marks.append(Plotting.labs_pts[2]); 
-                strt = 11; end = 22;
+                
+                strt = end; end = 22;
                 hv_data.append([xsel[strt:end], ysel[strt:end], deltasel[strt:end]]); 
                 labels.append(r'D = 50km, $%(v1)d\,\leq\,N_{b}\,\leq\,%(v2)d$'%{"v1":strt, "v2":end-1});
                 marks.append(Plotting.labs_pts[3]); 
@@ -3739,20 +3759,47 @@ def Combine_Beat_Analysis():
                 args = Plotting.plot_arg_multiple()
                 
                 args.loud = True
-                args.x_label = 'Loop Length / km'
-                args.y_label = 'Voigt Fit Linewidth / kHz / 100Hz'
+                args.x_label = 'Loop Length ( km )' if col1 == Dstr else 'Beat Note Frequency ( MHz )'
+                
+                if col2 == LLstr:
+                    args.y_label = 'Laser Linewidth ( kHz / 100 Hz )'
+                elif col2 == Pstr:
+                    args.y_label = 'Peak Power ( dBm / 100 Hz )'
+                elif col2 == LLGstr:
+                    args.y_label = 'Gaussian Linewidth ( kHz / 100 Hz )'
+                elif col2 == LLLstr:
+                    args.y_label = 'Lorentzian Linewidth ( kHz / 100 Hz )'
+                else:
+                    args.y_label = 'Laser Linewidth ( kHz / 100 Hz )'
+                
                 args.crv_lab_list = labels
                 args.mrk_list = marks
                 args.log_x = True
-                args.fig_name = 'Full_Voigt_Fit_Linewidth'
-                args.plt_range = [10, 1000, 0, 3]
+
+                suf2 = 'Distance' if col1 == Dstr else 'Fbeat'
+
+                if col2 == LLstr:
+                    suf1 = 'Full_Voigt_Fit_Linewidth'
+                elif col2 == Pstr:
+                    suf1 = 'Full_Pmax'
+                elif col2 == LLGstr:
+                    suf1 = 'Full_Gaussian'
+                elif col2 == LLLstr:
+                    suf1 = 'Full_Lotentzian'
+                else:
+                    suf1 = 'Full_Some_Fitted_Linewidth'
+
+                args.fig_name = '%(v1)s_%(v2)s'%{"v1":suf1, "v2":suf2}
                 
                 #Plotting.plot_multiple_curves_with_errors(hv_data, args)
                 Plotting.plot_multiple_curves(hv_data, args)
             
-            PLOT_LLV = True
+            PLOT_LLV = False
             if PLOT_LLV:
                 # Data is in memory, make the plots you want to make
+                # Combine the D=10 and D=50 data frames
+                # Make a plot of the data showing linear fits in different regions
+                
                 subSet = True
                 iStrt = [0, 0]
                 iEnd = [11, 20]; 
@@ -3762,14 +3809,14 @@ def Combine_Beat_Analysis():
                 args = Plotting.plot_arg_single()
             
                 args.loud = True
-                args.x_label = 'Loop Length / km'
-                args.y_label = 'Voigt Fit Linewidth / kHz / 100Hz'
+                args.x_label = 'Loop Length ( km )'
+                args.y_label = 'Laser Linewidth ( kHz / 100 Hz )'
                 args.marker = Plotting.labs_pts[0]
                 args.fig_name = 'Voigt_Fit_Linewidth'
                 args.log_x = True
                 args.plt_range = [10, 1000, 0, 3]
             
-                #Plotting.plot_single_curve_with_errors(theData[0], theData[1], theData[2], args)
+                Plotting.plot_single_curve_with_errors(theData[0], theData[1], theData[2], args)
 
                 args.fig_name = 'Voigt_Fit_Linewidth_Lin_Fit'
                 args.log_x = False
@@ -3795,11 +3842,11 @@ def Combine_Beat_Analysis():
                 m3 = params3[1]; c3 = params3[0]; 
                 Dvals = [200, 1000]; nuvals = [(200.0*m1)+c1, (1000.0*m1)+c1]
                 
-                args.log_x = False
+                args.log_x = True
                 args.add_line = True
                 args.lcList = [ [(200, (200.0*m1)+c1), (1000, (1000.0*m1)+c1)], [(90, (90.0*m2)+c2), (200, (200.0*m2)+c2)], [(20, (20.0*m3)+c3), (80, (80*m3)+c3)] ]
                 args.lcListColours = ['b']
-                args.fig_name = 'Voigt_Fit_Linewidth_Lin_Fit_Lin_Scale'
+                args.fig_name = 'Voigt_Fit_Linewidth_Lin_Fit_Log_Scale'
                 Plotting.plot_single_curve_with_errors(theData[0], theData[1], theData[2], args)
                 
                 # Different Method, same plot
@@ -3828,6 +3875,9 @@ def Combine_Beat_Analysis():
                 
             PLOT_LL_CONTRIB = False
             if PLOT_LL_CONTRIB:
+
+                # Make a plot of the Gaussian and Lorentzian contributions to the Linewidth as a function of loop length
+
                 subSet = True
                 iStrt = [0, 0]
                 iEnd = [11, 20]; 
@@ -3853,8 +3903,8 @@ def Combine_Beat_Analysis():
                 args = Plotting.plot_arg_multiple()
                 
                 args.loud = True
-                args.x_label = 'Loop Length / km'
-                args.y_label = 'Fitted Linewidth / kHz / 100Hz'
+                args.x_label = 'Loop Length ( km )'
+                args.y_label = 'Fitted Linewidth ( kHz / 100Hz )'
                 args.crv_lab_list = labels
                 args.mrk_list = marks
                 args.fig_name = 'Combined_Fitted_Linewidth'
@@ -6357,8 +6407,8 @@ def Pub_Figs():
                 theLaser = 'NKT'
                 temperature = 35    
                 RBW = '100Hz' # RBW used in the measurement
-                FUnits = ' / kHz'
-                LWUNits = ' / ' + RBW
+                FUnits = ' ( kHz )'
+                LWUNits = ' ) ' + RBW
 
                 PLOT_VS_PRAT = True # Generate the plot with Power Ratio along the x-axis, otherwise plot versus V_{VOA}
                 
@@ -6470,8 +6520,8 @@ def Pub_Figs():
                 theLaser = 'NKT'
                 temperature = 35    
                 RBW = '100Hz' # RBW used in the measurement
-                FUnits = ' / kHz'
-                LWUNits = ' / ' + RBW
+                FUnits = ' ( kHz'
+                LWUNits = ' ) ' + RBW
                 
                 # Load the data into memory
 
@@ -6570,7 +6620,7 @@ def Pub_Figs():
                 print(VVOA)
                 print(PRAT)
                 
-            PLOT_SINGLE_DIST = True
+            PLOT_SINGLE_DIST = False
             
             if PLOT_SINGLE_DIST:
                 # Make a set of plots for a single distance instead of combining the data from two different distances
@@ -6713,6 +6763,120 @@ def Pub_Figs():
                     args.fig_name = 'Intrinsic_Laser_Linewidth'+'_vs_Prat_D_%(v1)d'%{"v1":Deff[indx]} if PLOT_VS_PRAT else 'Intrinsic_Laser_Linewidth'+'_vs_VVOA_D_%(v1)d'%{"v1":Deff[indx]}
                 
                     Plotting.plot_multiple_curves_with_errors(hv_data, args)
+
+            PLOT_BEST_LINESHAPE = False
+
+            if PLOT_BEST_LINESHAPE:
+                HOME = os.getcwd()
+                DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_200/LLM_Data_Nmeas_100_I_200_04_03_2025_21_31/'
+                if os.path.isdir(DATA_HOME):
+                    os.chdir(DATA_HOME)
+                    fstr = 'LLM_Meas_%(v1)d.txt'
+                    n_stp = 25 # no. of lineshapes to skip
+                    deltaT = 30 # time between measurements
+                    hv_data = []; labels = []; marks = [];
+                    count = 1
+                    
+                    # read in all the measured lineshapes taken over the duration of the measurement
+                    for i in range(0, 101, n_stp):
+                        filename = fstr%{"v1":i}
+                        if glob.glob(filename):
+                            the_data = numpy.loadtxt(filename, delimiter = '\t')
+                            hv_data.append(the_data)
+                            labels.append("T = %(v1)d (mins)"%{"v1":( ( i*deltaT )/60.0 )})
+                            marks.append( Plotting.labs_dashed[ count%( len( Plotting.labs_dashed ) ) ] )
+                            count = count + 1
+                    
+                    # read in the data for the avergage Voigt fit
+                    the_data = numpy.loadtxt('Voigt_Average.txt', delimiter = ',', unpack = True)
+                    the_data[1] = the_data[1] / 1e+6 # convert nW -> mW
+                    the_data[1] = Common.list_convert_mW_dBm(the_data[1]) # convert mW -> dBm
+                    hv_data.append(the_data); labels.append("Voigt Fit"); marks.append(Plotting.labs_lins[0]); 
+                    
+                    # Make the lineshape plot
+                    os.chdir(HOME)
+                    args = Plotting.plot_arg_multiple()
+
+                    args.loud = True
+                    args.crv_lab_list = labels
+                    args.mrk_list = marks
+                    args.x_label = 'Frequency ( kHz )'
+                    args.y_label = 'Power ( dBm / 100 Hz )'
+                    args.plt_range = [-50, 50, -75, -35]
+                    args.fig_name = 'Averaged_Lineshape'
+                    
+                    Plotting.plot_multiple_curves(hv_data, args)
+                    
+                    del hv_data; del marks; del labels;                     
+                else:
+                    ERR_STATEMENT = ERR_STATEMENT + '\nCannot find directory: ' + DATA_HOME + '\n'
+                    raise Exception 
+                
+            PLOT_BEST_HIST = False
+
+            if PLOT_BEST_HIST:
+                HOME = os.getcwd()
+                DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_200/LLM_Data_Nmeas_100_I_200_04_03_2025_21_31/'
+                if os.path.isdir(DATA_HOME):
+                    os.chdir(DATA_HOME)
+                                        
+                    # read in the data for the avergage Voigt fit
+                    LLVfitcol = 7
+                    Timecol = 0
+                    the_data = numpy.loadtxt('Multi_LLM_Data.txt', delimiter = '\t', unpack = True, skiprows = 1)
+                    
+                    # Make a plot of the time-series
+                    os.chdir(HOME)
+                    args = Plotting.plot_arg_single()
+                    
+                    args.loud = False
+                    args.x_label = 'Time ( mins )'
+                    args.y_label = 'Laser Linewidth ( kHz )'
+                    args.marker = Plotting.labs_pts[1]
+                    args.plt_range = [0, 50, 1.6, 2.3]
+                    args.fig_name = 'LL_Vfit_kHz_vs_Time_min'
+                    
+                    #Plotting.plot_single_curve(the_data[Timecol]/60.0, the_data[LLVfitcol], args)
+                    Plotting.plot_single_linear_fit_curve(the_data[Timecol]/60.0, the_data[LLVfitcol], args)
+
+                    # Examine the correlation between the two data sets
+                    kendall_tau, kendall_p = scipy.stats.kendalltau(the_data[Timecol], the_data[LLVfitcol])
+                    spearman_r, spearman_p = scipy.stats.spearmanr(the_data[Timecol], the_data[LLVfitcol])
+                    pearson_r, pearson_p = scipy.stats.pearsonr(the_data[Timecol], the_data[LLVfitcol])
+                    print("Correlation Coefficients")
+                    print("Null Hypothesis: There is no linear relationship between the variables")
+                    print("Significance Level: alpha = 0.05")
+                    print("p > alpha => Accept NH")
+                    print("p < alpha =>  Reject NH")
+                    print("Pearson's r:",pearson_r,", Pearson's p:",pearson_p)
+                    print("Kendall's tau:",kendall_tau,", Kendall's p:",kendall_p)
+                    print("Spearman's r:",spearman_r,", Spearman's p:",spearman_p)
+                    print()
+                    
+                    # Make a plot of the distribution of LLVfit values                   
+                    # args.loud = True
+                    # n_bins = int( 1.0 + 3.322*math.log( len(the_data[LLVfitcol]) ) )
+                    # args.bins = n_bins
+                    # args.x_label = 'Laser Linewidth ( kHz )'
+                    # args.y_label = 'Counts'
+                    # args.fig_name = 'Histogram_LL_Vfit_kHz_min'
+
+                    # Plotting.plot_histogram(the_data[LLVfitcol], args)
+                    
+                else:
+                    ERR_STATEMENT = ERR_STATEMENT + '\nCannot find directory: ' + DATA_HOME + '\n'
+                    raise Exception 
+
+            PLOT_BEAT_ANALYSIS = False
+            
+            if PLOT_BEAT_ANALYSIS:
+
+                D_10_beat_file = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_10/I_200_Nb_20/Averaged_Data_I_200.txt'
+                D_50_beat_file = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_50/I_200_Nb_20/Averaged_Data_I_200.txt'
+
+                # See Combine_Beat_Analysis() above
+
+                pass
 
     except Exception as e:
         print(ERR_STATEMENT)

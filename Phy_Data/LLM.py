@@ -6435,8 +6435,8 @@ def Pub_Figs():
             PLOT_CNR = False
 
             if PLOT_CNR:
-                #Deff = [200, 400]
-                Deff = [200]
+                Deff = [200, 400]
+                #Deff = [200]
                 theLaser = 'NKT'
                 temperature = 35    
                 RBW = '100Hz' # RBW used in the measurement
@@ -6456,7 +6456,7 @@ def Pub_Figs():
                     # Make a plot of the Prat vs VVOA
                     args = Plotting.plot_arg_single()
                     
-                    args.loud = True
+                    args.loud = False
                     args.x_label = 'VOA Bias ( V )'
                     args.y_label = r'Power Ratio $\rho =$ P$_{2}$ / P$_{1}$'
                     args.curve_label = 'P$_{1}$ = 9.5 dBm'
@@ -6475,10 +6475,16 @@ def Pub_Figs():
                 args.y_label = 'CNR ( dB / 100Hz )'
                 args.crv_lab_list = labs
                 args.mrk_list = marks
-                #args.fig_name = '%(v1)s_CNR_vs_Prat'%{"v1":theLaser} if PLOT_VS_PRAT else '%(v1)s_CNR_vs_VVOA'%{"v1":theLaser}
-                args.fig_name = '%(v1)s_CNR_vs_Prat_D_200'%{"v1":theLaser} if PLOT_VS_PRAT else '%(v1)s_CNR_vs_VVOA_D_200'%{"v1":theLaser}
+                
+                args.add_line = True
+                args.lcList = [[(0.4, 20), (0.4, 32)]]
+                args.lcListColours = ['b']
+                args.lcListStyle = ['dashed']
+                
+                args.fig_name = '%(v1)s_CNR_vs_Prat'%{"v1":theLaser} if PLOT_VS_PRAT else '%(v1)s_CNR_vs_VVOA'%{"v1":theLaser}
+                #args.fig_name = '%(v1)s_CNR_vs_Prat_D_200'%{"v1":theLaser} if PLOT_VS_PRAT else '%(v1)s_CNR_vs_VVOA_D_200'%{"v1":theLaser}
                 #args.plt_title = '%(v1)s, P$_{1}$ = %(v2)0.2f dBm, D$_{eff}$ = %(v4)d km'%{"v1":theLaser, "v2":Pin, "v4":looplength}
-                args.plt_range = [0.05, 0.82, 25, 32] if PLOT_VS_PRAT else [0.0, 4.0, 25, 32]
+                args.plt_range = [0.05, 0.82, 20, 32] if PLOT_VS_PRAT else [0.0, 4.0, 25, 32]
 
                 Plotting.plot_multiple_curves_with_errors(hv_data, args)
 
@@ -6517,7 +6523,7 @@ def Pub_Figs():
                 
                     del hv_data; del marks; del labs; 
 
-                PLOT_LINESHAPES_VOLT = True
+                PLOT_LINESHAPES_VOLT = False
                 if PLOT_LINESHAPES_VOLT:
                     # plot lineshapes together at different bias values
                     hv_data = []; marks = []; labs = [];
@@ -6653,7 +6659,7 @@ def Pub_Figs():
                 print(VVOA)
                 print(PRAT)
                 
-            PLOT_SINGLE_DIST = False
+            PLOT_SINGLE_DIST = True
             
             if PLOT_SINGLE_DIST:
                 # Make a set of plots for a single distance instead of combining the data from two different distances
@@ -6665,7 +6671,7 @@ def Pub_Figs():
                 LWUNits = ' / ' + RBW
                 
                 PLOT_VS_PRAT = True
-                
+                                
                 # Load the data into memory
                 
                 # Linewidth measurement results
@@ -6792,6 +6798,12 @@ def Pub_Figs():
                     args.y_label = 'Intrinsic Laser Linewidth ( %(v1)s )'%{"v1":LLMunitstr}
                     args.crv_lab_list = labels
                     args.mrk_list = marks
+                    
+                    args.add_line = True
+                    args.lcList = [[(0.4, 0), (0.4, 1.25)]]
+                    args.lcListColours = ['b']
+                    args.lcListStyle = ['dashed']
+
                     args.plt_range = [0, 0.82, 0, 1.25] if PLOT_VS_PRAT else [0, 3.8, 0, 1.25]
                     args.fig_name = 'Intrinsic_Laser_Linewidth'+'_vs_Prat_D_%(v1)d'%{"v1":Deff[indx]} if PLOT_VS_PRAT else 'Intrinsic_Laser_Linewidth'+'_vs_VVOA_D_%(v1)d'%{"v1":Deff[indx]}
                 
@@ -6811,10 +6823,15 @@ def Pub_Figs():
                     count = 1
                     
                     # read in all the measured lineshapes taken over the duration of the measurement
+                    NORM_TO_ZERO = True # normalise the curves so that the lineshape peak sits at 0 dBm
                     for i in range(0, 101, n_stp):
                         filename = fstr%{"v1":i}
                         if glob.glob(filename):
                             the_data = numpy.loadtxt(filename, delimiter = '\t')
+                            if NORM_TO_ZERO:
+                                # normalise the curves so that the lineshape peak sits at 0 dBm
+                                ls_max = numpy.max(the_data[1])
+                                the_data[1] = the_data[1] + math.fabs(ls_max)
                             hv_data.append(the_data)
                             labels.append("T = %(v1)d (mins)"%{"v1":( ( i*deltaT )/60.0 )})
                             marks.append( Plotting.labs_dashed[ count%( len( Plotting.labs_dashed ) ) ] )
@@ -6824,6 +6841,10 @@ def Pub_Figs():
                     the_data = numpy.loadtxt('Voigt_Average.txt', delimiter = ',', unpack = True)
                     the_data[1] = the_data[1] / 1e+6 # convert nW -> mW
                     the_data[1] = Common.list_convert_mW_dBm(the_data[1]) # convert mW -> dBm
+                    if NORM_TO_ZERO:
+                        # normalise the curves so that the lineshape peak sits at 0 dBm
+                        ls_max = numpy.max(the_data[1])
+                        the_data[1] = the_data[1] + math.fabs(ls_max)
                     hv_data.append(the_data); labels.append("Voigt Fit"); marks.append(Plotting.labs_lins[0]); 
                     
                     # Make the lineshape plot
@@ -6835,7 +6856,7 @@ def Pub_Figs():
                     args.mrk_list = marks
                     args.x_label = 'Frequency ( kHz )'
                     args.y_label = 'Power ( dBm / 100 Hz )'
-                    args.plt_range = [-50, 50, -75, -35]
+                    args.plt_range = [-50, 50, -40, 0]
                     args.fig_name = 'Averaged_Lineshape'
                     
                     Plotting.plot_multiple_curves(hv_data, args)
@@ -6911,7 +6932,7 @@ def Pub_Figs():
 
                 pass
 
-            POWER_BUDGET_ANALYSIS = True
+            POWER_BUDGET_ANALYSIS = False
             if POWER_BUDGET_ANALYSIS:
                 
                 # Want to know why the measured lineshape increases for longer loop lengths

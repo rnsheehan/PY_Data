@@ -6659,7 +6659,7 @@ def Pub_Figs():
                 print(VVOA)
                 print(PRAT)
                 
-            PLOT_SINGLE_DIST = True
+            PLOT_SINGLE_DIST = False
             
             if PLOT_SINGLE_DIST:
                 # Make a set of plots for a single distance instead of combining the data from two different distances
@@ -6866,57 +6866,120 @@ def Pub_Figs():
                     ERR_STATEMENT = ERR_STATEMENT + '\nCannot find directory: ' + DATA_HOME + '\n'
                     raise Exception 
                 
-            PLOT_BEST_HIST = False
+            PLOT_BEST_HIST = True
 
             if PLOT_BEST_HIST:
                 HOME = os.getcwd()
                 DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_NKT_T_35_D_200/LLM_Data_Nmeas_100_I_200_04_03_2025_21_31/'
                 if os.path.isdir(DATA_HOME):
                     os.chdir(DATA_HOME)
+
+                    # The axes
+                    # 0: Time / s
+                    # 1: Tair / C
+                    # 2: Taom / C
+                    # 3: Taomdrv / C
+                    # 4: Pmax / dBm
+                    # 5: Fmax / (MHz or kHz) Fmax < 80 =. kHz
+                    # 6: LLest@-3dB / (MHz or kHz) Fmax < 80 =. kHz
+                    # 7: LLVfit / (MHz or kHz) Fmax < 80 =. kHz
+                    # 8: LLLfit / (MHz or kHz) Fmax < 80 =. kHz
+                    # 9: LL@-20dB / (MHz or kHz) Fmax < 80 =. kHz
+                    # 10: V_{h} / "nW"
+                    # 11: V_{c} / (MHz or kHz) Fmax < 80 =. kHz
+                    # 12: V_{\gamma} / (MHz or kHz) Fmax < 80 =. kHz
+                    # 13: V_{\sigma} / (MHz or kHz) Fmax < 80 =. kHz
+                    # 14: L_{h} / "nW"
+                    # 15: L_{c} / (MHz or kHz) Fmax < 80 =. kHz
+                    # 16: L_{\sigma} / (MHz or kHz) Fmax < 80 =. kHz
+                    # 17: P_{1} / dBm
+                    # 18: P_{2} / dBm
+                    # 19: P_{2} / P_{1}
                                         
                     # read in the data for the avergage Voigt fit
-                    LLVfitcol = 7
+                    LLVfitcol = 7 # Voigt fit LW
+                    LL20col = 9 # 20-dB down LW
+                    LLVgcol = 12 # int LW
+                    LLVscol = 13 # 1/f LW
                     Timecol = 0
                     the_data = numpy.loadtxt('Multi_LLM_Data.txt', delimiter = '\t', unpack = True, skiprows = 1)
                     
-                    # Make a plot of the time-series
-                    os.chdir(HOME)
-                    args = Plotting.plot_arg_single()
-                    
-                    args.loud = False
-                    args.x_label = 'Time ( mins )'
-                    args.y_label = 'Laser Linewidth ( kHz )'
-                    args.marker = Plotting.labs_pts[1]
-                    args.plt_range = [0, 50, 1.6, 2.3]
-                    args.fig_name = 'LL_Vfit_kHz_vs_Time_min'
-                    
-                    #Plotting.plot_single_curve(the_data[Timecol]/60.0, the_data[LLVfitcol], args)
-                    Plotting.plot_single_linear_fit_curve(the_data[Timecol]/60.0, the_data[LLVfitcol], args)
+                    PLOT_LLVFIT = True
+                    if PLOT_LLVFIT:
 
-                    # Examine the correlation between the two data sets
-                    kendall_tau, kendall_p = scipy.stats.kendalltau(the_data[Timecol], the_data[LLVfitcol])
-                    spearman_r, spearman_p = scipy.stats.spearmanr(the_data[Timecol], the_data[LLVfitcol])
-                    pearson_r, pearson_p = scipy.stats.pearsonr(the_data[Timecol], the_data[LLVfitcol])
-                    print("Correlation Coefficients")
-                    print("Null Hypothesis: There is no linear relationship between the variables")
-                    print("Significance Level: alpha = 0.05")
-                    print("p > alpha => Accept NH")
-                    print("p < alpha =>  Reject NH")
-                    print("Pearson's r:",pearson_r,", Pearson's p:",pearson_p)
-                    print("Kendall's tau:",kendall_tau,", Kendall's p:",kendall_p)
-                    print("Spearman's r:",spearman_r,", Spearman's p:",spearman_p)
-                    print()
-                    
-                    # Make a plot of the distribution of LLVfit values                   
-                    # args.loud = True
-                    # n_bins = int( 1.0 + 3.322*math.log( len(the_data[LLVfitcol]) ) )
-                    # args.bins = n_bins
-                    # args.x_label = 'Laser Linewidth ( kHz )'
-                    # args.y_label = 'Counts'
-                    # args.fig_name = 'Histogram_LL_Vfit_kHz_min'
+                        col = LL20col
+                        scal_fac = 2.0*math.sqrt(99)
 
-                    # Plotting.plot_histogram(the_data[LLVfitcol], args)
+                        # Make a plot of the time-series
+                        os.chdir(HOME)
+                        args = Plotting.plot_arg_single()
                     
+                        args.loud = True
+                        args.x_label = 'Time ( mins )'
+                        args.y_label = 'Laser Linewidth ( kHz )'
+                        args.marker = Plotting.labs_pts[1]
+                        #args.plt_range = [0, 50, 0.2, 0.3]
+                        #args.fig_name = 'LL_Vfit_kHz_vs_Time_min'
+                    
+                        #Plotting.plot_single_curve(the_data[Timecol]/60.0, the_data[col], args)
+                        Plotting.plot_single_linear_fit_curve(the_data[Timecol]/60.0, the_data[col], args)
+
+                        # Examine the correlation between the two data sets
+                        kendall_tau, kendall_p = scipy.stats.kendalltau(the_data[Timecol], the_data[col])
+                        spearman_r, spearman_p = scipy.stats.spearmanr(the_data[Timecol], the_data[col])
+                        pearson_r, pearson_p = scipy.stats.pearsonr(the_data[Timecol], the_data[col])
+                        print("Correlation Coefficients")
+                        print("Null Hypothesis: There is no linear relationship between the variables")
+                        print("Significance Level: alpha = 0.05")
+                        print("p > alpha => Accept NH")
+                        print("p < alpha =>  Reject NH")
+                        print("Pearson's r:",pearson_r,", Pearson's p:",pearson_p)
+                        print("Kendall's tau:",kendall_tau,", Kendall's p:",kendall_p)
+                        print("Spearman's r:",spearman_r,", Spearman's p:",spearman_p)
+                        print()
+
+                        # Compute the mean of the data set with / without the outliers included
+                        # This only really applies to the intrinsic LW data
+                        # Exclude outliers
+                        low = 0.1; high = 0.5;
+                        stripped = numpy.array([])
+                        stripped_time = numpy.array([])
+                        
+                        for i in range(0, len(the_data[col]), 1):
+                            if the_data[col][i] > low and the_data[col][i] < high:
+                                stripped = numpy.append(stripped, the_data[col][i])
+                                stripped_time = numpy.append(stripped_time, the_data[Timecol][i])
+                                
+                        print("Description of data")
+                        print("Mean = %(v1)0.2f +/- %(v2)0.2f (kHz)"%{"v1":numpy.mean(the_data[col]), "v2":numpy.std(the_data[col], ddof=1)})
+                        if len(stripped)>0:
+                            print("Mean = %(v1)0.2f +/- %(v2)0.2f (kHz)"%{"v1":numpy.mean(stripped), "v2":numpy.std(stripped, ddof=1)})
+                            
+                            # Examine the correlation between the two data sets
+                            kendall_tau, kendall_p = scipy.stats.kendalltau(stripped_time, stripped)
+                            spearman_r, spearman_p = scipy.stats.spearmanr(stripped_time, stripped)
+                            pearson_r, pearson_p = scipy.stats.pearsonr(stripped_time, stripped)
+                            print("Correlation Coefficients")
+                            print("Null Hypothesis: There is no linear relationship between the variables")
+                            print("Significance Level: alpha = 0.05")
+                            print("p > alpha => Accept NH")
+                            print("p < alpha =>  Reject NH")
+                            print("Pearson's r:",pearson_r,", Pearson's p:",pearson_p)
+                            print("Kendall's tau:",kendall_tau,", Kendall's p:",kendall_p)
+                            print("Spearman's r:",spearman_r,", Spearman's p:",spearman_p)
+                            print()
+                        
+                    
+                        # Make a plot of the distribution of LLVfit values                   
+                        args.loud = True
+                        n_bins = int( 1.0 + 3.322*math.log( len(the_data[col]) ) )
+                        args.bins = n_bins
+                        args.x_label = 'Laser Linewidth ( kHz )'
+                        args.y_label = 'Counts'
+                        #args.fig_name = 'Histogram_LL_Vfit_kHz_min'
+
+                        Plotting.plot_histogram(the_data[col], args)
+
                 else:
                     ERR_STATEMENT = ERR_STATEMENT + '\nCannot find directory: ' + DATA_HOME + '\n'
                     raise Exception 

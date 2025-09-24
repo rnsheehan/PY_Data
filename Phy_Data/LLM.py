@@ -3715,18 +3715,19 @@ def Combine_Beat_Analysis():
                 # I don't think it's quite as simple as L_{D} > 9 L_{F}, but what is it? 
                 # What's happening to the peak power in each case? 
                 
-                col1 = Dstr; col2 = LLstr; 
+                #col1 = Dstr; col2 = LLstr; 
                 #col1 = Dstr; col2 = Pstr; 
                 #col1 = Dstr; col2 = LLGstr; 
                 #col1 = Dstr; col2 = LLLstr; 
                 
                 #col1 = Fstr; col2 = LLstr; 
-                #col1 = Fstr; col2 = Pstr; 
+                col1 = Fstr; col2 = Pstr; 
                 #col1 = Fstr; col2 = LLGstr; 
                 #col1 = Fstr; col2 = LLLstr;
 
                 hv_data = []; labels = []; marks = []
                 
+                # D = 10 data
                 xsel = dfList[0][ col1 ].to_numpy()
                 ysel = dfList[0][ col2 ].to_numpy()
                 deltasel = errList[0][ col2 ].to_numpy()
@@ -3741,6 +3742,7 @@ def Combine_Beat_Analysis():
                 labels.append(r'D = 10km, $%(v1)d\,\leq\,N_{b}\,\leq\,%(v2)d$'%{"v1":strt, "v2":end-1});
                 marks.append(Plotting.labs_pts[1]); 
                 
+                # D = 50 data
                 xsel = dfList[1][ col1 ].to_numpy()
                 ysel = dfList[1][ col2 ].to_numpy()
                 deltasel = errList[1][ col2 ].to_numpy()
@@ -3793,6 +3795,49 @@ def Combine_Beat_Analysis():
                 
                 #Plotting.plot_multiple_curves_with_errors(hv_data, args)
                 Plotting.plot_multiple_curves(hv_data, args)
+
+            PLOT_RSPP = True
+            if PLOT_RSPP:
+                # Make a plot of the relative spectral peak data
+                # This is the same plot as is shown in Fig.5 of Han et al., 
+                # The value obtained should be a multiple of the loop gamma
+                
+                col1 = Fstr; col2 = Pstr; 
+                
+                # D = 10 data
+                xsel = dfList[1][ col1 ].to_numpy()
+                ysel = dfList[1][ col2 ].to_numpy()
+                deltasel = errList[1][ col2 ].to_numpy()
+
+                rspp = numpy.array([]) # empty numpy array
+                beat_num = numpy.arange(0, len(ysel), 1)
+                alpha = 0.9
+                k = alpha / (1.0-alpha)
+                #scale = Common.convert_PdBm_PmW(ysel[0])
+                scale = ysel[0]
+                for i in range(0, len(ysel), 1):
+                    #rspp = numpy.append(rspp,  Common.convert_PdBm_PmW(ysel[i])/scale)
+                    rspp = numpy.append(rspp,  ysel[i]/scale )
+
+                # The lope of this curve is m = \alpha \gamma / (1 - \alpha), \alpha = 0.9
+                fit_pars = Common.linear_fit(beat_num, rspp, [1, 1])
+                true_gamma = 0.95
+                print("intersection:",fit_pars[0])
+                print("slope:",fit_pars[1])
+                print("k:",k)
+                print("gamma: ",fit_pars[1]/k)
+                print("gamma: ",fit_pars[1]*k)
+                print("ratio:",fit_pars[1]*true_gamma)
+                
+                # make a plot of the rspp versus beat number
+                args = Plotting.plot_arg_single()
+                
+                args.loud = True
+                args.log_y = False
+                args.x_label = 'Beat Number'
+                args.y_label = 'RSPP'
+                                
+                Plotting.plot_single_curve(beat_num, rspp, args)
                 
             PLOT_DIFF = False
             if PLOT_DIFF:
@@ -3827,7 +3872,7 @@ def Combine_Beat_Analysis():
                     print("D = %(v1)0.1f ( km ), dnu10 = %(v3)0.2f, dnu50 = %(v4)0.2f, delta=%(v2)0.2f"%{"v1":xsel_10[i+4], "v3":ysel_10[i+4], 
                                                                                                          "v4":sel_50, "v2":math.fabs(ysel_10[i+4])-math.fabs(sel_50)})
             
-            PLOT_LLV = True
+            PLOT_LLV = False
             if PLOT_LLV:
                 # Data is in memory, make the plots you want to make
                 # Combine the D=10 and D=50 data frames

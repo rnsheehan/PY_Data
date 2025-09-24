@@ -3811,8 +3811,8 @@ def Combine_Beat_Analysis():
 
                 rspp = numpy.array([]) # empty numpy array
                 beat_num = numpy.arange(0, len(ysel), 1)
-                alpha = 0.9
-                k = alpha / (1.0-alpha)
+                alpha = 0.1
+                k = alpha / ((1.0-alpha)**2)
                 #scale = Common.convert_PdBm_PmW(ysel[0])
                 scale = ysel[0]
                 for i in range(0, len(ysel), 1):
@@ -3825,9 +3825,8 @@ def Combine_Beat_Analysis():
                 print("intersection:",fit_pars[0])
                 print("slope:",fit_pars[1])
                 print("k:",k)
-                print("gamma: ",fit_pars[1]/k)
-                print("gamma: ",fit_pars[1]*k)
-                print("ratio:",fit_pars[1]*true_gamma)
+                print("gamma: ",(fit_pars[1])/k)
+                
                 
                 # make a plot of the rspp versus beat number
                 args = Plotting.plot_arg_single()

@@ -3871,16 +3871,16 @@ def Combine_Beat_Analysis():
                     sigB = math.log10( scale_err )**2
                     for i in range(0, len(ysel), 1):
                         Z = math.log10( Common.convert_PdBm_PmW( ysel[i] ) / scale ) # compute the ratio of the quantities
-                        #sigA = math.fabs( math.log10( ( Common.convert_PdBm_PmW( deltasel[i] ) / scale_err ) ) ) # (dA / A)^{2}
                         
-                        sigA = math.log10( Common.convert_PdBm_PmW( deltasel[i] ) )**2
-                        sigZ = math.sqrt( sigA + sigB )
+                        #sigZ = math.fabs( math.log10( ( Common.convert_PdBm_PmW( deltasel[i] ) ) ) )                         
+                        # sigA = math.log10( Common.convert_PdBm_PmW( deltasel[i] ) )**2
+                        # sigZ = math.sqrt( sigA + sigB )
                         
                         rspp = numpy.append(rspp,  Z )
-                        delta_rspp = numpy.append(delta_rspp,  sigZ )
+                        delta_rspp = numpy.append(delta_rspp,  deltasel[i] )
                 
                 rspp_data = Common.sort_two_col(beat_num, rspp)
-                err_data = Common.sort_two_col(beat_num, delta_rspp)                
+                err_data = Common.sort_two_col(beat_num, delta_rspp)    
                                 
                 # print("\nSorted data")
                 # for i in range(0, len(beat_num), 1):
@@ -3903,10 +3903,10 @@ def Combine_Beat_Analysis():
                 args.plt_range = [0, 18, -6, 0]
                 
                 #Plotting.plot_single_curve(rspp_data[0], rspp_data[1], args)
-                Plotting.plot_single_linear_fit_curve(rspp_data[0], rspp_data[1], args)
+                #Plotting.plot_single_linear_fit_curve(rspp_data[0], rspp_data[1], args)
                 
                 # No need to include errors as they become too small when they are scaled
-                #Plotting.plot_single_linear_fit_curve_with_errors(rspp_data[0], rspp_data[1], err_data[1], args)
+                Plotting.plot_single_linear_fit_curve_with_errors(rspp_data[0], rspp_data[1], err_data[1], args)
 
             PLOT_DIFF = False
             if PLOT_DIFF:

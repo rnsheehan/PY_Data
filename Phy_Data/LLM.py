@@ -3796,48 +3796,118 @@ def Combine_Beat_Analysis():
                 #Plotting.plot_multiple_curves_with_errors(hv_data, args)
                 Plotting.plot_multiple_curves(hv_data, args)
 
-            PLOT_RSPP = True
-            if PLOT_RSPP:
+            PLOT_RSPP_V1 = False
+            if PLOT_RSPP_V1:
                 # Make a plot of the relative spectral peak data
                 # This is the same plot as is shown in Fig.5 of Han et al., 
                 # The value obtained should be a multiple of the loop gamma
                 
                 col1 = Fstr; col2 = Pstr; 
                 
-                # D = 10 data
-                xsel = dfList[1][ col1 ].to_numpy()
-                ysel = dfList[1][ col2 ].to_numpy()
-                deltasel = errList[1][ col2 ].to_numpy()
-
-                rspp = numpy.array([]) # empty numpy array
-                beat_num = numpy.arange(0, len(ysel), 1)
-                alpha = 0.1
-                k = alpha / ((1.0-alpha)**2)
-                #scale = Common.convert_PdBm_PmW(ysel[0])
-                scale = ysel[0]
-                for i in range(0, len(ysel), 1):
-                    #rspp = numpy.append(rspp,  Common.convert_PdBm_PmW(ysel[i])/scale)
-                    rspp = numpy.append(rspp,  ysel[i]/scale )
-
-                # The lope of this curve is m = \alpha \gamma / (1 - \alpha), \alpha = 0.9
-                fit_pars = Common.linear_fit(beat_num, rspp, [1, 1])
-                true_gamma = 0.95
-                print("intersection:",fit_pars[0])
-                print("slope:",fit_pars[1])
-                print("k:",k)
-                print("gamma: ",(fit_pars[1])/k)
+                hv_data = []; labels = []; marks = []
                 
+                D = [10, 50]
+                for indx in range(0, len(D), 1):
+                    ysel = dfList[indx][ col2 ].to_numpy()
+                    deltasel = errList[1][ col2 ].to_numpy()
+                
+                    rspp = numpy.array([]) # empty numpy array
+                    beat_num = numpy.arange(0, len(ysel), 1)
+                    alpha = 0.1
+                    k = alpha / ((1.0-alpha)**2)
+                    scale = Common.convert_PdBm_PmW(ysel[0])
+                    #scale = ysel[0]
+                    for i in range(0, len(ysel), 1):
+                        rspp = numpy.append(rspp,  math.log10( Common.convert_PdBm_PmW(ysel[i])/scale ) )
+                        #rspp = numpy.append(rspp,  ysel[i]/scale )
+                        
+                    hv_data.append([beat_num, rspp]); labels.append(r'D = %(v1)d ( km )'%{"v1":D[indx]}); 
+
+                    # The lope of this curve is m = \alpha \gamma / (1 - \alpha), \alpha = 0.9
+                    fit_pars = Common.linear_fit(beat_num, rspp, [1, 1])
+                    print("D:",D[indx])                    
+                    print("intersection:",fit_pars[0])
+                    print("slope:",fit_pars[1])                
+                    
+                marks.append(Plotting.labs_pts[0]);
+                marks.append(Plotting.labs_pts[2]);
+                
+                # make a plot of the rspp versus beat number
+                args = Plotting.plot_arg_multiple()
+                
+                args.loud = True
+                args.mrk_list = marks
+                args.crv_lab_list = labels
+                args.x_label = 'Beat Number'
+                args.y_label = 'RSPP ( dB )'
+                args.plt_range = [0, 18, -6, 0]
+                                
+                Plotting.plot_multiple_linear_fit_curves(hv_data, args)
+                
+            PLOT_RSPP_V2 = True
+            if PLOT_RSPP_V2:
+                # Make a plot of the relative spectral peak data
+                # This is the same plot as is shown in Fig.5 of Han et al., 
+                # The value obtained should be a multiple of the loop gamma
+                
+                col1 = Fstr; col2 = Pstr; 
+                
+                hv_data = []; labels = []; marks = []
+                
+                D = [10, 50]
+                
+                rspp = numpy.array([]) # empty numpy array
+                delta_rspp = numpy.array([]) # empty numpy array
+                beat_num = numpy.array([]) # empty numpy array
+                
+                for indx in range(0, len(D), 1):
+                    ysel = dfList[indx][ col2 ].to_numpy()
+                    deltasel = errList[1][ col2 ].to_numpy()
+                
+                    beat_num = numpy.append( beat_num, numpy.arange(0, len(ysel), 1) )
+                    
+                    scale = Common.convert_PdBm_PmW(ysel[0])   
+                    scale_err = Common.convert_PdBm_PmW(deltasel[0])
+                    sigB = math.log10( scale_err )**2
+                    for i in range(0, len(ysel), 1):
+                        Z = math.log10( Common.convert_PdBm_PmW( ysel[i] ) / scale ) # compute the ratio of the quantities
+                        #sigA = math.fabs( math.log10( ( Common.convert_PdBm_PmW( deltasel[i] ) / scale_err ) ) ) # (dA / A)^{2}
+                        
+                        sigA = math.log10( Common.convert_PdBm_PmW( deltasel[i] ) )**2
+                        sigZ = math.sqrt( sigA + sigB )
+                        
+                        rspp = numpy.append(rspp,  Z )
+                        delta_rspp = numpy.append(delta_rspp,  sigZ )
+                
+                rspp_data = Common.sort_two_col(beat_num, rspp)
+                err_data = Common.sort_two_col(beat_num, delta_rspp)                
+                                
+                # print("\nSorted data")
+                # for i in range(0, len(beat_num), 1):
+                #     print(beat_num[i],",",rspp[i],",",rspp_data[0][i],",",rspp_data[1][i])
+                
+                # The slope of this curve is m = \alpha \gamma / (1 - \alpha), \alpha = 0.9
+                fit_pars = Common.linear_fit( numpy.asarray( rspp_data[0] ), numpy.asarray( rspp_data[1] ), [1, 1] )
+                
+                print("\nLinear Fit")
+                print("intersection:",fit_pars[0])
+                print("slope:",fit_pars[1])   
+                print()
                 
                 # make a plot of the rspp versus beat number
                 args = Plotting.plot_arg_single()
                 
                 args.loud = True
-                args.log_y = False
                 args.x_label = 'Beat Number'
-                args.y_label = 'RSPP'
-                                
-                Plotting.plot_single_curve(beat_num, rspp, args)
+                args.y_label = 'RSPP ( dB )'
+                args.plt_range = [0, 18, -6, 0]
                 
+                #Plotting.plot_single_curve(rspp_data[0], rspp_data[1], args)
+                Plotting.plot_single_linear_fit_curve(rspp_data[0], rspp_data[1], args)
+                
+                # No need to include errors as they become too small when they are scaled
+                #Plotting.plot_single_linear_fit_curve_with_errors(rspp_data[0], rspp_data[1], err_data[1], args)
+
             PLOT_DIFF = False
             if PLOT_DIFF:
                 # Make a plot of the differences between the D=10km and D=50km loop data

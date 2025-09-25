@@ -3862,22 +3862,19 @@ def Combine_Beat_Analysis():
                 
                 for indx in range(0, len(D), 1):
                     ysel = dfList[indx][ col2 ].to_numpy()
-                    deltasel = errList[1][ col2 ].to_numpy()
-                
+                    deltasel = errList[indx][ col2 ].to_numpy()
+
                     beat_num = numpy.append( beat_num, numpy.arange(0, len(ysel), 1) )
                     
-                    scale = Common.convert_PdBm_PmW(ysel[0])   
+                    scale = Common.convert_PdBm_PmW(ysel[0])
                     scale_err = Common.convert_PdBm_PmW(deltasel[0])
-                    sigB = math.log10( scale_err )**2
                     for i in range(0, len(ysel), 1):
-                        Z = math.log10( Common.convert_PdBm_PmW( ysel[i] ) / scale ) # compute the ratio of the quantities
                         
-                        #sigZ = math.fabs( math.log10( ( Common.convert_PdBm_PmW( deltasel[i] ) ) ) )                         
-                        # sigA = math.log10( Common.convert_PdBm_PmW( deltasel[i] ) )**2
-                        # sigZ = math.sqrt( sigA + sigB )
+                        Z = 10.0*math.log10( Common.convert_PdBm_PmW( ysel[i] ) / scale  ) # compute the ratio of the quantities
+                        dZ = math.fabs(math.log10( Common.convert_PdBm_PmW( deltasel[i] ) / scale_err ) ) # compute the error associated with the scaling
                         
-                        rspp = numpy.append(rspp,  Z )
-                        delta_rspp = numpy.append(delta_rspp,  deltasel[i] )
+                        rspp = numpy.append(rspp,  Z)
+                        delta_rspp = numpy.append(delta_rspp,  dZ)
                 
                 rspp_data = Common.sort_two_col(beat_num, rspp)
                 err_data = Common.sort_two_col(beat_num, delta_rspp)    
@@ -3893,6 +3890,11 @@ def Combine_Beat_Analysis():
                 print("intersection:",fit_pars[0])
                 print("slope:",fit_pars[1])   
                 print()
+                print("Expected fit should be of the form y = c + m x")
+                print("For RSPP c ~ 0 and m = Log10[gamma]")
+                print("10^(intersection) ~ 1:",pow(10, fit_pars[0] ) )   
+                print("10^(slope) = gamma:",pow(10, fit_pars[1]/10.0 ) )   
+                print()
                 
                 # make a plot of the rspp versus beat number
                 args = Plotting.plot_arg_single()
@@ -3900,13 +3902,14 @@ def Combine_Beat_Analysis():
                 args.loud = True
                 args.x_label = 'Beat Number'
                 args.y_label = 'RSPP ( dB )'
-                args.plt_range = [0, 18, -6, 0]
+                args.plt_range = [0, 18, -60, 0]
+                args.fig_name = 'RSPP_vs_Beat_No'
                 
                 #Plotting.plot_single_curve(rspp_data[0], rspp_data[1], args)
-                #Plotting.plot_single_linear_fit_curve(rspp_data[0], rspp_data[1], args)
+                Plotting.plot_single_linear_fit_curve(rspp_data[0], rspp_data[1], args)
                 
                 # No need to include errors as they become too small when they are scaled
-                Plotting.plot_single_linear_fit_curve_with_errors(rspp_data[0], rspp_data[1], err_data[1], args)
+                #Plotting.plot_single_linear_fit_curve_with_errors(rspp_data[0], rspp_data[1], err_data[1], args)
 
             PLOT_DIFF = False
             if PLOT_DIFF:

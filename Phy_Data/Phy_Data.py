@@ -93,7 +93,7 @@ if __name__ == '__main__':
 
     #LLM.Summarise_Beat_Analysis()
     
-    LLM.Combine_Beat_Analysis()
+    #LLM.Combine_Beat_Analysis()
 
     #General.Superlum_Amplification()
 
@@ -132,3 +132,5 @@ if __name__ == '__main__':
     #General.Micram_DAC4_Characterisation()
     
     #General.PI_Poster_2025()
+    
+    General.uHeater_Design()

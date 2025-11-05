@@ -2411,3 +2411,79 @@ def PI_Poster_2025():
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
+
+def uHeater_Design():
+    # Make the plots for the PI Poster 2025
+    # R. Sheehan 21 - 8 - 2025
+    
+    FUNC_NAME = ".uHeater_Design()"
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+    
+    try:
+        DATA_HOME = 'c:/users/robertsheehan/Research/Electronics/uHeater_Control/';
+    
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+            
+            PLOT_PWM_AMP = False
+            if PLOT_PWM_AMP:
+                DClevel = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+                FiltLevel = [0.00, 0.32, 0.64, 0.97, 1.30, 1.63, 1.96, 2.29, 2.63, 2.96, 3.29]
+                AmpLevel = [0.00, 0.52, 1.06, 1.61, 2.16, 2.71, 3.27, 3.83, 4.39, 4.95, 5.51]
+                
+                hv_data = []; labels = []; marks = []; 
+                hv_data.append([DClevel, AmpLevel]); labels.append('Amplified PWM'); marks.append(Plotting.labs[1]);
+                hv_data.append([DClevel, FiltLevel]); labels.append('Filtered PWM'); marks.append(Plotting.labs[0]);  
+        
+                args = Plotting.plot_arg_multiple()
+                
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = 'PWM Duty Cycle  ( % )'
+                args.y_label = 'Measured Voltage ( V )'
+                args.plt_range = [0, 105, 0, 6]
+                args.fig_name = 'PWM_AO_Demo'
+                
+                Plotting.plot_multiple_linear_fit_curves(hv_data, args)
+                
+                del hv_data; del labels; del args; del marks; 
+                
+            PLOT_PWM_CURR = True
+            if PLOT_PWM_CURR:
+                volts = [0.00, 0.52, 1.06, 1.61, 2.16, 2.71, 3.27, 3.83, 4.39, 4.95, 5.51]
+                I500 = [0.00, 1.03, 2.09, 3.18, 4.26, 5.35, 6.45, 7.55, 8.66, 9.76, 10.87]
+                I270 = [0.00, 1.95, 3.98, 6.05, 8.12, 10.19, 12.29, 14.40, 16.50, 18.61, 20.71]
+                I150 = [0.00, 3.54, 7.21, 10.95, 14.69, 18.44, 22.24, 26.05, 29.86, 33.67, 37.48]
+                I055 = [0.00, 9.40, 19.17, 29.11, 39.06, 49.01, 59.13, 69.08, 79.20, 89.51, 99.64]
+                I010 = [0.00, 52.26, 106.53, 160.80, 216.08]
+                
+                hv_data = []; labels = []; marks = []; 
+                hv_data.append([volts[0:5], I010]); labels.append(r'R$_{load}$ = 0.01 ( k$\Omega$ )'); marks.append(Plotting.labs[0])
+                hv_data.append([volts, I055]); labels.append(r'R$_{load}$ = 0.06 ( k$\Omega$ )'); marks.append(Plotting.labs[1])
+                hv_data.append([volts, I150]); labels.append(r'R$_{load}$ = 0.15 ( k$\Omega$ )'); marks.append(Plotting.labs[0])
+                hv_data.append([volts, I270]); labels.append(r'R$_{load}$ = 0.27 ( k$\Omega$ )'); marks.append(Plotting.labs[0])
+                hv_data.append([volts, I500]); labels.append(r'R$_{load}$ = 0.51 ( k$\Omega$ )'); marks.append(Plotting.labs[0])
+                
+                args = Plotting.plot_arg_multiple()
+                
+                args.loud = True
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = 'Voltage Output ( V )'
+                args.y_label = 'Current ( mA )'
+                args.plt_range = [0, 6, 0, 225]
+                args.fig_name = 'PWM_AO_Current'
+                
+                Plotting.plot_multiple_linear_fit_curves(hv_data, args)
+                
+                del hv_data; del labels; del args; del marks;
+
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate directory:' + DATA_HOME
+            raise Exception
+        
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)

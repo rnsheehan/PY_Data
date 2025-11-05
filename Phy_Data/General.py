@@ -2406,8 +2406,6 @@ def PI_Poster_2025():
             
             Plotting.plot_multiple_curves(hv_data, args)          
 
-            
-
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
@@ -2428,6 +2426,7 @@ def uHeater_Design():
             
             PLOT_PWM_AMP = False
             if PLOT_PWM_AMP:
+                # Plot the basic measured PWM - DC output and PWM - Amp output
                 DClevel = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
                 FiltLevel = [0.00, 0.32, 0.64, 0.97, 1.30, 1.63, 1.96, 2.29, 2.63, 2.96, 3.29]
                 AmpLevel = [0.00, 0.52, 1.06, 1.61, 2.16, 2.71, 3.27, 3.83, 4.39, 4.95, 5.51]
@@ -2450,8 +2449,10 @@ def uHeater_Design():
                 
                 del hv_data; del labels; del args; del marks; 
                 
-            PLOT_PWM_CURR = True
+            PLOT_PWM_CURR = False
             if PLOT_PWM_CURR:
+                # Plot the measured current across different known loads when the PWM AMP output is applied
+                
                 volts = [0.00, 0.52, 1.06, 1.61, 2.16, 2.71, 3.27, 3.83, 4.39, 4.95, 5.51]
                 I500 = [0.00, 1.03, 2.09, 3.18, 4.26, 5.35, 6.45, 7.55, 8.66, 9.76, 10.87]
                 I270 = [0.00, 1.95, 3.98, 6.05, 8.12, 10.19, 12.29, 14.40, 16.50, 18.61, 20.71]
@@ -2479,6 +2480,169 @@ def uHeater_Design():
                 Plotting.plot_multiple_linear_fit_curves(hv_data, args)
                 
                 del hv_data; del labels; del args; del marks;
+
+            COMP_AVG_CAL = False
+            if COMP_AVG_CAL:
+                # Compute the average of all the calibration curve fit parameters
+                
+                filename = 'Calibration_Data\PWM_DC_AMP_Fit_Parameters.txt'
+    
+                if glob.glob(filename):
+                    theData = numpy.loadtxt(filename, unpack = True, delimiter = ',',skiprows = 1, usecols=(1, 2, 3, 4))
+                
+                    # Is the cal curve for D13 actually that different? 
+                    # Yes the value computed from D13 is sufficiently different 17 (mV)
+                    # to warrant it's being treated differently
+        
+                    stop = len(theData[0]) - 2
+
+                    m1 = numpy.mean(theData[0][0:stop]); c1 = numpy.mean(theData[1][0:stop]); # PWM Calibration Excluding D13
+                    m2 = numpy.mean(theData[0]); c2 = numpy.mean(theData[1]); # PWM Calibration Including D13
+                    m22 = numpy.mean(theData[0][stop:stop+2]); c22 = numpy.mean(theData[1][stop:stop+2]); # PWM Calibration D13 Only
+                    
+                    print(theData[0][stop:stop+2])
+
+                    m3 = numpy.mean(theData[2][0:stop]); c3 = numpy.mean(theData[3][0:stop]); # Amp Calibration Excluding D13
+                    m4 = numpy.mean(theData[2]); c4 = numpy.mean(theData[3]); # Amp Calibration Including D13
+                    m44 = numpy.mean(theData[2][stop:stop+2]); c44 = numpy.mean(theData[3][stop:stop+2]); # PWM Calibration D13 Only
+        
+                    print('\nCalibration Curves Excluding D13')
+                    print('Dx PWM Slope:',m1,', Dx PWM Intercept:',c1)
+                    print('Dx Amp Slope:',m3,', Dx Amp Intercept:',c3)
+                    #print('\nCalibration Curves Including D13')
+                    #print('PWM Slope Alt:',m2,', PWM Intercept Alt:',c2)
+                    #print('Amp Slope:',m4,', Amp Intercept:',c4) 
+                    print('\nCalibration Curves Only D13')
+                    print('D13 PWM Slope:',m22,', D13 PWM Intercept:',c22)
+                    print('D13 Amp Slope:',m44,', D13 Amp Intercept:',c44) 
+                    
+                    DC = 25
+                    v1 = m1*DC+c1; v2 = m2*DC+c2; pwmErr = math.fabs(v1-v2); 
+                    v3 = m3*DC+c3; v4 = m4*DC+c4; ampErr = math.fabs(v3-v4);         
+                    print('\nDC: %(v0)d, PWM val: %(v1)0.3f (V), PWM val: %(v2)0.3f (V), Err: %(v3)0.3f (V)'%{"v0":DC,"v1":v1, "v2":v2, "v3":pwmErr})
+                    print('DC: %(v0)d, Amp val: %(v1)0.3f (V), Amp val: %(v2)0.3f (V), Err: %(v3)0.3f (V)'%{"v0":DC,"v1":v3, "v2":v4, "v3":ampErr})
+                    
+                    DC = 50
+                    v1 = m1*DC+c1; v2 = m2*DC+c2; pwmErr = math.fabs(v1-v2); 
+                    v3 = m3*DC+c3; v4 = m4*DC+c4; ampErr = math.fabs(v3-v4);         
+                    print('\nDC: %(v0)d, PWM val: %(v1)0.3f (V), PWM val: %(v2)0.3f (V), Err: %(v3)0.3f (V)'%{"v0":DC,"v1":v1, "v2":v2, "v3":pwmErr})
+                    print('DC: %(v0)d, Amp val: %(v1)0.3f (V), Amp val: %(v2)0.3f (V), Err: %(v3)0.3f (V)'%{"v0":DC,"v1":v3, "v2":v4, "v3":ampErr})
+                    
+                    DC = 75
+                    v1 = m1*DC+c1; v2 = m2*DC+c2; pwmErr = math.fabs(v1-v2); 
+                    v3 = m3*DC+c3; v4 = m4*DC+c4; ampErr = math.fabs(v3-v4);         
+                    print('\nDC: %(v0)d, PWM val: %(v1)0.3f (V), PWM val: %(v2)0.3f (V), Err: %(v3)0.3f (V)'%{"v0":DC,"v1":v1, "v2":v2, "v3":pwmErr})
+                    print('DC: %(v0)d, Amp val: %(v1)0.3f (V), Amp val: %(v2)0.3f (V), Err: %(v3)0.3f (V)'%{"v0":DC,"v1":v3, "v2":v4, "v3":ampErr})
+                    
+            PLOT_CAL_CURVES = False
+            if PLOT_CAL_CURVES:
+                # Make a plot of the PWM - Amp Output Calibration Curves
+                
+                d9 = 'Calibration_Data\D9_PWM_Filt_Amp_Data.txt'
+                d13 = 'Calibration_Data\D13_PWM_Filt_Amp_Data.txt'
+                
+                if glob.glob(d9) and glob.glob(d13):
+                    data9 = numpy.loadtxt(d9, delimiter = '\t', unpack = True)
+                    data13 = numpy.loadtxt(d9, delimiter = '\t', unpack = True)
+                    
+                    hv_data = []; labels = []; marks = []; 
+                    hv_data.append([data9[0], data9[3], data9[4] ]); labels.append(r'D$_{x}$'); marks.append(Plotting.labs[1]);
+                    hv_data.append([data13[0], data13[3], data13[4] ]); labels.append(r'D$_{13}$'); marks.append(Plotting.labs[0]);  
+        
+                    args = Plotting.plot_arg_multiple()
+                
+                    args.loud = False
+                    args.crv_lab_list = labels
+                    args.mrk_list = marks
+                    args.x_label = 'PWM Duty Cycle  ( % )'
+                    args.y_label = 'Measured Voltage ( V )'
+                    args.plt_range = [0, 105, 0, 6]
+                    args.fig_name = 'AO_Cal_Curves'
+                
+                    Plotting.plot_multiple_linear_fit_curves(hv_data, args)
+                    
+                    del hv_data; del labels; del marks;
+                
+                    args = Plotting.plot_arg_single()
+                    
+                    args.loud = True
+                    args.curve_label = r'D$_{x}$'
+                    args.marker = Plotting.labs[1]
+                    args.x_label = 'PWM Duty Cycle  ( % )'
+                    args.y_label = 'Measured Voltage ( V )'
+                    args.plt_range = [0, 105, 0, 6]
+                    args.fig_name = 'AO_Cal_Curve_Dx'
+                    
+                    Plotting.plot_single_linear_fit_curve_with_errors(data9[0], data9[3], data9[4], args)
+
+                    del args;
+        
+            PLOT_VARIATIONS = True
+            if PLOT_VARIATIONS:
+                # Analyse the measured variations in the voltage readings
+                # Plot them as a distribution
+                # Is variation higher at higher ouputs? 
+                
+                vals = [0, 1, 7, 9, 10, 11, 12, 13]
+                dX = 'Calibration_Data\D%(v1)d_PWM_Filt_Amp_Data.txt'
+                hv_data = []; labels = []; marks = [];
+                variation_data = numpy.array([]) # instantiate an empty numpy array to store all the variation data
+                for i in range(0, len(vals), 1):
+                    filename = dX%{"v1":vals[i]}
+                    if glob.glob(filename):
+                        # read the data into memory
+                        data = numpy.loadtxt(filename, delimiter = '\t', unpack = True, usecols = (0, 4) )
+                        var_data = 1000.0*data[1]
+                        
+                        # join all the variation data together into a single array
+                        variation_data = numpy.append(variation_data, var_data) 
+                        
+                        # combine all the data together separately
+                        hv_data.append([ data[0], var_data ]); 
+                        labels.append(r'D$_{ %(v1)d }$'%{ "v1":vals[i] } ); 
+                        marks.append( Plotting.labs_pts[ i % len( Plotting.labs_pts ) ] )
+                        
+                        print('D_%(v1)d: len = %(v4)d, mean = %(v2)0.2f, stdev. = %(v3)0.2f'%{ "v1":vals[i], "v2":numpy.mean(var_data), "v3":numpy.std(var_data, ddof = 1), "v4":len(var_data) } )
+
+                # Compute the mean over all the variation values
+                # Make a plot of the distributions        
+                variation_data_mean = numpy.mean(variation_data)
+                variation_data_sig = numpy.std(variation_data, ddof = 1)        
+                print('D_X: len = %(v4)d, mean = %(v2)0.2f, stdev. = %(v3)0.2f'%{ "v1":vals[i], "v2":variation_data_mean, 
+                                                                                 "v3":variation_data_sig, "v4":len(variation_data) } )
+                
+                # Scale the data for zero mean and unity sigma
+                variation_data_mean = numpy.mean(variation_data)
+                variation_data_sig = numpy.std(variation_data, ddof = 1)
+                scl_variation_data = (variation_data - variation_data_mean) / variation_data_sig
+                # Use Sturges' Rule to compute the no. of bins required
+                n_bins = int( 1.0 + 3.322*math.log( len(variation_data) ) )
+                
+                plt.hist(scl_variation_data, bins = n_bins, label = r'$\mu$ = 43 ( mV ), $\sigma$ = 24 ( mV )', alpha=0.9, color = 'red', edgecolor = 'black', linestyle = '-')
+               
+                #plt.xlim(xmin=-1.5, xmax = 2)
+                plt.xlabel(r'Scaled Measurements $( \Delta V_{i} - \mu ) / \sigma$', fontsize = 14)
+                plt.ylabel('Counts', fontsize = 14)
+                plt.legend(loc = 'best')
+                plt.savefig('Scaled_Variation_Data')
+                plt.show()            
+                plt.clf()
+                plt.cla()
+                plt.close()
+                
+                # Make a plot of all the error data
+                args = Plotting.plot_arg_multiple()
+                
+                args.loud = False
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = 'PWM Duty Cycle  ( % )'
+                args.y_label = 'Measured Voltage Variation ( mV )'
+                args.plt_range = [0, 105, 0, 150]
+                args.fig_name = 'Measured_Voltage_Variation'
+                
+                #Plotting.plot_multiple_curves(hv_data, args)
+                Plotting.plot_multiple_linear_fit_curves(hv_data, args)
 
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate directory:' + DATA_HOME

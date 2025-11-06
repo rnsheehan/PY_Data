@@ -2418,7 +2418,8 @@ def uHeater_Design():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
     
     try:
-        DATA_HOME = 'c:/users/robertsheehan/Research/Electronics/uHeater_Control/';
+        #DATA_HOME = 'c:/users/robertsheehan/Research/Electronics/uHeater_Control/';
+        DATA_HOME = 'E:/Research/Electronics/uHeater_Control/';
     
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
@@ -2583,8 +2584,12 @@ def uHeater_Design():
                 # Plot them as a distribution
                 # Is variation higher at higher ouputs? 
                 
-                vals = [0, 1, 7, 9, 10, 11, 12, 13]
-                dX = 'Calibration_Data\D%(v1)d_PWM_Filt_Amp_Data.txt'
+                #vals = [0, 1, 7, 9, 10, 11, 12, 13]
+                #dX = 'Calibration_Data_RC_Filt_R_1_C_100\D%(v1)d_PWM_Filt_Amp_Data.txt'
+                vals = numpy.arange(1, 9, 1)
+                dX = 'Calibration_Data_Pi_Filt_R_10_C_10\D%(v1)d_PWM_Pi_Filt_Amp_Data.txt'
+                #dX = 'Calibration_Data_RC_R_10_C_10\D%(v1)d_PWM_RC_Filt_Amp_Data.txt'
+                #dX = 'Calibration_Data_T_Filt_R_10_C_10\D%(v1)d_PWM_T_Filt_Amp_Data.txt'
                 hv_data = []; labels = []; marks = [];
                 variation_data = numpy.array([]) # instantiate an empty numpy array to store all the variation data
                 for i in range(0, len(vals), 1):
@@ -2608,8 +2613,10 @@ def uHeater_Design():
                 # Make a plot of the distributions        
                 variation_data_mean = numpy.mean(variation_data)
                 variation_data_sig = numpy.std(variation_data, ddof = 1)        
-                print('D_X: len = %(v4)d, mean = %(v2)0.2f, stdev. = %(v3)0.2f'%{ "v1":vals[i], "v2":variation_data_mean, 
-                                                                                 "v3":variation_data_sig, "v4":len(variation_data) } )
+                print('D_X: len = %(v4)d, mean = %(v2)0.2f, stdev. = %(v3)0.2f'%{ "v1":vals[i], 
+                                                                                 "v2":variation_data_mean, 
+                                                                                 "v3":variation_data_sig, 
+                                                                                 "v4":len(variation_data) } )
                 
                 # Scale the data for zero mean and unity sigma
                 variation_data_mean = numpy.mean(variation_data)
@@ -2618,7 +2625,7 @@ def uHeater_Design():
                 # Use Sturges' Rule to compute the no. of bins required
                 n_bins = int( 1.0 + 3.322*math.log( len(variation_data) ) )
                 
-                plt.hist(scl_variation_data, bins = n_bins, label = r'$\mu$ = 43 ( mV ), $\sigma$ = 24 ( mV )', alpha=0.9, color = 'red', edgecolor = 'black', linestyle = '-')
+                plt.hist(scl_variation_data, bins = n_bins, label = r'$\mu$ = %(v1)0.1f ( mV ), $\sigma$ = %(v2)0.1f ( mV )'%{"v1":variation_data_mean, "v2":variation_data_sig}, alpha=0.9, color = 'red', edgecolor = 'black', linestyle = '-')
                
                 #plt.xlim(xmin=-1.5, xmax = 2)
                 plt.xlabel(r'Scaled Measurements $( \Delta V_{i} - \mu ) / \sigma$', fontsize = 14)
@@ -2633,13 +2640,13 @@ def uHeater_Design():
                 # Make a plot of all the error data
                 args = Plotting.plot_arg_multiple()
                 
-                args.loud = False
+                args.loud = True
                 args.crv_lab_list = labels
                 args.mrk_list = marks
                 args.x_label = 'PWM Duty Cycle  ( % )'
                 args.y_label = 'Measured Voltage Variation ( mV )'
-                args.plt_range = [0, 105, 0, 150]
-                args.fig_name = 'Measured_Voltage_Variation'
+                args.plt_range = [0, 105, 0, 35]
+                args.fig_name = 'Measured_Voltage_Variation_Zm'
                 
                 #Plotting.plot_multiple_curves(hv_data, args)
                 Plotting.plot_multiple_linear_fit_curves(hv_data, args)

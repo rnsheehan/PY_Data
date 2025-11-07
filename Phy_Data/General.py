@@ -2418,8 +2418,8 @@ def uHeater_Design():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
     
     try:
-        #DATA_HOME = 'c:/users/robertsheehan/Research/Electronics/uHeater_Control/';
-        DATA_HOME = 'E:/Research/Electronics/uHeater_Control/';
+        DATA_HOME = 'c:/users/robertsheehan/Research/Electronics/uHeater_Control/';
+        #DATA_HOME = 'E:/Research/Electronics/uHeater_Control/';
     
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
@@ -2482,11 +2482,14 @@ def uHeater_Design():
                 
                 del hv_data; del labels; del args; del marks;
 
-            COMP_AVG_CAL = False
+            COMP_AVG_CAL = True
             if COMP_AVG_CAL:
                 # Compute the average of all the calibration curve fit parameters
                 
-                filename = 'Calibration_Data\PWM_DC_AMP_Fit_Parameters.txt'
+                #filename = 'Calibration_Data\PWM_DC_AMP_Fit_Parameters.txt'
+                #filename = 'Calibration_Data_RC_Filt_R_1_C_100\PWM_DC_AMP_Fit_Parameters.txt'
+                #filename = 'Calibration_Data_RC_R_10_C_10\PWM_RC_DC_AMP_Fit_Parameters.txt'
+                filename = 'Calibration_Data_T_Filt_R_10_C_10\PWM_T_DC_AMP_Fit_Parameters.txt'
     
                 if glob.glob(filename):
                     theData = numpy.loadtxt(filename, unpack = True, delimiter = ',',skiprows = 1, usecols=(1, 2, 3, 4))
@@ -2495,17 +2498,17 @@ def uHeater_Design():
                     # Yes the value computed from D13 is sufficiently different 17 (mV)
                     # to warrant it's being treated differently
         
-                    stop = len(theData[0]) - 2
+                    stop = len(theData[0]) - 1
 
                     m1 = numpy.mean(theData[0][0:stop]); c1 = numpy.mean(theData[1][0:stop]); # PWM Calibration Excluding D13
-                    m2 = numpy.mean(theData[0]); c2 = numpy.mean(theData[1]); # PWM Calibration Including D13
-                    m22 = numpy.mean(theData[0][stop:stop+2]); c22 = numpy.mean(theData[1][stop:stop+2]); # PWM Calibration D13 Only
+                    #m2 = numpy.mean(theData[0]); c2 = numpy.mean(theData[1]); # PWM Calibration Including D13
+                    #m22 = numpy.mean(theData[0][stop:stop+2]); c22 = numpy.mean(theData[1][stop:stop+2]); # PWM Calibration D13 Only
                     
                     print(theData[0][stop:stop+2])
 
                     m3 = numpy.mean(theData[2][0:stop]); c3 = numpy.mean(theData[3][0:stop]); # Amp Calibration Excluding D13
-                    m4 = numpy.mean(theData[2]); c4 = numpy.mean(theData[3]); # Amp Calibration Including D13
-                    m44 = numpy.mean(theData[2][stop:stop+2]); c44 = numpy.mean(theData[3][stop:stop+2]); # PWM Calibration D13 Only
+                    #m4 = numpy.mean(theData[2]); c4 = numpy.mean(theData[3]); # Amp Calibration Including D13
+                    #m44 = numpy.mean(theData[2][stop:stop+2]); c44 = numpy.mean(theData[3][stop:stop+2]); # PWM Calibration D13 Only
         
                     print('\nCalibration Curves Excluding D13')
                     print('Dx PWM Slope:',m1,', Dx PWM Intercept:',c1)
@@ -2513,27 +2516,27 @@ def uHeater_Design():
                     #print('\nCalibration Curves Including D13')
                     #print('PWM Slope Alt:',m2,', PWM Intercept Alt:',c2)
                     #print('Amp Slope:',m4,', Amp Intercept:',c4) 
-                    print('\nCalibration Curves Only D13')
-                    print('D13 PWM Slope:',m22,', D13 PWM Intercept:',c22)
-                    print('D13 Amp Slope:',m44,', D13 Amp Intercept:',c44) 
+                    #print('\nCalibration Curves Only D13')
+                    #print('D13 PWM Slope:',m22,', D13 PWM Intercept:',c22)
+                    #print('D13 Amp Slope:',m44,', D13 Amp Intercept:',c44) 
                     
-                    DC = 25
-                    v1 = m1*DC+c1; v2 = m2*DC+c2; pwmErr = math.fabs(v1-v2); 
-                    v3 = m3*DC+c3; v4 = m4*DC+c4; ampErr = math.fabs(v3-v4);         
-                    print('\nDC: %(v0)d, PWM val: %(v1)0.3f (V), PWM val: %(v2)0.3f (V), Err: %(v3)0.3f (V)'%{"v0":DC,"v1":v1, "v2":v2, "v3":pwmErr})
-                    print('DC: %(v0)d, Amp val: %(v1)0.3f (V), Amp val: %(v2)0.3f (V), Err: %(v3)0.3f (V)'%{"v0":DC,"v1":v3, "v2":v4, "v3":ampErr})
+                    # DC = 25
+                    # v1 = m1*DC+c1; v2 = m2*DC+c2; pwmErr = math.fabs(v1-v2); 
+                    # v3 = m3*DC+c3; v4 = m4*DC+c4; ampErr = math.fabs(v3-v4);         
+                    # print('\nDC: %(v0)d, PWM val: %(v1)0.3f (V), PWM val: %(v2)0.3f (V), Err: %(v3)0.3f (V)'%{"v0":DC,"v1":v1, "v2":v2, "v3":pwmErr})
+                    # print('DC: %(v0)d, Amp val: %(v1)0.3f (V), Amp val: %(v2)0.3f (V), Err: %(v3)0.3f (V)'%{"v0":DC,"v1":v3, "v2":v4, "v3":ampErr})
                     
-                    DC = 50
-                    v1 = m1*DC+c1; v2 = m2*DC+c2; pwmErr = math.fabs(v1-v2); 
-                    v3 = m3*DC+c3; v4 = m4*DC+c4; ampErr = math.fabs(v3-v4);         
-                    print('\nDC: %(v0)d, PWM val: %(v1)0.3f (V), PWM val: %(v2)0.3f (V), Err: %(v3)0.3f (V)'%{"v0":DC,"v1":v1, "v2":v2, "v3":pwmErr})
-                    print('DC: %(v0)d, Amp val: %(v1)0.3f (V), Amp val: %(v2)0.3f (V), Err: %(v3)0.3f (V)'%{"v0":DC,"v1":v3, "v2":v4, "v3":ampErr})
+                    # DC = 50
+                    # v1 = m1*DC+c1; v2 = m2*DC+c2; pwmErr = math.fabs(v1-v2); 
+                    # v3 = m3*DC+c3; v4 = m4*DC+c4; ampErr = math.fabs(v3-v4);         
+                    # print('\nDC: %(v0)d, PWM val: %(v1)0.3f (V), PWM val: %(v2)0.3f (V), Err: %(v3)0.3f (V)'%{"v0":DC,"v1":v1, "v2":v2, "v3":pwmErr})
+                    # print('DC: %(v0)d, Amp val: %(v1)0.3f (V), Amp val: %(v2)0.3f (V), Err: %(v3)0.3f (V)'%{"v0":DC,"v1":v3, "v2":v4, "v3":ampErr})
                     
-                    DC = 75
-                    v1 = m1*DC+c1; v2 = m2*DC+c2; pwmErr = math.fabs(v1-v2); 
-                    v3 = m3*DC+c3; v4 = m4*DC+c4; ampErr = math.fabs(v3-v4);         
-                    print('\nDC: %(v0)d, PWM val: %(v1)0.3f (V), PWM val: %(v2)0.3f (V), Err: %(v3)0.3f (V)'%{"v0":DC,"v1":v1, "v2":v2, "v3":pwmErr})
-                    print('DC: %(v0)d, Amp val: %(v1)0.3f (V), Amp val: %(v2)0.3f (V), Err: %(v3)0.3f (V)'%{"v0":DC,"v1":v3, "v2":v4, "v3":ampErr})
+                    # DC = 75
+                    # v1 = m1*DC+c1; v2 = m2*DC+c2; pwmErr = math.fabs(v1-v2); 
+                    # v3 = m3*DC+c3; v4 = m4*DC+c4; ampErr = math.fabs(v3-v4);         
+                    # print('\nDC: %(v0)d, PWM val: %(v1)0.3f (V), PWM val: %(v2)0.3f (V), Err: %(v3)0.3f (V)'%{"v0":DC,"v1":v1, "v2":v2, "v3":pwmErr})
+                    # print('DC: %(v0)d, Amp val: %(v1)0.3f (V), Amp val: %(v2)0.3f (V), Err: %(v3)0.3f (V)'%{"v0":DC,"v1":v3, "v2":v4, "v3":ampErr})
                     
             PLOT_CAL_CURVES = False
             if PLOT_CAL_CURVES:
@@ -2578,16 +2581,16 @@ def uHeater_Design():
 
                     del args;
         
-            PLOT_VARIATIONS = True
+            PLOT_VARIATIONS = False
             if PLOT_VARIATIONS:
                 # Analyse the measured variations in the voltage readings
                 # Plot them as a distribution
                 # Is variation higher at higher ouputs? 
                 
-                #vals = [0, 1, 7, 9, 10, 11, 12, 13]
-                #dX = 'Calibration_Data_RC_Filt_R_1_C_100\D%(v1)d_PWM_Filt_Amp_Data.txt'
-                vals = numpy.arange(1, 9, 1)
-                dX = 'Calibration_Data_Pi_Filt_R_10_C_10\D%(v1)d_PWM_Pi_Filt_Amp_Data.txt'
+                vals = [0, 1, 7, 9, 10, 11, 12, 13]
+                dX = 'Calibration_Data_RC_Filt_R_1_C_100\D%(v1)d_PWM_Filt_Amp_Data.txt'
+                #vals = numpy.arange(1, 9, 1)
+                #dX = 'Calibration_Data_Pi_Filt_R_10_C_10\D%(v1)d_PWM_Pi_Filt_Amp_Data.txt'
                 #dX = 'Calibration_Data_RC_R_10_C_10\D%(v1)d_PWM_RC_Filt_Amp_Data.txt'
                 #dX = 'Calibration_Data_T_Filt_R_10_C_10\D%(v1)d_PWM_T_Filt_Amp_Data.txt'
                 hv_data = []; labels = []; marks = [];
@@ -2624,10 +2627,11 @@ def uHeater_Design():
                 scl_variation_data = (variation_data - variation_data_mean) / variation_data_sig
                 # Use Sturges' Rule to compute the no. of bins required
                 n_bins = int( 1.0 + 3.322*math.log( len(variation_data) ) )
+                n_bins = n_bins - 3
                 
                 plt.hist(scl_variation_data, bins = n_bins, label = r'$\mu$ = %(v1)0.1f ( mV ), $\sigma$ = %(v2)0.1f ( mV )'%{"v1":variation_data_mean, "v2":variation_data_sig}, alpha=0.9, color = 'red', edgecolor = 'black', linestyle = '-')
                
-                #plt.xlim(xmin=-1.5, xmax = 2)
+                plt.xlim(xmin=-3, xmax = 3)
                 plt.xlabel(r'Scaled Measurements $( \Delta V_{i} - \mu ) / \sigma$', fontsize = 14)
                 plt.ylabel('Counts', fontsize = 14)
                 plt.legend(loc = 'best')
@@ -2640,7 +2644,7 @@ def uHeater_Design():
                 # Make a plot of all the error data
                 args = Plotting.plot_arg_multiple()
                 
-                args.loud = True
+                args.loud = False
                 args.crv_lab_list = labels
                 args.mrk_list = marks
                 args.x_label = 'PWM Duty Cycle  ( % )'

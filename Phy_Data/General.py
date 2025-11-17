@@ -2418,8 +2418,8 @@ def uHeater_Design():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
     
     try:
-        DATA_HOME = 'c:/users/robertsheehan/Research/Electronics/uHeater_Control/';
-        #DATA_HOME = 'E:/Research/Electronics/uHeater_Control/';
+        #DATA_HOME = 'c:/users/robertsheehan/Research/Electronics/uHeater_Control/';
+        DATA_HOME = 'E:/Research/Electronics/uHeater_Control/';
     
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)

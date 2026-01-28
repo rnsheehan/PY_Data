@@ -133,4 +133,6 @@ if __name__ == '__main__':
     
     #General.PI_Poster_2025()
     
-    General.uHeater_Design()
+    #General.uHeater_Design()
+
+    General.Combine_Avg_Std()

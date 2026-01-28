@@ -2486,10 +2486,10 @@ def uHeater_Design():
             if COMP_AVG_CAL:
                 # Compute the average of all the calibration curve fit parameters
                 
-                #filename = 'Calibration_Data\PWM_DC_AMP_Fit_Parameters.txt'
-                #filename = 'Calibration_Data_RC_Filt_R_1_C_100\PWM_DC_AMP_Fit_Parameters.txt'
-                #filename = 'Calibration_Data_RC_R_10_C_10\PWM_RC_DC_AMP_Fit_Parameters.txt'
-                filename = 'Calibration_Data_T_Filt_R_10_C_10\PWM_T_DC_AMP_Fit_Parameters.txt'
+                #filename = r'Calibration_Data\PWM_DC_AMP_Fit_Parameters.txt'
+                #filename = r'Calibration_Data_RC_Filt_R_1_C_100\PWM_DC_AMP_Fit_Parameters.txt'
+                #filename = r'Calibration_Data_RC_R_10_C_10\PWM_RC_DC_AMP_Fit_Parameters.txt'
+                filename = r'Calibration_Data_T_Filt_R_10_C_10\PWM_T_DC_AMP_Fit_Parameters.txt'
     
                 if glob.glob(filename):
                     theData = numpy.loadtxt(filename, unpack = True, delimiter = ',',skiprows = 1, usecols=(1, 2, 3, 4))
@@ -2542,8 +2542,8 @@ def uHeater_Design():
             if PLOT_CAL_CURVES:
                 # Make a plot of the PWM - Amp Output Calibration Curves
                 
-                d9 = 'Calibration_Data\D9_PWM_Filt_Amp_Data.txt'
-                d13 = 'Calibration_Data\D13_PWM_Filt_Amp_Data.txt'
+                d9 = r'Calibration_Data\D9_PWM_Filt_Amp_Data.txt'
+                d13 = r'Calibration_Data\D13_PWM_Filt_Amp_Data.txt'
                 
                 if glob.glob(d9) and glob.glob(d13):
                     data9 = numpy.loadtxt(d9, delimiter = '\t', unpack = True)
@@ -2588,11 +2588,11 @@ def uHeater_Design():
                 # Is variation higher at higher ouputs? 
                 
                 vals = [0, 1, 7, 9, 10, 11, 12, 13]
-                dX = 'Calibration_Data_RC_Filt_R_1_C_100\D%(v1)d_PWM_Filt_Amp_Data.txt'
+                dX = r'Calibration_Data_RC_Filt_R_1_C_100\D%(v1)d_PWM_Filt_Amp_Data.txt'
                 #vals = numpy.arange(1, 9, 1)
-                #dX = 'Calibration_Data_Pi_Filt_R_10_C_10\D%(v1)d_PWM_Pi_Filt_Amp_Data.txt'
-                #dX = 'Calibration_Data_RC_R_10_C_10\D%(v1)d_PWM_RC_Filt_Amp_Data.txt'
-                #dX = 'Calibration_Data_T_Filt_R_10_C_10\D%(v1)d_PWM_T_Filt_Amp_Data.txt'
+                #dX = r'Calibration_Data_Pi_Filt_R_10_C_10\D%(v1)d_PWM_Pi_Filt_Amp_Data.txt'
+                #dX = r'Calibration_Data_RC_R_10_C_10\D%(v1)d_PWM_RC_Filt_Amp_Data.txt'
+                #dX = r'Calibration_Data_T_Filt_R_10_C_10\D%(v1)d_PWM_T_Filt_Amp_Data.txt'
                 hv_data = []; labels = []; marks = [];
                 variation_data = numpy.array([]) # instantiate an empty numpy array to store all the variation data
                 for i in range(0, len(vals), 1):
@@ -2662,3 +2662,98 @@ def uHeater_Design():
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
+
+def Combine_Avg_Std():
+
+    # Combine several averages and std. deviations into a single value
+    # Suppose you have several measurements of the same quantity obtained at different times
+    # Is it possible to compute a single average and a single std. deviation from avg and std
+    # from all previous measurements? Yes, it is provided you know the no. samples used to compute
+    # each previous avg and std. dev. s
+    # for more information consult the following
+    # https://stats.stackexchange.com/questions/55999/is-it-possible-to-find-the-combined-standard-deviation?noredirect=1&lq=1
+    # https://stats.stackexchange.com/questions/43031/how-to-prove-that-averaging-averages-of-different-partitions-of-a-dataset-produc
+    # https://stats.stackexchange.com/questions/10441/how-to-calculate-the-variance-of-a-partition-of-variables?noredirect=1&lq=1
+    # R. Sheehan 28 - 1 - 2026
+
+    # Here is some sample data with different no. of samples
+    avg_arr = numpy.array([2.4, 2.0, 2.3, 2.1])
+    stdev_arr = numpy.array([0.8, 1.2, 0.9, 1.1])
+    counts_arr = numpy.array([10, 5, 7, 9])
+
+    # Here is how to compute the combined statistics    
+    avg_combined, std_combined = Combine_Statistics(avg_arr, stdev_arr, counts_arr, equal_sample_sizes = False)
+    print("Combined statistics for unequal sample size data sets")
+    print("ai%(v1)d: %(v2)0.4f +/- %(v3)0.4f (V)"%{"v1":0, "v2":avg_combined, "v3":std_combined})
+
+    # Let's take a look at a calculation in which the sample sizes are all equal
+    # Here is some sample data with equal sample sizes
+    avg_arr = numpy.array([2.4, 2.0, 2.3, 2.1])
+    stdev_arr = numpy.array([0.8, 1.2, 0.9, 1.1])
+    counts_arr = numpy.array([9, 9, 9, 9])
+
+    # Here is how to compute the combined statistics
+    avg_combined, std_combined = Combine_Statistics(avg_arr, stdev_arr, counts_arr, equal_sample_sizes = False)
+    print("\nCombined statistics for equal sample size data sets")
+    print("ai%(v1)d: %(v2)0.4f +/- %(v3)0.4f (V)"%{"v1":0, "v2":avg_combined, "v3":std_combined})
+
+    avg_combined, std_combined = Combine_Statistics(avg_arr, stdev_arr, counts_arr, equal_sample_sizes = True)
+    print("ai%(v1)d: %(v2)0.4f +/- %(v3)0.4f (V)"%{"v1":0, "v2":avg_combined, "v3":std_combined})
+    print()
+
+def Combine_Statistics(avg_arr, stdev_arr, counts_arr, equal_sample_sizes = True, loud = False):
+
+    """
+    Combine averages and standard deviations from multiple different measurements into a single value
+    Account for unequal sample sizes if necessary
+
+    Input:
+        avg_arr: numpy array of floats giving averages from different measurements
+        stdev_arr: numpy array of floats giving std. dev. from different measurements
+        count_arr: numpy array of ints giving sample size for each measurement
+
+    Output:
+        avg_combined, std_combined
+
+    R. Sheehan 28 - 1 - 2026
+    """
+
+    # Is it possible to compute a single average and a single std. deviation from avg and std
+    # from all previous measurements? Yes, it is provided you know the no. samples used to compute
+    # each previous avg and std. dev. s
+    # for more information consult the following
+    # https://stats.stackexchange.com/questions/55999/is-it-possible-to-find-the-combined-standard-deviation?noredirect=1&lq=1
+    # https://stats.stackexchange.com/questions/43031/how-to-prove-that-averaging-averages-of-different-partitions-of-a-dataset-produc
+    # https://stats.stackexchange.com/questions/10441/how-to-calculate-the-variance-of-a-partition-of-variables?noredirect=1&lq=1
+
+    FUNC_NAME = ".Combine_Statistics()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        c1 = True if len(avg_arr) > 0 else False
+        c2 = True if len(stdev_arr) > 0 else False
+        c3 = True if len(counts_arr) > 0 else False
+        c4 = True if len(counts_arr) == len(stdev_arr) else False
+        c5 = True if len(counts_arr) == len(avg_arr) else False
+        c10 = c1 and c2 and c3 and c4 and c5
+
+        if c10:
+            avg_combined = numpy.average(avg_arr) if equal_sample_sizes else numpy.average(avg_arr, weights=counts_arr)
+            numer = denom = 0.0
+            denom = numpy.sum(counts_arr) - 1
+            for i in range(0, len(stdev_arr), 1):
+                numer += (counts_arr[i] - 1)*stdev_arr[i]**2 + counts_arr[i]*(avg_arr[i] - avg_combined)**2
+            std_combined = math.sqrt(numer / denom)
+            if loud:
+                print()
+                print("Combined Value: %(v2)0.4f +/- %(v3)0.4f (V)"%{"v2":avg_combined, "v3":std_combined})
+            return avg_combined, std_combined
+        else:
+            if c1 is False: ERR_STATEMENT = ERR_STATEMENT + '\nNo data contained in avg_arr'
+            if c2 is False: ERR_STATEMENT = ERR_STATEMENT + '\nNo data contained in stdev_arr'
+            if c3 is False or c4 is False or c5 is False: ERR_STATEMENT = ERR_STATEMENT + '\nInput arrays are not correctly sized'            
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+

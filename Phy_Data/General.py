@@ -2419,7 +2419,8 @@ def uHeater_Design():
     
     try:
         #DATA_HOME = 'c:/users/robertsheehan/Research/Electronics/uHeater_Control/';
-        DATA_HOME = 'E:/Research/Electronics/uHeater_Control/';
+        #DATA_HOME = 'E:/Research/Electronics/uHeater_Control/';
+        DATA_HOME = 'D:/Rob/Research/Electronics/uHeater_Control/';
     
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
@@ -2482,7 +2483,7 @@ def uHeater_Design():
                 
                 del hv_data; del labels; del args; del marks;
 
-            COMP_AVG_CAL = True
+            COMP_AVG_CAL = False
             if COMP_AVG_CAL:
                 # Compute the average of all the calibration curve fit parameters
                 
@@ -2654,6 +2655,106 @@ def uHeater_Design():
                 
                 #Plotting.plot_multiple_curves(hv_data, args)
                 Plotting.plot_multiple_linear_fit_curves(hv_data, args)
+
+            LONG_TIME_MEAS = True
+            if LONG_TIME_MEAS:
+                # Make plots of the tests with the Decoupling capacitors
+                SUB_DIR = 'Decoup_Cap_Test/'
+                if os.path.isdir(DATA_HOME):
+                    os.chdir(SUB_DIR)
+                    print(os.getcwd())
+
+                    # Examine Effect of Decoupling capacitor on Input Supply Voltage
+                    # Examine if uHeat output is stable over long-time, Tmeas = 60mins with measurements every 30s
+                    # Used NI-DAQ 6001 to measure differential voltages wrt common ground, SR = 5kHz, Nsmpls = 5k
+                    INPUT_PLOTS = True
+                    if INPUT_PLOTS:
+                        # In this case the data stored in the file is a measurement of a voltage across a known load at fixed value
+                        # Rload = 0.506 kOhm, Vcc = +7.1V
+                        # col0 = PWM0, with pwm level = 50 => Vset ~ 2.72 V
+                        # col1 = PWM1, with pwm level = 50 => Vset ~ 2.72 V
+                        # col2 = PWM7, with pwm level = 50 => Vset ~ 2.72 V
+                        # col3 = External Power Supply with level Vset ~ 2.72 V
+                        thefiles = ['AI_DC_Meas_Dev1_ai03_Tmeas_60_Nmeas_120_Cin_None.txt', 
+                                    'AI_DC_Meas_Dev1_ai03_Tmeas_60_Nmeas_120_Cin_01.txt', 
+                                    'AI_DC_Meas_Dev1_ai03_Tmeas_60_Nmeas_120_Cin_10.txt', 
+                                    'AI_DC_Meas_Dev1_ai03_Tmeas_60_Nmeas_120_Cin_100.txt']
+
+                        cap_vals = [0.0, 0.1, 1.0, 10.0] # list of capacitor values used in the measurement, units of uF
+
+                        qnttes = ['PWM0', 'PWM1', 'PWM7', 'CPS'] # quantities being measured
+
+                        count = 0
+                        for f in thefiles:
+                            if glob.glob(f):
+                                data = numpy.loadtxt(f, delimiter = ',', unpack = True)
+
+                                # print some statistics
+                                avg_arr = numpy.zeros(len(data))
+                                stdev_arr = numpy.zeros(len(data))
+                                print("Statistics for",f)
+                                for i in range(0, len(data), 1):
+                                    avg = numpy.mean(data[i])
+                                    stdev = numpy.std(data[i], ddof = 1)
+                                    avg_arr[i] = avg
+                                    stdev_arr[i] = stdev
+                                    print('%(v1)s: %(v2)0.4f +/- %(v3)0.4f ( V )'%{"v1":qnttes[i], "v2":avg, "v3":stdev})
+
+                                SHOW_BP = False
+                                if SHOW_BP:
+                                    # make a box-plot for the data in the file
+                                    df = pandas.DataFrame(numpy.transpose(data), columns=qnttes)
+                                    boxplot = df.boxplot(column=qnttes)
+                                    boxplot.set_ylabel('Measured Voltage ( V )')
+                                    boxplot.plot()
+                                    plt.title(r'Input Cap = %(v1)0.1f ( $\mu$F )'%{"v1":cap_vals[count]})
+                                    plt.ylim(2.71, 2.75)
+                                    plt.savefig(f.replace('.txt','') + '_box')
+                                    plt.show()
+
+                                SHOW_HIST = True
+                                if SHOW_HIST:
+                                    # Make a plot of the scaled histogram of the measured data
+
+                                    # Use Sturges' Rule to compute the no. of bins required
+                                    n_bins = int( 1.0 + 3.322*math.log( len(data[0]) ) )
+                                    #n_bins = 200
+
+                                    for i in range(0, len(data), 1):
+                                        data[i] = (data[i] - avg_arr[i]) / stdev_arr[i]
+
+                                    # plt.hist(SMD_scl_data, bins = n_bins, label = r'SMD $\sigma$ = 2 $\mu$W', alpha=0.9, color = 'red', edgecolor = 'black', linestyle = '-')
+                                    # #plt.hist(LDC_scl_data, bins = n_bins, label = r'LDC210C $\sigma$ = 1 $\mu$W', alpha=0.65, color = 'red' , edgecolor = 'black', linestyle = '--')
+                                    # plt.hist(K2602_scl_data, bins = n_bins, label = r'K2602 $\sigma$ = 3 $\mu$W', alpha=0.6, color = 'green', edgecolor = 'black', linestyle = ':' )
+                                    
+                                    for i in range(0, len(data), 1):
+                                        plt.hist(data[i], bins = n_bins, label = r'%(v1)s'%{"v1":qnttes[i]}, 
+                                                 alpha=0.9, color = Plotting.colours[i], edgecolor = 'black', linestyle = '-')
+
+                                    plt.xlim(xmin=-4, xmax = 4)
+                                    #plt.xlim(xmin=2.71, xmax = 2.75)
+                                    plt.ylim(ymin=0, ymax = 600e+3)
+                                    plt.xlabel(r'Scaled Measurements $( V_{i} - \mu ) / \sigma$', fontsize = 14)
+                                    plt.ylabel('Counts', fontsize = 14)
+                                    plt.legend(loc = 'best')
+                                    plt.title(r'Input Cap = %(v1)0.1f ( $\mu$F )'%{"v1":cap_vals[count]})
+                                    plt.savefig(f.replace('.txt','') + '_hist')
+                                    #plt.show()            
+                                    plt.clf()
+                                    plt.cla()
+                                    plt.close()
+
+                                count += 1
+
+                                del data
+
+                    # Effect of Decoupling capacitor on Output Voltage Value
+                    OUTPUT_PLOTS = False
+                    if OUTPUT_PLOTS:
+                        pass
+                else:
+                    ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate directory:' + SUB_DIR
+                    raise Exception
 
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot locate directory:' + DATA_HOME

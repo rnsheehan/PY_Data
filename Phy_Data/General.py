@@ -150,7 +150,16 @@ def Sandbox():
         print('Writing from A1:',Write_Chnnls['A1'])
     else:
         print('Writing from A0:',Write_Chnnls['A0'])
+
+    # loop over sub indices of an array
+    no_meas = 120
+    no_smpls = 5000
+    for j in range(0, 120, 1):
+        start = j*no_smpls
+        end = start + no_smpls
+        print(start," to ",end)
     
+
 def Superlum_Amplification():
 
     # plots relating to measurement of Superlum SLD amplification
@@ -2418,9 +2427,9 @@ def uHeater_Design():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
     
     try:
-        #DATA_HOME = 'c:/users/robertsheehan/Research/Electronics/uHeater_Control/';
+        DATA_HOME = 'c:/users/robertsheehan/Research/Electronics/uHeater_Control/';
         #DATA_HOME = 'E:/Research/Electronics/uHeater_Control/';
-        DATA_HOME = 'D:/Rob/Research/Electronics/uHeater_Control/';
+        #DATA_HOME = 'D:/Rob/Research/Electronics/uHeater_Control/';
     
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
@@ -2684,16 +2693,23 @@ def uHeater_Design():
 
                         qnttes = ['PWM0', 'PWM1', 'PWM7', 'CPS'] # quantities being measured
 
+                        Tmeas = 60 # Total measurement time in units of minutes
+                        Vmin = 2.720
+                        Vmax = 2.745
+                        dT = 0.5 # time interval between measurements in units of minutes
+
                         count = 0
                         for f in thefiles:
                             if glob.glob(f):
                                 data = numpy.loadtxt(f, delimiter = ',', unpack = True)
 
                                 # print some statistics
-                                avg_arr = numpy.zeros(len(data))
-                                stdev_arr = numpy.zeros(len(data))
+                                # save the descriptors for scaling hist calc later
+                                ai_no_ch = len(data) # No. NI-DAQ channels used to perform the measurement
+                                avg_arr = numpy.zeros(ai_no_ch)
+                                stdev_arr = numpy.zeros(ai_no_ch)
                                 print("Statistics for",f)
-                                for i in range(0, len(data), 1):
+                                for i in range(0, ai_no_ch, 1):
                                     avg = numpy.mean(data[i])
                                     stdev = numpy.std(data[i], ddof = 1)
                                     avg_arr[i] = avg
@@ -2708,11 +2724,11 @@ def uHeater_Design():
                                     boxplot.set_ylabel('Measured Voltage ( V )')
                                     boxplot.plot()
                                     plt.title(r'Input Cap = %(v1)0.1f ( $\mu$F )'%{"v1":cap_vals[count]})
-                                    plt.ylim(2.71, 2.75)
+                                    plt.ylim(Vmin, Vmax)
                                     plt.savefig(f.replace('.txt','') + '_box')
                                     plt.show()
 
-                                SHOW_HIST = True
+                                SHOW_HIST = False
                                 if SHOW_HIST:
                                     # Make a plot of the scaled histogram of the measured data
 
@@ -2720,7 +2736,8 @@ def uHeater_Design():
                                     n_bins = int( 1.0 + 3.322*math.log( len(data[0]) ) )
                                     #n_bins = 200
 
-                                    for i in range(0, len(data), 1):
+                                    # scale the data to zero mean and unity std. dev. 
+                                    for i in range(0, ai_no_ch, 1):
                                         data[i] = (data[i] - avg_arr[i]) / stdev_arr[i]
 
                                     # plt.hist(SMD_scl_data, bins = n_bins, label = r'SMD $\sigma$ = 2 $\mu$W', alpha=0.9, color = 'red', edgecolor = 'black', linestyle = '-')
@@ -2744,9 +2761,60 @@ def uHeater_Design():
                                     plt.cla()
                                     plt.close()
 
+                                SHOW_TIME_SER = True
+                                if SHOW_TIME_SER:
+                                    # Make a plot of the averaged measurements over time
+                                    # No need to include std. dev. as error bar since it is so small < 1mV
+                                    # Is there a correlation between meas. val and time? 
+                                    # Is there a drift in meas. val over time
+                                    
+                                    # Compute averages on sub-sets of the measured data
+                                    # similar to how the data was measured in any case
+                                    no_meas = 120 # No. meas. performed 
+                                    no_smpls = 4999 # compute the average meas. val. every n_smpls
+                                    
+                                    avg_vals = numpy.zeros((no_meas, ai_no_ch))
+                                    times = numpy.arange(0, Tmeas, dT)
+                                    hv_data = []
+                                    marks = []
+                                    for i in range(0, ai_no_ch, 1):
+                                        for j in range(0, no_meas, 1):
+                                            start = j*no_smpls
+                                            end = start + no_smpls
+                                            avg = numpy.mean(data[i][start:end])
+                                            avg_vals[j][i] = avg
+                                        hv_data.append([times, avg_vals[:,i]])
+                                        marks.append(Plotting.labs_lins[i])
+                                        
+                                        # Compute the averages of the data and examine whether or not they are correlated with time
+                                        savg = numpy.mean(avg_vals[:,i])
+                                        sstdev = numpy.std(avg_vals[:,i], ddof = 1)
+                                        # Pearson-r doesn't make sense in this case
+                                        # pearson_r = numpy.corrcoef(times, avg_vals[:,i])
+                                        lincoeffs = Common.linear_fit(times, avg_vals[:,i], [1,1])
+                                        print("%(v1)s: %(v2)0.4f +/- %(v3)0.4f (V), m = %(v4)0.2f ( uV / min ), c = %(v5)0.4f ( V )"%{"v1":qnttes[i], "v2":savg,"v3":sstdev,"v4":1.0e+6*lincoeffs[1],"v5":lincoeffs[0]})
+
+                                    PLOT_TIME_SER = True
+                                    if PLOT_TIME_SER:
+                                        # Make a time-series plot of the averaged data
+                                        args = Plotting.plot_arg_multiple()
+
+                                        args.loud = False
+                                        args.crv_lab_list = qnttes
+                                        args.mrk_list = marks
+                                        args.x_label = 'Time ( mins )'
+                                        args.y_label = 'Voltage ( V )'
+                                        args.plt_range = [0, Tmeas, Vmin, Vmax]
+                                        args.plt_title = r'Input Cap = %(v1)0.1f ( $\mu$F )'%{"v1":cap_vals[count]} 
+                                        args.fig_name = f.replace('.txt','') + '_time'
+
+                                        Plotting.plot_multiple_curves(hv_data, args)
+
+                                    del avg_vals; del hv_data; del marks; 
+
                                 count += 1
 
-                                del data
+                                del data; del avg_arr; del stdev_arr; 
 
                     # Effect of Decoupling capacitor on Output Voltage Value
                     OUTPUT_PLOTS = False

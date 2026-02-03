@@ -2427,8 +2427,8 @@ def uHeater_Design():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
     
     try:
-        DATA_HOME = 'c:/users/robertsheehan/Research/Electronics/uHeater_Control/';
-        #DATA_HOME = 'E:/Research/Electronics/uHeater_Control/';
+        #DATA_HOME = 'c:/users/robertsheehan/Research/Electronics/uHeater_Control/';
+        DATA_HOME = 'F:/Research/Electronics/uHeater_Control/';
         #DATA_HOME = 'D:/Rob/Research/Electronics/uHeater_Control/';
     
         if os.path.isdir(DATA_HOME):
@@ -2690,6 +2690,7 @@ def uHeater_Design():
                                     'AI_DC_Meas_Dev1_ai03_Tmeas_60_Nmeas_120_Cin_100.txt']
 
                         cap_vals = [0.0, 0.1, 1.0, 10.0] # list of capacitor values used in the measurement, units of uF
+                        cap_str = ['None','01','10','100']
 
                         qnttes = ['PWM0', 'PWM1', 'PWM7', 'CPS'] # quantities being measured
 
@@ -2734,7 +2735,6 @@ def uHeater_Design():
 
                                     # Use Sturges' Rule to compute the no. of bins required
                                     n_bins = int( 1.0 + 3.322*math.log( len(data[0]) ) )
-                                    #n_bins = 200
 
                                     # scale the data to zero mean and unity std. dev. 
                                     for i in range(0, ai_no_ch, 1):
@@ -2777,6 +2777,8 @@ def uHeater_Design():
                                     times = numpy.arange(0, Tmeas, dT)
                                     hv_data = []
                                     marks = []
+                                    sub_avg = []
+                                    sub_stdev = []
                                     for i in range(0, ai_no_ch, 1):
                                         for j in range(0, no_meas, 1):
                                             start = j*no_smpls
@@ -2789,12 +2791,31 @@ def uHeater_Design():
                                         # Compute the averages of the data and examine whether or not they are correlated with time
                                         savg = numpy.mean(avg_vals[:,i])
                                         sstdev = numpy.std(avg_vals[:,i], ddof = 1)
+
+                                        sub_avg.append(savg)
+                                        sub_stdev.append(sstdev)
+
                                         # Pearson-r doesn't make sense in this case
                                         # pearson_r = numpy.corrcoef(times, avg_vals[:,i])
-                                        lincoeffs = Common.linear_fit(times, avg_vals[:,i], [1,1])
-                                        print("%(v1)s: %(v2)0.4f +/- %(v3)0.4f (V), m = %(v4)0.2f ( uV / min ), c = %(v5)0.4f ( V )"%{"v1":qnttes[i], "v2":savg,"v3":sstdev,"v4":1.0e+6*lincoeffs[1],"v5":lincoeffs[0]})
+                                        # lincoeffs = Common.linear_fit(times, avg_vals[:,i], [1,1])
+                                        # print("%(v1)s: %(v2)0.4f +/- %(v3)0.4f (V), m = %(v4)0.2f ( uV / min ), c = %(v5)0.4f ( V )"%{"v1":qnttes[i], "v2":savg,"v3":sstdev,"v4":1.0e+6*lincoeffs[1],"v5":lincoeffs[0]})
 
-                                    PLOT_TIME_SER = True
+                                        # better to use in-built python linear regression function
+                                        # it has capability for doing in-built hypothesis testing
+                                        # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.linregress.html
+                                        # 
+                                        model = scipy.stats.linregress(times, avg_vals[:,i])
+                                        # print("%(v1)s: %(v2)0.4f +/- %(v3)0.4f (V), m = %(v4)0.2f ( uV / min ), c = %(v5)0.4f ( V ), R^{2} = %(v6)0.2f"%{"v1":qnttes[i], "v2":savg,"v3":sstdev,"v4":1.0e+6*model.slope,"v5":model.intercept,"v6":model.rvalue**2})
+                                        print("%(v1)s: %(v2)0.4f +/- %(v3)0.4f (V), m = %(v4)0.2f ( mV / hour ), c = %(v5)0.4f ( V ), R^{2} = %(v6)0.2f"%{"v1":qnttes[i], "v2":savg,"v3":sstdev,"v4":6.0e+4*model.slope,"v5":model.intercept,"v6":model.rvalue**2})
+                                        
+                                        # In all cases there is a time-dependence on the order of less than 1 mV / hours
+                                        # alpha = 0.05
+                                        # if model.pvalue < alpha:
+                                        #     print("Reject H_{0}: model slope is significantly different from m = 0\nThere is a time dependence in the model")
+                                        # else:
+                                        #     print("Accept H_{0}: model slope is not significantly different from m = 0\nThere is no time dependence in the model")
+
+                                    PLOT_TIME_SER = False
                                     if PLOT_TIME_SER:
                                         # Make a time-series plot of the averaged data
                                         args = Plotting.plot_arg_multiple()
@@ -2809,6 +2830,38 @@ def uHeater_Design():
                                         args.fig_name = f.replace('.txt','') + '_time'
 
                                         Plotting.plot_multiple_curves(hv_data, args)
+
+                                    PLOT_TIME_SER_HIST = True
+                                    if PLOT_TIME_SER_HIST:
+                                        # Make a plot of the scaled histogram of the measured data
+
+                                        # Use Sturges' Rule to compute the no. of bins required
+                                        n_bins = int( 1.0 + 3.322*math.log( len(hv_data[0][1]) ) )
+
+                                        # scale the data to zero mean and unity std. dev. 
+                                        for i in range(0, ai_no_ch, 1):
+                                            hv_data[i][1] = (hv_data[i][1] - sub_avg[i]) / sub_stdev[i]
+
+                                        # plt.hist(SMD_scl_data, bins = n_bins, label = r'SMD $\sigma$ = 2 $\mu$W', alpha=0.9, color = 'red', edgecolor = 'black', linestyle = '-')
+                                        # #plt.hist(LDC_scl_data, bins = n_bins, label = r'LDC210C $\sigma$ = 1 $\mu$W', alpha=0.65, color = 'red' , edgecolor = 'black', linestyle = '--')
+                                        # plt.hist(K2602_scl_data, bins = n_bins, label = r'K2602 $\sigma$ = 3 $\mu$W', alpha=0.6, color = 'green', edgecolor = 'black', linestyle = ':' )
+                                    
+                                        for i in range(0, len(hv_data), 1):
+                                            plt.hist(hv_data[i][1], bins = n_bins, label = r'%(v1)s'%{"v1":qnttes[i]}, 
+                                                     alpha=0.9, color = Plotting.colours[i], edgecolor = 'black', linestyle = '-')
+
+                                        plt.xlim(xmin=-3, xmax = 3)
+                                        #plt.xlim(xmin=2.71, xmax = 2.75)
+                                        plt.ylim(ymin=0, ymax = 25)
+                                        plt.xlabel(r'Scaled Measurements $( V_{i} - \mu ) / \sigma$', fontsize = 14)
+                                        plt.ylabel('Counts', fontsize = 14)
+                                        plt.legend(loc = 'best')
+                                        plt.title(r'Input Cap = %(v1)0.1f ( $\mu$F )'%{"v1":cap_vals[count]})
+                                        plt.savefig(f.replace('.txt','') + '_hist')
+                                        plt.show()            
+                                        plt.clf()
+                                        plt.cla()
+                                        plt.close()
 
                                     del avg_vals; del hv_data; del marks; 
 
@@ -2844,6 +2897,9 @@ def Combine_Avg_Std():
     # https://stats.stackexchange.com/questions/43031/how-to-prove-that-averaging-averages-of-different-partitions-of-a-dataset-produc
     # https://stats.stackexchange.com/questions/10441/how-to-calculate-the-variance-of-a-partition-of-variables?noredirect=1&lq=1
     # R. Sheehan 28 - 1 - 2026
+
+    # An excellent webpage with reviews on textbooks for Nonparametric Statistical Methods
+    # https://www.biostatistics.ca/best-nonparametric-statistics-books-the-full-list/
 
     # Here is some sample data with different no. of samples
     avg_arr = numpy.array([2.4, 2.0, 2.3, 2.1])
@@ -2925,4 +2981,55 @@ def Combine_Statistics(avg_arr, stdev_arr, counts_arr, equal_sample_sizes = True
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
+
+def Stationarity_Test():
+    # Examine the capabilities of linregress method in scipy.stats
+    # In particular examine the interpretation of the p-value computation in the case
+    # time-dependent and time-independent datasets
+    # R. Sheehan 3 - 2 - 2026
+    
+    # synthetic time data
+    Tstart = 0.0
+    Tend = 20
+    dT = 0.5
+    times = numpy.arange(0, Tend, dT)
+    
+    # synthetic measurement data with noise
+    intercept = 1.5
+    slope1 = 2.7
+    slope2 = 0.0
+    noise1 = numpy.random.rand(len(times))
+    noise2 = numpy.random.rand(len(times))
+    Y1 = intercept + slope1*times + noise1
+    Y2 = intercept + slope2*times + noise2
+
+    model1 = scipy.stats.linregress(times, Y1)
+    model2 = scipy.stats.linregress(times, Y2)
+
+    alpha = 0.05
+    print("Model 1: c = %(v1)0.4f, m = %(v2)0.6f, r = %(v3)0.4f, R^{2} = %(v4)0.4f"%{"v1":model1.intercept, 
+                                                                                     "v2":model1.slope, 
+                                                                                     "v3":model1.rvalue,
+                                                                                     "v4":model1.rvalue**2})
+    if model1.pvalue < alpha:
+        print("Reject H_{0}: model slope is significantly different from m = 0\nThere is a time dependence in the model")
+    else:
+        print("Accept H_{0}: model slope is not significantly different from m = 0\nThere is no time dependence in the model")
+
+    print("\nModel 2: c = %(v1)0.4f, m = %(v2)0.6f, r = %(v3)0.4f, R^{2} = %(v4)0.4f"%{"v1":model2.intercept, 
+                                                                                     "v2":model2.slope, 
+                                                                                     "v3":model2.rvalue,
+                                                                                     "v4":model2.rvalue**2})
+    if model2.pvalue < alpha:
+        print("Reject H_{0}: model slope is significantly different from m = 0\nThere is a time dependence in the model")
+    else:
+        print("Accept H_{0}: model slope is not significantly different from m = 0\nThere is no time dependence in the model")
+    
+    # make a plot of the data
+    plt.plot(times, Y1, 'o', label='data 1')
+    plt.plot(times, Y2, 'o', label='data 2')
+    plt.plot(times, model1.intercept + model1.slope*times, 'r', label='model 1')
+    plt.plot(times, model2.intercept + model2.slope*times, 'g', label='model 2')
+    plt.legend()
+    plt.show()
 

@@ -136,3 +136,5 @@ if __name__ == '__main__':
     General.uHeater_Design()
 
     #General.Combine_Avg_Std()
+
+    #General.Stationarity_Test()

@@ -2994,25 +2994,22 @@ def uHeater_Design():
                                     n_bins = int( 1.0 + 3.322*math.log( len(hv_data[0][1]) ) )
 
                                     # scale the data to zero mean and unity std. dev. 
+                                    hist_data = []
                                     for i in range(0, ai_no_ch, 1):
-                                        hv_data[i][1] = (hv_data[i][1] - sub_avg[i]) / sub_stdev[i]
+                                        #hv_data[i][1] = (hv_data[i][1] - sub_avg[i]) / sub_stdev[i]
+                                        hist_data.append( (hv_data[i][1] - sub_avg[i]) / sub_stdev[i] )
 
-                                    for i in range(0, len(hv_data), 1):
-                                        plt.hist(hv_data[i][1], bins = n_bins, label = r'%(v1)s'%{"v1":qnttes[i]}, 
-                                                    alpha=0.9, color = Plotting.colours[i], edgecolor = 'black', linestyle = '-')
+                                    args = Plotting.plot_arg_multiple()
 
-                                    plt.xlim(xmin=-3, xmax = 3)
-                                    #plt.xlim(xmin=2.71, xmax = 2.75)
-                                    plt.ylim(ymin=0, ymax = 25)
-                                    plt.xlabel(r'Scaled Measurements $( V_{i} - \mu ) / \sigma$', fontsize = 14)
-                                    plt.ylabel('Counts', fontsize = 14)
-                                    plt.legend(loc = 'best')
-                                    #plt.title(r'Output Cap = %(v1)0.1f ( $\mu$F )'%{"v1":cap_vals[count]})
-                                    plt.savefig(f.replace('.txt','') + '_hist')
-                                    plt.show()            
-                                    plt.clf()
-                                    plt.cla()
-                                    plt.close()
+                                    args.loud = True
+                                    args.bins = n_bins
+                                    args.plt_range = [-3, 3, 0, 25]
+                                    args.crv_lab_list = qnttes
+                                    args.fig_name = f.replace('.txt','') + '_hist'
+
+                                    Plotting.plot_multi_histogram(hist_data, args)
+
+                                    del hist_data
 
                                 sub_stdev_arr.append([[1, 2, 3, 4], 1000.0*sub_stdev])
 

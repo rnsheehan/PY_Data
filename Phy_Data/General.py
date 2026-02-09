@@ -2789,7 +2789,7 @@ def uHeater_Design():
                                         hv_data.append([times, avg_vals[:,i]])
                                         marks.append(Plotting.labs_lins[i])
                                         
-                                        # Compute the averages of the data and examine whether or not they are correlated with time
+                                        # Compute the averages of the data
                                         savg = numpy.mean(avg_vals[:,i])
                                         sstdev = numpy.std(avg_vals[:,i], ddof = 1)
 
@@ -2805,6 +2805,7 @@ def uHeater_Design():
                                         # it has capability for doing in-built hypothesis testing
                                         # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.linregress.html
                                         # 
+                                        # examine whether or not the data is correlated with time
                                         model = scipy.stats.linregress(times, avg_vals[:,i])
                                         # print("%(v1)s: %(v2)0.4f +/- %(v3)0.4f (V), m = %(v4)0.2f ( uV / min ), c = %(v5)0.4f ( V ), R^{2} = %(v6)0.2f"%{"v1":qnttes[i], "v2":savg,"v3":sstdev,"v4":1.0e+6*model.slope,"v5":model.intercept,"v6":model.rvalue**2})
                                         print("%(v1)s: %(v2)0.4f +/- %(v3)0.4f (V), m = %(v4)0.2f ( mV / hour ), c = %(v5)0.4f ( V ), R^{2} = %(v6)0.2f"%{"v1":qnttes[i], "v2":savg,"v3":sstdev,"v4":6.0e+4*model.slope,"v5":model.intercept,"v6":model.rvalue**2})
@@ -2835,6 +2836,27 @@ def uHeater_Design():
                                     PLOT_TIME_SER_HIST = False
                                     if PLOT_TIME_SER_HIST:
                                         # Make a plot of the scaled histogram of the measured data
+
+                                        # Use Sturges' Rule to compute the no. of bins required
+                                        n_bins = int( 1.0 + 3.322*math.log( len(hv_data[0][1]) ) )
+
+                                        # scale the data to zero mean and unity std. dev. 
+                                        hist_data = []
+                                        for i in range(0, ai_no_ch, 1):
+                                            hist_data.append( (hv_data[i][1] - sub_avg[i]) / sub_stdev[i] )
+
+                                        args = Plotting.plot_arg_multiple()
+
+                                        args.loud = True
+                                        args.bins = n_bins
+                                        args.plt_range = [-3, 3, 0, 25]
+                                        args.crv_lab_list = qnttes
+                                        args.plt_title = r'Input Cap = %(v1)0.1f ( $\mu$F )'%{"v1":cap_vals[count]}
+                                        args.fig_name = f.replace('.txt','') + '_hist'
+
+                                        Plotting.plot_multi_histogram(hist_data, args)
+
+                                        del hist_data
 
                                         # Use Sturges' Rule to compute the no. of bins required
                                         n_bins = int( 1.0 + 3.322*math.log( len(hv_data[0][1]) ) )

@@ -3198,3 +3198,102 @@ def Stationarity_Test():
     plt.legend()
     plt.show()
 
+def PRBS_Testing():
+    """
+    Implementation of PRBS-sequences in python
+    """
+
+    # Based on https://stackoverflow.com/questions/13006929/pseudo-random-binary-sequences-prbs-in-python
+    # https://gist.github.com/Btremaine/d2f861947fe3f49053116e7a679252e9
+    # https://opencpi.gitlab.io/releases/latest/rst/comp_sdr/components/generator/prbs_generator_b.comp/prbs_generator_b-index.html
+    # https://pypi.org/project/opticomlib/, https://github.com/armando-palacio/opticomlib
+    # R. Sheehan 12 - 2 - 2026
+    
+    print(bin(1))
+    print(bin(2))
+    print()
+    print(bin(prbs31(12)))
+    print(bin(prbs31(13)))
+    print(bin(prbs31(14)))
+    print()    
+    print(bin(prbs31_fast(12) - prbs31(12)))
+    
+def prbs31(code):
+    # Here is a basic implementation for prbs31 with monic polynomial: x^{31} + x^{28} + 1
+    
+    # Given an integer, the function will generate PRBS sequence a bit at a time and return 
+    # an integer containing the next 32 bits of the sequence. 
+    # Note the input integer's bits above x^{31} are irrelevant to the output.
+
+    for i in range(32):
+        next_bit = ~((code>>30) ^ (code>>27))&0x01
+        code = ((code<<1) | next_bit) & 0xFFFFFFFF
+    return code
+
+def prbs31_fast(code):
+    # Here is a basic implementation for prbs31 with monic polynomial: x^{31} + x^{28} + 1
+
+    # Given an integer, the function will generate PRBS sequence a bit at a time and return 
+    # an integer containing the next 32 bits of the sequence. 
+    # Note the input integer's bits above x^{31} are irrelevant to the output.
+
+    # XOR and negation are used to perform bit-wise (modulo 2) addition. 
+    # This probably won't improve performance in the above code, but you can use the
+    # bit arithmetic to compute code at a time for faster performance
+
+    next_code = (~((code<<1)^(code<<4)) & 0xFFFFFFF0)
+    next_code |= (~(( (code<<1 & 0x0E) | (next_code>>31 & 0x01)) ^ (next_code>>28)) & 0x0000000F)
+    return next_code
+
+def Random_Signal():
+
+    # An alternative method for generating a random sequence of pulses
+
+    nstep = 300
+
+    # random signal generation
+
+    a_range = [0,2]
+    a = numpy.random.rand(nstep) * (a_range[1]-a_range[0]) + a_range[0] # range for amplitude
+
+    b_range = [2, 10]
+    b = numpy.random.rand(nstep) *(b_range[1]-b_range[0]) + b_range[0] # range for frequency
+    b = numpy.round(b)
+    b = b.astype(int)
+
+    b[0] = 0
+
+    for i in range(1,numpy.size(b)):
+        b[i] = b[i-1]+b[i]
+
+    # Random Signal
+    i=0
+    random_signal = numpy.zeros(nstep)
+    while b[i]<numpy.size(random_signal):
+        k = b[i]
+        random_signal[k:] = a[i]
+        i=i+1
+
+    # PRBS
+    a = numpy.zeros(nstep)
+    j = 0
+    while j < nstep:
+        a[j] = 5
+        a[j+1] = -5
+        j = j+2
+
+    i=0
+    prbs = numpy.zeros(nstep)
+    while b[i]<numpy.size(prbs):
+        k = b[i]
+        prbs[k:] = a[i]
+        i=i+1
+
+    plt.figure(0) 
+    plt.subplot(2,1,1)
+    plt.plot(random_signal, drawstyle='steps',label='Random Signal')
+    plt.legend()
+    plt.subplot(2,1,2)
+    plt.plot(prbs, drawstyle='steps', label='PRBS')
+    plt.legend()
+    plt.show()

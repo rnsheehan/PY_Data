@@ -139,4 +139,6 @@ if __name__ == '__main__':
 
     #General.Stationarity_Test()
 
-    General.Random_Signal()
+    #General.Random_Signal()
+
+    General.Magnetometer_Plots()

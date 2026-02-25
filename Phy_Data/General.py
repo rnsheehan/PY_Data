@@ -8,6 +8,7 @@ import math
 import scipy
 import numpy
 import matplotlib.pyplot as plt
+import random
 
 import Common
 import Plotting
@@ -143,23 +144,42 @@ def Sandbox():
     # print(numpy.repeat( -1000, abs(size_diff)  ))
     
     # Attempt to select a dictionary element other than the one named
-    Write_Chnnls = {"A0":0, "A1":1}
-    the_channel = 'A1'
+    # Write_Chnnls = {"A0":0, "A1":1}
+    # the_channel = 'A1'
     
-    if the_channel == 'A0':
-        print('Writing from A1:',Write_Chnnls['A1'])
-    else:
-        print('Writing from A0:',Write_Chnnls['A0'])
+    # if the_channel == 'A0':
+    #     print('Writing from A1:',Write_Chnnls['A1'])
+    # else:
+    #     print('Writing from A0:',Write_Chnnls['A0'])
 
     # loop over sub indices of an array
-    no_meas = 120
-    no_smpls = 5000
-    for j in range(0, 120, 1):
-        start = j*no_smpls
-        end = start + no_smpls
-        print(start," to ",end)
-    
+    # no_meas = 120
+    # no_smpls = 5000
+    # for j in range(0, 120, 1):
+    #     start = j*no_smpls
+    #     end = start + no_smpls
+    #     print(start," to ",end)
 
+    #def is_multiple(x, y):
+    #return x and (y % x) == 0
+
+    from random import random
+
+    x = 5
+    y = 57
+    c1 = x and (y % x) == 0
+
+    print(Common.is_multiple(x, y))
+
+    ndT = 13
+    count = 0
+    amplitude = 3
+    while count < 157:
+        if count % ndT == 0:
+            val = amplitude if random() >= 0.5 else 0.0
+            print(count,": Update value",val)
+        count += 1
+    
 def Superlum_Amplification():
 
     # plots relating to measurement of Superlum SLD amplification
@@ -3253,7 +3273,7 @@ def Random_Signal():
 
     # random signal generation
 
-    a_range = [0,2]
+    a_range = [-7,7]
     a = numpy.random.rand(nstep) * (a_range[1]-a_range[0]) + a_range[0] # range for amplitude
 
     b_range = [2, 10]
@@ -3272,14 +3292,16 @@ def Random_Signal():
     while b[i]<numpy.size(random_signal):
         k = b[i]
         random_signal[k:] = a[i]
+        #random_signal[k] = a[i]
         i=i+1
 
     # PRBS
     a = numpy.zeros(nstep)
     j = 0
     while j < nstep:
-        a[j] = 5
-        a[j+1] = -5
+        a[j] = 7
+        #a[j+1] = -5
+        a[j+1] = 0
         j = j+2
 
     i=0
@@ -3297,3 +3319,163 @@ def Random_Signal():
     plt.plot(prbs, drawstyle='steps', label='PRBS')
     plt.legend()
     plt.show()
+
+def Plot_While():
+
+    # How do you implement a matplotlib plot that can update in real time? 
+    # https://stackoverflow.com/questions/11874767/how-do-i-plot-in-real-time-in-a-while-loop
+    # https://stackoverflow.com/questions/58186783/updating-matplotlib-figures-in-real-time-for-data-acquisition
+    # https://stackoverflow.com/questions/16446443/live-updating-with-matplotlib
+    
+
+    # R. Sheehan 25 - 2 - 2026
+
+    EXAMPLE_1 = False
+    if EXAMPLE_1:
+        # Simple Example
+        # https://stackoverflow.com/questions/11874767/how-do-i-plot-in-real-time-in-a-while-loop
+        plt.axis([0, 10, 0, 1])
+
+        for i in range(10):
+            y = numpy.random.random()
+            plt.scatter(i, y)
+            plt.pause(1.0)
+
+        plt.show()
+
+    EXAMPLE_2 = True
+    if EXAMPLE_2:
+        # Example Uysing Interactive Mode
+        # https://www.geeksforgeeks.org/python/dynamically-updating-plot-in-matplotlib/
+        plt.ion()  # turning interactive mode on
+
+        # preparing the data
+        y = [random.randint(1,10) for i in range(20)]
+        x = [*range(1,21)]
+
+        # plotting the first frame
+        graph = plt.plot(x,y)[0]
+        plt.ylim(0,10)
+        plt.pause(1)
+
+        # the update loop
+        count = 0
+        n_plts = 10
+        while(count < n_plts):
+            # updating the data
+            y.append(random.randint(1,10))
+            x.append(x[-1]+1)
+    
+            # removing the older graph
+            graph.remove()
+    
+            # plotting newer graph
+            graph = plt.plot(x,y,color = 'g')[0]
+            plt.xlim(x[0], x[-1])
+    
+            # calling pause function for 0.25 seconds
+            plt.pause(0.25)
+
+            count += 1
+
+def Magnetometer_Plots():
+
+    """
+    Make plots of the magnetometer data obtained from the Phypox app
+    """
+
+    # R. Sheehan 25 - 2 - 2026
+
+    FUNC_NAME = ".Combine_Statistics()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = "D:/Rob/Research/Lab_Magnetic_Background/"
+
+        if os.path.isdir(DATA_HOME):
+           os.chdir(DATA_HOME)
+           HOME = os.getcwd()
+           print(HOME)
+
+           rooms = ["B11C", "116E"]
+           fname = "Raw Data.csv"
+
+           hv_data = []
+           marks = []
+           labels = []
+           avg_vals = []
+           stdev_vals = []
+           count = 0
+           for r in rooms:
+               the_file = r + "/" + fname
+               if glob.glob(the_file):
+                   print(fname,"exists")
+
+                   data = numpy.loadtxt(the_file, delimiter = ',', skiprows = 1, unpack = True)
+                   print(len(data[0]))
+                   times = data[0] / 60.0
+                   abs_mag = data[4]
+                   avg_mag = numpy.mean(data[4])
+                   stdev_mag = numpy.std(data[4], ddof = 1)
+
+                   avg_vals.append(avg_mag)
+                   stdev_vals.append(stdev_mag)
+
+                   hv_data.append([ times, abs_mag ])
+                   marks.append(Plotting.labs_lins[count])
+                   labels.append(r"%(v1)s %(v2)0.1f +/- %(v3)0.1f ( $\mu$T )"%{"v1":r, "v2":avg_mag, "v3":stdev_mag})
+
+                   # Stationarity Test
+                   model = scipy.stats.linregress(times, abs_mag)
+
+                   print("Abs. Magnetic Field: %(v1)0.1f +/- %(v2)0.1f (uT)"%{"v1":avg_mag, "v2":stdev_mag})
+
+                   print("Model 1: c = %(v1)0.4f (uT), m = %(v2)0.6f (uT / min), r = %(v3)0.4f, R^{2} = %(v4)0.4f"%{"v1":model.intercept,"v2":model.slope, "v3":model.rvalue,"v4":model.rvalue**2})
+
+                   alpha = 0.05
+                   if model.pvalue < alpha:
+                       print("Reject H_{0}: model slope is significantly different from m = 0\nThere is a time dependence in the model")
+                   else:
+                       print("Accept H_{0}: model slope is not significantly different from m = 0\nThere is no time dependence in the model")
+
+                   print("\n")
+
+                   count += 1
+
+           # Make a plot of the data 
+           args = Plotting.plot_arg_multiple()
+
+           args.loud = True
+           args.crv_lab_list = labels
+           args.mrk_list = marks
+           args.x_label = 'Time ( minutes )'
+           args.y_label = r'Absolute Magnetic Field ( $\mu$T )'
+           args.plt_range = [0, 40, 50, 83]
+           args.fig_name = 'Abs_Mag_Field_Time_Series'
+
+           Plotting.plot_multiple_curves(hv_data, args)
+
+           # Use Sturges' Rule to compute the no. of bins required
+           n_bins = int( 1.0 + 3.322*math.log( len(hv_data[0][1]) ) )
+
+           # Scale the data for a histogram plot
+           scaled_data = []
+           for i in range(0, len(hv_data), 1):
+               scaled_data.append( (hv_data[i][1] - avg_vals[i]) / stdev_vals[i] )
+
+           args.loud = True
+           args.bins = n_bins
+           args.plt_range = [-4, 4, 0, 35E+3]
+           args.crv_lab_list = labels
+           #args.plt_title = r'Input Cap = %(v1)0.1f ( $\mu$F )'%{"v1":cap_vals[count]}
+           args.fig_name = 'Abs_Mag_Field_Time_Hist'
+
+           Plotting.plot_multi_histogram(scaled_data, args)
+
+        else:
+            ERR_STATEMENT += ERR_STATEMENT + "\nCannot locate:" + DATA_HOME
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+    

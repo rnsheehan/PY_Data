@@ -3349,6 +3349,10 @@ def Plot_While():
         # https://www.geeksforgeeks.org/python/dynamically-updating-plot-in-matplotlib/
         plt.ion()  # turning interactive mode on
 
+        # https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.ion.html
+        # https://www.geeksforgeeks.org/python/matplotlib-pyplot-ion-in-python/
+        # https://stackoverflow.com/questions/78805800/how-can-i-use-plt-ion
+
         # preparing the data
         y = [random.randint(1,10) for i in range(20)]
         x = [*range(1,21)]
@@ -3377,6 +3381,9 @@ def Plot_While():
             plt.pause(0.25)
 
             count += 1
+
+        #plt.ioff()
+        #plt.show()
 
 def Magnetometer_Plots():
 

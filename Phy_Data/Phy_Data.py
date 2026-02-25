@@ -141,4 +141,4 @@ if __name__ == '__main__':
 
     #General.Random_Signal()
 
-    General.Magnetometer_Plots()
+    General.Plot_While()

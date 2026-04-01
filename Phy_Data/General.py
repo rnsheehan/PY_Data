@@ -3364,7 +3364,7 @@ def Plot_While():
 
         # the update loop
         count = 0
-        n_plts = 10
+        n_plts = 50
         while(count < n_plts):
             # updating the data
             y.append(random.randint(1,10))

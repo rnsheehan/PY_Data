@@ -3343,7 +3343,7 @@ def Plot_While():
 
         plt.show()
 
-    EXAMPLE_2 = True
+    EXAMPLE_2 = False
     if EXAMPLE_2:
         # Example Uysing Interactive Mode
         # https://www.geeksforgeeks.org/python/dynamically-updating-plot-in-matplotlib/
@@ -3384,6 +3384,166 @@ def Plot_While():
 
         #plt.ioff()
         #plt.show()
+
+    EXAMPLE_3 = False
+
+    if EXAMPLE_3:
+        from matplotlib.animation import FuncAnimation 
+
+        fig, ax = plt.subplots()
+        t = numpy.linspace(0, 3, 40)
+        g = -9.81
+        v0 = 12
+        z = g * t**2 / 2 + v0 * t
+
+        v02 = 5
+        z2 = g * t**2 / 2 + v02 * t
+
+        scat = ax.scatter(t[0], z[0], c="b", s=5, label=f'v0 = {v0} m/s')
+        line2 = ax.plot(t[0], z2[0], label=f'v0 = {v02} m/s')[0]
+        ax.set(xlim=[0, 3], ylim=[-4, 10], xlabel='Time [s]', ylabel='Z [m]')
+        ax.legend()
+
+        def update(frame):
+            # for each frame, update the data stored on each artist.
+            x = t[:frame]
+            y = z[:frame]
+            # update the scatter plot:
+            data = numpy.stack([x, y]).T
+            scat.set_offsets(data)
+
+            # update the line plot:
+            line2.set_xdata(t[:frame])
+            line2.set_ydata(z2[:frame])
+            
+            return (scat, line2)
+
+        ani = FuncAnimation(fig=fig, func=update, frames=40, interval=30)
+        plt.show()
+
+    EXAMPLE_4 = False
+    if EXAMPLE_4:
+
+        # Example does not work
+
+        from matplotlib.animation import FuncAnimation
+
+        #Initiate figure and ax objects
+        fig, ax = plt.subplots()
+        x, y = [], []
+        line, = ax.plot([], [], 'bo')
+
+        def init():
+            """
+            This init function defines the initial plot parameter
+            """
+            # Set initial parameter for the plot
+            ax.set_xlim(0, 100)
+            ax.set_ylim(-2.5, 2.5)
+            return line
+
+        def animate(frame):
+            """
+            This function will be called periodically by FuncAnimation. Frame parameter will be passed on each call as a counter. 
+            """
+
+            xdat = numpy.arange(0, 100, 1)
+            ydat = [math.sin(xdat[i]) for i in range(0, len(xdat), 1)]
+
+            # Append data to x and y data list
+            x.append(frame)
+            y.append(ydat)
+    
+            # Adjust limit when step count exceeds certain number (100 in this case)
+            #limit = max(100, max(x))
+            #ax.set_xlim(limit-100, limit)
+    
+            # Set data for line plot
+            line.set_data(x, y)
+            return line,
+
+        # Create FuncAnimation object and plt.show() to show the updated animation
+        ani = FuncAnimation(fig, animate, frames = numpy.linspace(1,1000,1000), interval = 1000, init_func = init)
+        plt.show()
+
+    EXAMPLE_5 = False
+    if EXAMPLE_5:
+        import time
+        from matplotlib.animation import FuncAnimation
+
+        # -----------------------------
+        # User Settings
+        # -----------------------------
+        CHANNELS = ["Dev1/ai0", "Dev1/ai1"]
+        SAMPLE_RATE = 10000              # Hardware sample rate (Hz)
+        SAMPLES_PER_READ = 1000          # Read block size
+        BUFFER_SECONDS = 5               # Amount of data shown in plot
+        # -----------------------------
+
+        # -----------------------------
+        # Plot setup
+        # -----------------------------
+        fig, ax = plt.subplots()
+        lines = [ax.plot([], [], label=ch)[0] for ch in CHANNELS]
+        ax.set_xlim(0, BUFFER_SECONDS)
+        ax.set_ylim(-10, 10)
+        ax.legend()
+        ax.set_xlabel("Time (s)")
+        ax.set_ylabel("Voltage (V)")
+        plt.title("Real-Time NI-DAQ Data")
+
+        def update(frame):
+            # Generate data
+            time = numpy.linspace(0.0, 5.0, 100)
+                    
+            # Update plot
+            amp = [1.0 + 9.0*random.random(), 3.0 + 7.0*random.random()]
+
+            phase = [-0.5*math.pi + math.pi*random.random(), -0.5*math.pi + math.pi*random.random()]
+
+            for i, line in enumerate(lines):
+                data = numpy.zeros( len(time) )
+                for j in range(0, len(time), 1):
+                    data[j] = amp[i] * math.sin(2.0 * math.pi * time[j] + phase[i])
+                line.set_data(time, data)
+                line.set_label("A = %(v1)0.1f"%{"v1":amp[i]})
+
+            return lines
+
+        ani = FuncAnimation(fig = fig, func = update, interval=10, frames = 5)
+        plt.show()
+
+    EXAMPLE_6 = True
+    if EXAMPLE_6:
+        from matplotlib.animation import FuncAnimation
+
+        def updatePlot(data, image, text):
+            image.set_data(data)
+            text.set_text(data.mean())
+
+        fig1, ax1 = plt.subplots()
+        image1 = ax1.imshow(numpy.random.rand(4,4))
+        text1 = ax1.text(2,2, "")
+
+        fig2, ax2 = plt.subplots()
+        image2 = ax2.imshow(numpy.random.rand(6,6))
+        text2 = ax2.text(2,2, "")
+
+        fig3, ax3 = plt.subplots()
+        text3 = ax3.text(2,2, "")
+        image3 = ax3.imshow(numpy.random.rand(10,10))
+
+        def update_plots(i):
+            # do computation
+            updatePlot(numpy.random.rand(4,4), image1, text1)
+            updatePlot(numpy.random.rand(6,6), image2, text2)
+            updatePlot(numpy.random.rand(10,10), image3, text3)
+            fig2.canvas.draw_idle()
+            fig3.canvas.draw_idle()
+
+        ani = FuncAnimation(fig1, update_plots, interval=40, cache_frame_data = False)
+
+        plt.show()
 
 def Magnetometer_Plots():
 

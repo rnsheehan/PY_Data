@@ -1423,7 +1423,7 @@ def OEWaves_Analysis_Single(filename, loud = False):
                     args.mrk_list = marks
                     args.x_label = 'Frequency ( Hz )'
                     args.y_label = 'Frequency Noise ( Hz$^{2}$ / Hz )'
-                    args.fig_name = filename.replace('.txt','')
+                    #args.fig_name = filename.replace('.txt','')
                     args.log_x = True
                     args.log_y = True                   
 
@@ -1862,10 +1862,37 @@ def OEWaves_FNPSD_Analysis():
             # Make a plot of the FNPSD data using the array
             #plt_indx = 1 # this is the indx of the column storing the Phase Noise data in units of dBc / Hz
             #plt_indx = 2 # this is the indx of the column storing the Spurious Noise data in units of dBc / Hz
-            #plt_indx = 3 # this is the indx of the column storing the FNPSD data in units of Hz^{2} / Hz
+            plt_indx = 3 # this is the indx of the column storing the FNPSD data in units of Hz^{2} / Hz
             #plt_indx = 4 # this is the indx of the column storing the FNPSD data in units of Hz / Hz^{1/2}
-            # frequency_vals = fnpsd_data[1][0] # units of Hz
-            # phase_noise = fnpsd_data[1][plt_indx] # units depend on the value of plot_indx
+            frequency_vals = fnpsd_data[1][0] # units of Hz
+            phase_noise = fnpsd_data[1][plt_indx] # units depend on the value of plot_indx
+
+            hv_data = []; marks = []; labels = []
+
+            # measured frequency noise
+            hv_data.append([frequency_vals, phase_noise]); 
+            marks.append(Plotting.labs_lins[0]); 
+            labels.append(r'$S_{w}$(f)')
+                    
+            # beta-line
+            beta_slope = (8.0*math.log(2.0)) / (math.pi**2)
+            hv_data.append([[frequency_vals[0], frequency_vals[-1]],[beta_slope*frequency_vals[0], beta_slope*frequency_vals[-1]]]); 
+            marks.append(Plotting.labs_dashed[6]); 
+            labels.append('c f')
+
+            # make the plot including the beta-line
+            args = Plotting.plot_arg_multiple()
+
+            args.loud = False
+            args.crv_lab_list = labels
+            args.mrk_list = marks
+            args.x_label = 'Frequency ( Hz )'
+            args.y_label = 'Frequency Noise ( Hz$^{2}$ / Hz )'
+            #args.fig_name = filename.replace('.txt','')
+            args.log_x = True
+            args.log_y = True                   
+
+            Plotting.plot_multiple_curves(hv_data, args)
             
             # Make an estimate of the laser linewidth using the Domenico method
             # Ideally, this estimate would be close to the estimate obtained from the OE4000
@@ -1876,6 +1903,8 @@ def OEWaves_FNPSD_Analysis():
             
             # beta-line
             # For details on the beta-line argument see Domenico et al, Appl. Opt., 49 (25), 2010 for details
+            
+            int_data = numpy.array([])
             beta_slope = (8.0*math.log(2.0)) / (math.pi**2)
             integral = 0
             for j in range(1, len(frequency_vals), 1):
@@ -1884,14 +1913,25 @@ def OEWaves_FNPSD_Analysis():
                 # argument goes that for f > 100 kHz noise is purely Gaussian and therefore does not contribute significantly to LL
                 if frequency_vals[j] < 1e+5 and phase_noise[j] > beta_slope * frequency_vals[j]:
                     integral = integral + ( frequency_vals[j] - frequency_vals[j-1] ) * phase_noise[j]
+
+                # For what value of f does S_{w} intersect c f?
+                if math.fabs(phase_noise[j] - beta_slope * frequency_vals[j]) < 1000:
+                    #print("Intrinsic LL estimate:",math.pi * phase_noise[j])
+                    int_data = numpy.append(int_data, math.pi * phase_noise[j])
+
             dom_LL = (0.5*math.sqrt(8.0*math.log(2.0)*integral)) / 1000.0 # convert the computed integral to a LL estimate in units of kHz
 
             # print('Integral: ',integral,', HWHM: ',0.5*math.sqrt(8.0*math.log(2.0)*integral))
 
+            print("")
             print("Measurement File: ",filename)
             print("OE4000 Average of Extended Laser Linewidth: ",numpy.mean(fnpsd_data[2][1]),' kHz')
             print("OE4000 Instantaneous Laser Linewidth: ",fnpsd_data[3],' kHz')
-            print("Domenico Estimate of Laser Linewidth: ",dom_LL,' kHz')           
+            print("Domenico Estimate of Laser Linewidth: ",dom_LL,' kHz') 
+            print("Estimate of Intrinsic Linewidth: ",numpy.mean(int_data)/1000.0,' kHz')
+            
+            
+
 
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot find ' + DATA_HOME

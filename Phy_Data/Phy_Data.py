@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
     #LLM.OEWaves_Analysis()
     
-    #LLM.OEWaves_FNPSD_Analysis()
+    LLM.OEWaves_FNPSD_Analysis()
 
     #General.PDA10CS_Calibration()
 
@@ -141,4 +141,4 @@ if __name__ == '__main__':
 
     #General.Random_Signal()
 
-    General.Plot_While()
+    #General.Plot_While()

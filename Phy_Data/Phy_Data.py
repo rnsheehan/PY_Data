@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
     #LLM.OEWaves_Analysis()
     
-    LLM.OEWaves_FNPSD_Analysis()
+    #LLM.OEWaves_FNPSD_Analysis()
 
     #General.PDA10CS_Calibration()
 
@@ -89,7 +89,7 @@ if __name__ == '__main__':
 
     #LLM.Plot_Measured_SNR()
 
-    #LLM.Beat_Analysis()
+    LLM.Beat_Analysis()
 
     #LLM.Summarise_Beat_Analysis()
     

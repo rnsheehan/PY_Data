@@ -3323,7 +3323,7 @@ def Beat_Analysis():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
-        Ival = 200
+        Ival = 100
         loopLength = 10
 
         # CoBrite Parameters
@@ -3339,12 +3339,14 @@ def Beat_Analysis():
         LWUNits = ' / kHz / ' + RBW
 
         #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/I_%(v1)d/'%{"v1":Ival, "v2":theLaser, "v3":temperature, "v4":loopLength}
-        DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/I_%(v1)d_Nb_20/'%{"v1":Ival, "v2":theLaser, "v3":temperature, "v4":loopLength}
+        #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/I_%(v1)d_Nb_20/'%{"v1":Ival, "v2":theLaser, "v3":temperature, "v4":loopLength}
+        DATA_HOME = 'D:/Rob/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_RSPP_VVOA_3_%(v2)s_T_%(v3)d_D_%(v4)d/'%{"v2":theLaser, "v3":temperature, "v4":loopLength}
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
             print(os.getcwd())             
             
+            # Step 1
             # Aggregate all the beat files together into an average beat file + error beat file
             # 
             beatfiles = glob.glob('Beat_Data_Nmeas_*_I_%(v1)d*.txt'%{"v1":Ival})
@@ -3370,71 +3372,92 @@ def Beat_Analysis():
             filename = 'Delta_Data_I_%(v1)d.txt'%{"v1":Ival}
             numpy.savetxt(filename, numpy.transpose(delta_data), fmt = '%0.9f', delimiter = '\t', header = header_str)
 
+            # Step 2
+            # Generate a report based on the aggregated data
             filename = 'Results_Summary_I_%(v1)d.txt'%{"v1":Ival}
             f_AOM = 80
-            f_start = 80; # it may be necessary to skip the first beat due to bad fitting
-            f_cutoff = (15) * f_AOM;
+            f_start = 240; # it may be necessary to skip the first beat due to bad fitting
+            f_cutoff = (12) * f_AOM;
             Beat_Data_Report(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, averaged_data, delta_data, filename)
 
-            Plot_Beat_Data(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, averaged_data, delta_data)
+            # Step 3
+            # Make plots of all the averaged measured quantities, including error bars
+            GENERATE_ALL_BEAT_PLOTS = False
+            if GENERATE_ALL_BEAT_PLOTS:
+                Plot_Beat_Data(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, averaged_data, delta_data)
             
             # Data is returned as a numpy array with the measured quantities stored as rows of the array as follows
             # 0: Beat No.   1: Fbeat / MHz  2: Distance / km    3: Time/ s  4: Tair/C   5: Taom/C   6: Taomdrv/C    7: Pmax/dBm 8: Fmax	
             # 9: LLest	10: LL_Vfit	11: LL_Lfit	12: LLest_-20	13: Voigt_h/nW	14: Voigt_Lor_HWHM	15: Voigt_Gau_Stdev	16: Lor_h/nW	
             # 17: Lor_HWHM 18: P1/dBm	19: P2/dBm	20: P2/P1
 
-            Loud = True
-            include_range = True
-            Choice = 10 # Plot the Voigt fitted dnu
-            TheName = 'Voigt Linewidth'
-            TheUnits = LWUNits
-            Plot_Beat_Data_Scatter(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choice, TheName, TheUnits, beatfiles, include_range, Loud)
+            # Step 4
+            # Make a plot of RSPP
+            GENERATE_RSPP_PLOT = True
+            if GENERATE_RSPP_PLOT:
+                Plot_RSPP_Data(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, averaged_data, delta_data, True)
 
-            Loud = True
-            Choice = 15+1 # Plot the Gaussian contribution to dnu, index is off by 1 for aggregration reasons
-            TheName = 'Gaussian Linewidth'
-            TheUnits = LWUNits
-            Plot_Beat_Data_Scatter(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choice, TheName, TheUnits, beatfiles, include_range, Loud)
+            # Step 5
+            # Make plots of combinations of quantities 
+            GENERATE_COMBO_PLOTS = False
+            if GENERATE_COMBO_PLOTS:
+                Loud = False
+                include_range = False
+                Choices = [4, 5, 6] # Plot the temperatures together
+                TheName = 'Temperature'
+                TheUnits = ' / C'
+                Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, include_range, Loud)
 
-            Loud = True
-            Choice = 14+1 # Plot the Lorentzian contribution to dnu, index is off by 1 for aggregration reasons
-            TheName = 'Lorentzian Linewidth'
-            TheUnits = LWUNits
-            Plot_Beat_Data_Scatter(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choice, TheName, TheUnits, beatfiles, include_range, Loud)
+                Loud = False
+                Choices = [18, 19] # Plot the loop powers together
+                TheName = 'Power'
+                TheUnits = ' / dBm'
+                Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, include_range, Loud)
 
-            Loud = False
-            include_range = False
-            Choices = [4, 5, 6] # Plot the temperatures together
-            TheName = 'Temperature'
-            TheUnits = ' / C'
-            Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, include_range, Loud)
+                Loud = True
+                include_range = True
+                Choices = [9, 10, 11] # Plot the measured + fitted dnu together
+                TheName = 'Linewidth'
+                TheUnits = LWUNits
+                Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, include_range, Loud)
 
-            Loud = False
-            Choices = [18, 19] # Plot the loop powers together
-            TheName = 'Power'
-            TheUnits = ' / dBm'
-            Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, include_range, Loud)
+                Loud = False
+                include_range = False
+                Choices = [9, 12] # Plot the estimated dnu together
+                TheName = 'Estimated Linewidth'
+                TheUnits = LWUNits
+                Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, include_range, Loud)
 
-            Loud = True
-            include_range = True
-            Choices = [9, 10, 11] # Plot the measured + fitted dnu together
-            TheName = 'Linewidth'
-            TheUnits = LWUNits
-            Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, include_range, Loud)
+                Loud = True
+                include_range = True
+                Choices = [14, 15] # Plot the Voigt Fit Parameters together
+                TheName = 'Voigt Parameters'
+                TheUnits = LWUNits
+                Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, include_range, Loud)
 
-            Loud = False
-            include_range = False
-            Choices = [9, 12] # Plot the estimated dnu together
-            TheName = 'Estimated Linewidth'
-            TheUnits = LWUNits
-            Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, include_range, Loud)
+            # Step 6
+            # Make Scatter plots of all the measured quantities
+            GENERATE_SCATTER_PLOTS = False
+            if GENERATE_SCATTER_PLOTS:
+                Loud = True
+                include_range = True
+                Choice = 10 # Plot the Voigt fitted dnu
+                TheName = 'Voigt Linewidth'
+                TheUnits = LWUNits
+                Plot_Beat_Data_Scatter(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choice, TheName, TheUnits, beatfiles, include_range, Loud)
 
-            Loud = True
-            include_range = True
-            Choices = [14, 15] # Plot the Voigt Fit Parameters together
-            TheName = 'Voigt Parameters'
-            TheUnits = LWUNits
-            Plot_Beat_Data_Combo(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choices, TheName, TheUnits, averaged_data, delta_data, include_range, Loud)
+                Loud = True
+                Choice = 15+1 # Plot the Gaussian contribution to dnu, index is off by 1 for aggregration reasons
+                TheName = 'Gaussian Linewidth'
+                TheUnits = LWUNits
+                Plot_Beat_Data_Scatter(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choice, TheName, TheUnits, beatfiles, include_range, Loud)
+
+                Loud = True
+                Choice = 14+1 # Plot the Lorentzian contribution to dnu, index is off by 1 for aggregration reasons
+                TheName = 'Lorentzian Linewidth'
+                TheUnits = LWUNits
+                Plot_Beat_Data_Scatter(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, Choice, TheName, TheUnits, beatfiles, include_range, Loud)
+
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
             raise Exception
@@ -3691,7 +3714,7 @@ def Summarise_Beat_Analysis():
 
 def Combine_Beat_Analysis():
     
-    # Combine the beat analyses for the March 20225 measurements
+    # Combine the beat analyses for the March 2025 measurements
     # Read in the averaged 10km loop and 50km loop dataframes
     # Make the plots from the data frames as needed
     # R. Sheehan 31 - 3 - 2025
@@ -4440,6 +4463,7 @@ def Aggregate_Data_From_Beat_Files(beatfiles, loud = False):
         print(e)
 
 def Plot_Beat_Data_Combo(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, Choices, TheName, TheUnits, Average, Delta, INCLUDE_RNG = False, loud = False):
+    
     # plot combinations of the averaged data with error bars
     # Nbeats is the no. beat measurements that were made
     # F_AOM is the AOM phase shift frequency
@@ -4592,7 +4616,7 @@ def Plot_Beat_Data_Scatter(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles
 
 def Plot_Beat_Data(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, Average, Delta, loud = False):
 
-    # plot the averaged data with error bars
+    # make plots of all the averaged data with error bars
     # Nbeats is the no. beat measurements that were made
     # F_AOM is the AOM phase shift frequency
     # Loop_Length is the length of the fibre loop in the LCR-DSHI
@@ -4638,6 +4662,93 @@ def Plot_Beat_Data(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, Averag
                 args.plt_title = "Avg = %(v1)0.3f +/- %(v2)0.3f"%{"v1":avg_val, "v2":avg_error}
                 
                 Plotting.plot_single_linear_fit_curve_with_errors(xvals[fstart_indx:fend_indx], Average[i][fstart_indx:fend_indx], Delta[i][fstart_indx:fend_indx], args)
+
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nError with input values'
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Plot_RSPP_Data(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, Average, Delta, loud = False):
+
+    # make plot of the averaged RSPP data with error bars
+    # Nbeats is the no. beat measurements that were made
+    # F_AOM is the AOM phase shift frequency
+    # Loop_Length is the length of the fibre loop in the LCR-DSHI
+    # F_Start is beat frequency at which to start plotting, it can happen that the f_{b} = 80MHz signal may be bad so best to ignore it
+    # F_CUTOFF is beat frequency at which to stop plotting, it usually happens that higher order beat frequencies do not produce good data
+    # Titles is the list of names of the quantities that have been measured
+    # Average is the numpy array containing the averaged data from the beat measurements
+    # Delta is the numpy array containing the std. dev. of the averaged data from the beat measurements
+    # R. Sheehan 13 - 12 - 2022
+
+    # Update to include RSPP plot
+    # R. Sheehan 27 - 7 - 2026
+
+    FUNC_NAME = ".Plot_RSPP_Data()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        fbeats = numpy.arange(F_AOM, Nbeats*F_AOM + 1, F_AOM)
+        distance = numpy.arange(Loop_Length, Nbeats*Loop_Length + 1, Loop_Length )
+        fend_indx = numpy.where(fbeats == F_CUTOFF)[0][0]
+        fstart_indx = int( -1 + ( F_Start / F_AOM ) )
+        
+        c1 = True if Nbeats > 0 else False
+        c2 = True if len(Average) > 0 else False
+        c3 = True if fstart_indx < fend_indx else False
+        c10 = c1 and c2 and c3
+        # must add more conditions here
+
+        if c10:
+            col_indx = 7 # this is the index for the 
+
+            PLOT_WITH_BEATS = True # Makes more sense to plot against distance rather than Beat Frequency
+
+            xvals = fbeats if PLOT_WITH_BEATS else distance
+            xlabel = 'Beat Frequency / MHz' if PLOT_WITH_BEATS else 'Loop Length / km'
+
+            pmax_val = Average[col_indx][fstart_indx:fend_indx]
+            pmax_err = Delta[col_indx][fstart_indx:fend_indx]
+            
+            rspp = numpy.array([])
+            delta_rspp = numpy.array([])
+
+            scale = Common.convert_PdBm_PmW(pmax_val[0])
+            scale_err = Common.convert_PdBm_PmW(pmax_err[0])
+            for i in range(0, len(pmax_val), 1):
+                Z = 10.0*math.log10( Common.convert_PdBm_PmW( pmax_val[i] ) / scale  ) # compute the ratio of the quantities
+                dZ = math.fabs(math.log10( Common.convert_PdBm_PmW( pmax_err[i] ) / scale_err ) ) # compute the error associated with the scaling
+                        
+                rspp = numpy.append(rspp,  Z)
+                delta_rspp = numpy.append(delta_rspp,  dZ)
+
+            # The slope of this curve is m = \alpha \gamma / (1 - \alpha), \alpha = 0.9
+            fit_pars = Common.linear_fit( xvals[fstart_indx:fend_indx], rspp, [1, 1] )
+            gamma = pow(10, fit_pars[1]/10.0 )
+            inter = pow(10, fit_pars[0]/10.0 )
+                
+            print("\nLinear Fit")
+            print("intersection:",fit_pars[0])
+            print("slope:",fit_pars[1])   
+            print()
+            print("Expected fit should be of the form y = c + m x")
+            print("For RSPP c ~ 0 and m = 10 Log10[gamma]")
+            print("10^(intersection) ~ 1:", inter)   
+            print("10^(slope/10) = gamma:", gamma )   
+            print()
+
+            args = Plotting.plot_arg_single()                
+
+            args.loud = loud
+            args.x_label = xlabel
+            args.y_label = 'RSPP ( dB )'
+            args.plt_range = [F_Start, F_CUTOFF, -25, 0]
+            args.fig_name = 'RSPP_Err'
+            args.plt_title = "gamma = %(v1)0.3f"%{"v1":gamma}
+                
+            Plotting.plot_single_linear_fit_curve_with_errors(xvals[fstart_indx:fend_indx], rspp, delta_rspp, args)
 
         else:
             ERR_STATEMENT = ERR_STATEMENT + '\nError with input values'

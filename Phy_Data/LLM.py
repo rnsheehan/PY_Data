@@ -3340,7 +3340,8 @@ def Beat_Analysis():
 
         #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/I_%(v1)d/'%{"v1":Ival, "v2":theLaser, "v3":temperature, "v4":loopLength}
         #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/I_%(v1)d_Nb_20/'%{"v1":Ival, "v2":theLaser, "v3":temperature, "v4":loopLength}
-        DATA_HOME = 'D:/Rob/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_RSPP_VVOA_3_%(v2)s_T_%(v3)d_D_%(v4)d/'%{"v2":theLaser, "v3":temperature, "v4":loopLength}
+        #DATA_HOME = 'D:/Rob/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_RSPP_VVOA_3_%(v2)s_T_%(v3)d_D_%(v4)d/'%{"v2":theLaser, "v3":temperature, "v4":loopLength}
+        DATA_HOME = 'D:/LCR_DSHI_RSPP_%(v2)s_T_%(v3)d_D_%(v4)d_VVOA_8/'%{"v2":theLaser, "v3":temperature, "v4":loopLength}
 
         if os.path.isdir(DATA_HOME):
             os.chdir(DATA_HOME)
@@ -3349,34 +3350,13 @@ def Beat_Analysis():
             # Step 1
             # Aggregate all the beat files together into an average beat file + error beat file
             # 
-            beatfiles = glob.glob('Beat_Data_Nmeas_*_I_%(v1)d*.txt'%{"v1":Ival})
-
-            Nbeats, Titles, averaged_data, delta_data = Aggregate_Data_From_Beat_Files(beatfiles)
-            
-            # write the aggregated data to a file
-            # use numpy.savetxt, fucking sweet!
-            # https://numpy.org/doc/stable/reference/generated/numpy.savetxt.html
-            # The data is stored row-wise, but I want the output to match the format of the data from LabVIEW
-            # so I'm going to export the transpose of the data along with the headers            
-            header_str = ''
-            n_titles = len(Titles)
-            for i in range(0, n_titles, 1):
-                if i == n_titles-1:
-                    header_str = header_str + '%(v1)s'%{"v1":Titles[i]}
-                else:
-                    header_str = header_str + '%(v1)s\t'%{"v1":Titles[i]}
-            
-            filename = 'Averaged_Data_I_%(v1)d.txt'%{"v1":Ival}
-            numpy.savetxt(filename, numpy.transpose(averaged_data), fmt = '%0.9f', delimiter = '\t', header = header_str)
-
-            filename = 'Delta_Data_I_%(v1)d.txt'%{"v1":Ival}
-            numpy.savetxt(filename, numpy.transpose(delta_data), fmt = '%0.9f', delimiter = '\t', header = header_str)
+            Nbeats, Titles, averaged_data, delta_data = Generate_Average_Delta_from_Aggregates(Ival)
 
             # Step 2
             # Generate a report based on the aggregated data
             filename = 'Results_Summary_I_%(v1)d.txt'%{"v1":Ival}
             f_AOM = 80
-            f_start = 240; # it may be necessary to skip the first beat due to bad fitting
+            f_start = 80; # it may be necessary to skip the first beat due to bad fitting
             f_cutoff = (12) * f_AOM;
             Beat_Data_Report(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, averaged_data, delta_data, filename)
 
@@ -3395,6 +3375,9 @@ def Beat_Analysis():
             # Make a plot of RSPP
             GENERATE_RSPP_PLOT = True
             if GENERATE_RSPP_PLOT:
+                # fstart_indx = 0
+                # fend_indx = 5
+                # Pmax, Pmax_err, RSPP, RSPP_Err = Extract_RSPP_Data(Titles, averaged_data, delta_data, Nbeats, fstart_indx, fend_indx)
                 Plot_RSPP_Data(Nbeats, f_AOM, loopLength, f_start, f_cutoff, Titles, averaged_data, delta_data, True)
 
             # Step 5
@@ -4131,6 +4114,144 @@ def Combine_Beat_Analysis():
         print(ERR_STATEMENT)
         print(e)
 
+def RSPP_Analysis():
+
+    # Run the RSPP Analysis over a series of measurements
+    # R. Sheehan 28 - 7 - 2026
+
+    FUNC_NAME = ".RSPP_Analysis()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/I_%(v1)d/'%{"v1":Ival, "v2":theLaser, "v3":temperature, "v4":loopLength}
+    #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/I_%(v1)d_Nb_20/'%{"v1":Ival, "v2":theLaser, "v3":temperature, "v4":loopLength}
+    #DATA_HOME = 'D:/Rob/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_RSPP_VVOA_3_%(v2)s_T_%(v3)d_D_%(v4)d/'%{"v2":theLaser, "v3":temperature, "v4":loopLength}
+    #DATA_HOME = 'D:/LCR_DSHI_RSPP_%(v2)s_T_%(v3)d_D_%(v4)d_VVOA_9/'%{"v2":theLaser, "v3":temperature, "v4":loopLength}
+    DATA_HOME = 'D:/'
+
+    try:
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            print(os.getcwd())
+            
+            # NKT Parameters
+            theLaser = 'NKT'
+            temperature = 35        
+            RBW = '100Hz' # RBW used in the measurement
+            LWUNits = ' / kHz / ' + RBW
+
+            # Measurement parameters
+            Ival = 100
+            loopLength = 10
+
+            f_AOM = 80
+            f_start = 80; # it may be necessary to skip the first beat due to bad fitting
+            fend_max = -50
+            fstart_indx = int( -1 + ( f_start / f_AOM ) )
+            
+            VVOA_vals = numpy.arange(0.0, 4.6, 0.5)
+
+            # containers for storing data
+            hv_data_p = []; hv_data_r = []; 
+            gamma_vals = numpy.array([]) 
+            VVOA_sub = numpy.array([])
+            marks = []; labels = [];             
+
+            count = 0
+            for i in range(0, len(VVOA_vals), 1):
+                dir_tmplt = 'LCR_DSHI_RSPP_%(v2)s_T_%(v3)d_D_%(v4)d_VVOA_%(v5)d/'%{"v2":theLaser, "v3":temperature, "v4":loopLength, "v5":i+1}
+                
+                os.chdir(dir_tmplt)
+                print(os.getcwd())
+
+                # Step 1
+                # Aggregate all the beat files together into an average beat file + error beat file
+                #
+                # Data is returned as a numpy array with the measured quantities stored as rows of the array as follows
+                # 0: Beat No.   1: Fbeat / MHz  2: Distance / km    3: Time/ s  4: Tair/C   5: Taom/C   6: Taomdrv/C    7: Pmax/dBm 8: Fmax	
+                # 9: LLest	10: LL_Vfit	11: LL_Lfit	12: LLest_-20	13: Voigt_h/nW	14: Voigt_Lor_HWHM	15: Voigt_Gau_Stdev	16: Lor_h/nW	
+                # 17: Lor_HWHM 18: P1/dBm	19: P2/dBm	20: P2/P1
+                Nbeats, Titles, averaged_data, delta_data = Generate_Average_Delta_from_Aggregates(Ival)
+
+                # End-beat for a given sweep may be different so compute list of fbeats each time
+                f_cutoff = Nbeats * f_AOM;            
+                fbeats = numpy.arange(f_AOM, Nbeats*f_AOM + 1, f_AOM)
+                distance = numpy.arange(loopLength, Nbeats*loopLength + 1, loopLength )
+                fend_indx = numpy.where(fbeats == f_cutoff)[0][0]
+                if fbeats[-1] > fend_max:
+                    fend_max = fbeats[-1]                
+
+                # Step 2
+                # Extract the Pmax+RSPP data
+                Pmax, Pmax_err, RSPP, RSPP_Err = Extract_RSPP_Data(Titles, averaged_data, delta_data, Nbeats, fstart_indx, fend_indx)
+
+                # Step 4
+                # Perform linear fit for RSPP gamma = 10^(slope/10)
+                # The slope of this curve is m = \alpha \gamma / (1 - \alpha), \alpha = 0.9
+                fit_pars = Common.linear_fit( fbeats[fstart_indx:fend_indx], RSPP, [1, 1] )
+                gamma = pow(10, fit_pars[1]/10.0 )
+                inter = pow(10, fit_pars[0]/10.0 )                
+                gamma_vals = numpy.append(gamma_vals, gamma)
+                VVOA_sub = numpy.append(VVOA_sub, VVOA_vals[i])
+
+                print("%(v1)0.2f, %(v2)0.4f\n"%{"v1":VVOA_vals[i], "v2":gamma})
+
+                # Step 4
+                # Store the data to generate a suitable plot
+                hv_data_p.append([fbeats[fstart_indx:fend_indx], Pmax, Pmax_err])
+                hv_data_r.append([fbeats[fstart_indx:fend_indx], RSPP, RSPP_Err])
+                marks.append( Plotting.labs[ count % len(Plotting.labs) ] )
+                labels.append(r'V$_{VOA}$ = %(v1)0.1f ( V )'%{"v1":VVOA_vals[i]})
+                count += 1
+                
+                os.chdir(DATA_HOME)
+
+            # Compute the average gamma value
+            gamma_avg = numpy.mean(gamma_vals)
+            gamma_stdev = numpy.std(gamma_vals, ddof = 1)
+            print("Ideally you would have gamma ~ 0.95")
+            print("Here gamma = %(v1)0.4f +/- %(v2)0.4f"%{"v1":gamma_avg, "v2":gamma_stdev})
+            print()
+
+            # Make a plot of the Pmax vals for all VVoa vals at this looplength
+            args = Plotting.plot_arg_multiple()
+
+            args.loud = False
+            args.crv_lab_list = labels
+            args.mrk_list = marks
+            args.x_label = 'Beat Frequency ( MHz )'
+            args.y_label = r'P$_{max}$ ( dBm )'
+            args.plt_range = [f_start, fend_max, -50, -20]
+            args.plt_title = 'D = %(v1)d ( km )'%{"v1":loopLength}
+            args.fig_name = 'Pmax_Fbeat_D_%(v1)d'%{"v1":loopLength}
+
+            Plotting.plot_multiple_curves_with_errors(hv_data_p, args)
+
+            args.loud = False
+            args.x_label = 'Beat Frequency ( MHz )'
+            args.y_label = r'RSPP ( dB )'
+            args.plt_range = [f_start, fend_max, -20, 0]
+            args.fig_name = 'RSPP_Fbeat_D_%(v1)d'%{"v1":loopLength}
+
+            Plotting.plot_multiple_curves_with_errors(hv_data_r, args)
+
+            # Make a plot of the computed gamma values
+            args = Plotting.plot_arg_single()
+
+            args.loud = True
+            args.x_label = r'V$_{VOA}$ ( V )'
+            args.y_label = r'Loop Gain $\gamma$'
+            args.plt_range = [VVOA_vals[0], VVOA_vals[-1], 0.94, 1.0]
+            args.fig_name = 'Loop_Gain_D_%(v1)d'%{"v1":loopLength}
+
+            Plotting.plot_single_curve(VVOA_sub, gamma_vals, args)
+
+        else:
+            ERR_STATEMENT = ERR_STATEMENT + '\nCannot open ' + DATA_HOME
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
 def Extract_Data_From_Multiple_DataFrames(colChoice1, colChoice2, Titles, dfList, errList, chooseSubset = True, indxStrt = [0, 0], indxEnd = [10, 20]):
 
     # Extract and combine columns of data from multiple dataFrames
@@ -4462,6 +4583,109 @@ def Aggregate_Data_From_Beat_Files(beatfiles, loud = False):
         print(ERR_STATEMENT)
         print(e)
 
+def Generate_Average_Delta_from_Aggregates(Ival):
+
+    # Combine all the steps needed to generate the averaged beat note data files and delta of the average
+    # R. Sheehan 28 - 7 - 2026
+
+    # Data is returned as a numpy array with the measured quantities stored as rows of the array as follows
+    # 0: Beat No.   1: Fbeat / MHz  2: Distance / km    3: Time/ s  4: Tair/C   5: Taom/C   6: Taomdrv/C    7: Pmax/dBm 8: Fmax	
+    # 9: LLest	10: LL_Vfit	11: LL_Lfit	12: LLest_-20	13: Voigt_h/nW	14: Voigt_Lor_HWHM	15: Voigt_Gau_Stdev	16: Lor_h/nW	
+    # 17: Lor_HWHM 18: P1/dBm	19: P2/dBm	20: P2/P1
+
+    FUNC_NAME = ".Generate_Average_Delta_from_Aggregates()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        if Ival > 0:
+            # Step 1
+            # Aggregate all the beat files together into an average beat file + error beat file
+            # 
+            beatfiles = glob.glob('Beat_Data_Nmeas_*_I_%(v1)d*.txt'%{"v1":Ival})
+
+            if beatfiles is not None:
+                Nbeats, Titles, averaged_data, delta_data = Aggregate_Data_From_Beat_Files(beatfiles)
+            
+                # write the aggregated data to a file
+                # use numpy.savetxt, fucking sweet!
+                # https://numpy.org/doc/stable/reference/generated/numpy.savetxt.html
+                # The data is stored row-wise, but I want the output to match the format of the data from LabVIEW
+                # so I'm going to export the transpose of the data along with the headers            
+                header_str = ''
+                n_titles = len(Titles)
+                for i in range(0, n_titles, 1):
+                    if i == n_titles-1:
+                        header_str = header_str + '%(v1)s'%{"v1":Titles[i]}
+                    else:
+                        header_str = header_str + '%(v1)s\t'%{"v1":Titles[i]}
+            
+                filename = 'Averaged_Data_I_%(v1)d.txt'%{"v1":Ival}
+                numpy.savetxt(filename, numpy.transpose(averaged_data), fmt = '%0.9f', delimiter = '\t', header = header_str)
+
+                filename = 'Delta_Data_I_%(v1)d.txt'%{"v1":Ival}
+                numpy.savetxt(filename, numpy.transpose(delta_data), fmt = '%0.9f', delimiter = '\t', header = header_str)
+
+                return [Nbeats, Titles, averaged_data, delta_data]
+            else:
+                ERR_STATEMENT += "Cannot proceed: No beat files listed\n"
+                raise Exception
+        else:
+            ERR_STATEMENT += "Cannot proceed: Ival entered incorrectly\n"
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Extract_RSPP_Data(Titles, Average, Delta, Nbeats, fstart_indx, fend_indx):
+
+    # Extract the RSPP Data along with its error estimate at each beat note
+    # R. Sheehan 28 - 7 - 2026
+
+    FUNC_NAME = ".Extract_RSPP_Data()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        c1 = True if len(Titles) > 0 else False
+        c2 = True if len(Average) > 0 else False
+        c3 = True if len(Delta) > 0 else False
+        c4 = True if fstart_indx > -1 else False
+        c5 = True if fend_indx > fstart_indx and fend_indx < Nbeats else False
+        c6 = True if Nbeats > 0 else False
+        c10 = c1 and c2 and c3 and c4 and c5 and c6
+
+        if c10:
+            col_indx = 7 # this is the index for the Pmax values
+
+            pmax_val = Average[col_indx][fstart_indx:fend_indx] # Pmax values
+            pmax_err = Delta[col_indx][fstart_indx:fend_indx] # Error in Pmax values
+            
+            rspp = numpy.array([])
+            rspp_err = numpy.array([])
+
+            scale = Common.convert_PdBm_PmW(pmax_val[0])
+            scale_err = Common.convert_PdBm_PmW(pmax_err[0])
+            for i in range(0, len(pmax_val), 1):
+                Z = 10.0*math.log10( Common.convert_PdBm_PmW( pmax_val[i] ) / scale  ) # compute the ratio of the quantities
+                # Is this error correct? 
+                dZ = math.fabs(math.log10( Common.convert_PdBm_PmW( pmax_err[i] ) / scale_err ) ) # compute the error associated with the scaling
+                        
+                rspp = numpy.append(rspp,  Z)
+                rspp_err = numpy.append(rspp_err,  dZ)
+
+            return [pmax_val, pmax_err, rspp, rspp_err]
+
+        else:
+            if c1 is False: ERR_STATEMENT += "\nTitles has not been assigned correctly"
+            if c2 is False: ERR_STATEMENT += "\nTitles has not been assigned correctly"
+            if c3 is False: ERR_STATEMENT += "\nTitles has not been assigned correctly"
+            if c4 is False: ERR_STATEMENT += "\nfstart_indx has not been assigned correctly"
+            if c5 is False: ERR_STATEMENT += "\nfend_indx has not been assigned correctly"
+            if c6 is False: ERR_STATEMENT += "\nNbeats has not been assigned correctly"
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
 def Plot_Beat_Data_Combo(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, Choices, TheName, TheUnits, Average, Delta, INCLUDE_RNG = False, loud = False):
     
     # plot combinations of the averaged data with error bars
@@ -4702,7 +4926,7 @@ def Plot_RSPP_Data(Nbeats, F_AOM, Loop_Length, F_Start, F_CUTOFF, Titles, Averag
         # must add more conditions here
 
         if c10:
-            col_indx = 7 # this is the index for the 
+            col_indx = 7 # this is the index for the Pmax values
 
             PLOT_WITH_BEATS = True # Makes more sense to plot against distance rather than Beat Frequency
 

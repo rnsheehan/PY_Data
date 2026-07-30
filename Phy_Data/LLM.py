@@ -4126,7 +4126,8 @@ def RSPP_Analysis():
     #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/I_%(v1)d_Nb_20/'%{"v1":Ival, "v2":theLaser, "v3":temperature, "v4":loopLength}
     #DATA_HOME = 'D:/Rob/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_RSPP_VVOA_3_%(v2)s_T_%(v3)d_D_%(v4)d/'%{"v2":theLaser, "v3":temperature, "v4":loopLength}
     #DATA_HOME = 'D:/LCR_DSHI_RSPP_%(v2)s_T_%(v3)d_D_%(v4)d_VVOA_9/'%{"v2":theLaser, "v3":temperature, "v4":loopLength}
-    DATA_HOME = 'D:/'
+    #DATA_HOME = 'F:/'
+    DATA_HOME = 'D:/Rob/Research/Laser_Physics/Linewidth/Data/'
 
     try:
         if os.path.isdir(DATA_HOME):
@@ -4141,14 +4142,17 @@ def RSPP_Analysis():
 
             # Measurement parameters
             Ival = 100
-            loopLength = 10
-
+            loopLength = 50
+            
             f_AOM = 80
             f_start = 80; # it may be necessary to skip the first beat due to bad fitting
             fend_max = -50
+            Nbeats_max = -50
             fstart_indx = int( -1 + ( f_start / f_AOM ) )
             
             VVOA_vals = numpy.arange(0.0, 4.6, 0.5)
+
+            PLOT_VS_FBEATS = False
 
             # containers for storing data
             hv_data_p = []; hv_data_r = []; 
@@ -4175,19 +4179,24 @@ def RSPP_Analysis():
                 # End-beat for a given sweep may be different so compute list of fbeats each time
                 f_cutoff = Nbeats * f_AOM;            
                 fbeats = numpy.arange(f_AOM, Nbeats*f_AOM + 1, f_AOM)
+                Nvals = numpy.arange(1, Nbeats, 1)
                 distance = numpy.arange(loopLength, Nbeats*loopLength + 1, loopLength )
                 fend_indx = numpy.where(fbeats == f_cutoff)[0][0]
                 if fbeats[-1] > fend_max:
-                    fend_max = fbeats[-1]                
+                    fend_max = fbeats[-1]   
+                    
+                if Nvals[-1] > Nbeats_max:
+                    Nbeats_max = Nvals[-1]   
 
                 # Step 2
                 # Extract the Pmax+RSPP data
                 Pmax, Pmax_err, RSPP, RSPP_Err = Extract_RSPP_Data(Titles, averaged_data, delta_data, Nbeats, fstart_indx, fend_indx)
 
                 # Step 4
+                # Model for RSPP 10 Log_{10} RSPP = m Nvals, m = 10 Log_{10} (gamma)
                 # Perform linear fit for RSPP gamma = 10^(slope/10)
                 # The slope of this curve is m = \alpha \gamma / (1 - \alpha), \alpha = 0.9
-                fit_pars = Common.linear_fit( fbeats[fstart_indx:fend_indx], RSPP, [1, 1] )
+                fit_pars = Common.linear_fit( Nvals, RSPP, [1, 1] )
                 gamma = pow(10, fit_pars[1]/10.0 )
                 inter = pow(10, fit_pars[0]/10.0 )                
                 gamma_vals = numpy.append(gamma_vals, gamma)
@@ -4197,8 +4206,8 @@ def RSPP_Analysis():
 
                 # Step 4
                 # Store the data to generate a suitable plot
-                hv_data_p.append([fbeats[fstart_indx:fend_indx], Pmax, Pmax_err])
-                hv_data_r.append([fbeats[fstart_indx:fend_indx], RSPP, RSPP_Err])
+                hv_data_p.append([fbeats[fstart_indx:fend_indx] if PLOT_VS_FBEATS else Nvals, Pmax, Pmax_err])
+                hv_data_r.append([fbeats[fstart_indx:fend_indx] if PLOT_VS_FBEATS else Nvals, RSPP, RSPP_Err])
                 marks.append( Plotting.labs[ count % len(Plotting.labs) ] )
                 labels.append(r'V$_{VOA}$ = %(v1)0.1f ( V )'%{"v1":VVOA_vals[i]})
                 count += 1
@@ -4215,21 +4224,21 @@ def RSPP_Analysis():
             # Make a plot of the Pmax vals for all VVoa vals at this looplength
             args = Plotting.plot_arg_multiple()
 
-            args.loud = False
+            args.loud = True
             args.crv_lab_list = labels
             args.mrk_list = marks
-            args.x_label = 'Beat Frequency ( MHz )'
+            args.x_label = 'Beat Frequency ( MHz )' if PLOT_VS_FBEATS else 'Beat Number'
             args.y_label = r'P$_{max}$ ( dBm )'
-            args.plt_range = [f_start, fend_max, -50, -20]
+            args.plt_range = [f_start, fend_max, -50, -20] if PLOT_VS_FBEATS else [1, Nbeats_max, -50, -20]
             args.plt_title = 'D = %(v1)d ( km )'%{"v1":loopLength}
             args.fig_name = 'Pmax_Fbeat_D_%(v1)d'%{"v1":loopLength}
 
             Plotting.plot_multiple_curves_with_errors(hv_data_p, args)
 
-            args.loud = False
-            args.x_label = 'Beat Frequency ( MHz )'
+            args.loud = True
+            args.x_label = 'Beat Frequency ( MHz )' if PLOT_VS_FBEATS else 'Beat Number'
             args.y_label = r'RSPP ( dB )'
-            args.plt_range = [f_start, fend_max, -20, 0]
+            args.plt_range = [f_start, fend_max, -20, 0]  if PLOT_VS_FBEATS else [1, Nbeats_max, -20, 0]
             args.fig_name = 'RSPP_Fbeat_D_%(v1)d'%{"v1":loopLength}
 
             Plotting.plot_multiple_curves_with_errors(hv_data_r, args)
@@ -4240,7 +4249,7 @@ def RSPP_Analysis():
             args.loud = True
             args.x_label = r'V$_{VOA}$ ( V )'
             args.y_label = r'Loop Gain $\gamma$'
-            args.plt_range = [VVOA_vals[0], VVOA_vals[-1], 0.94, 1.0]
+            args.plt_range = [VVOA_vals[0], VVOA_vals[-1], 0, 1.0]
             args.fig_name = 'Loop_Gain_D_%(v1)d'%{"v1":loopLength}
 
             Plotting.plot_single_curve(VVOA_sub, gamma_vals, args)
@@ -4662,12 +4671,17 @@ def Extract_RSPP_Data(Titles, Average, Delta, Nbeats, fstart_indx, fend_indx):
             rspp = numpy.array([])
             rspp_err = numpy.array([])
 
-            scale = Common.convert_PdBm_PmW(pmax_val[0])
-            scale_err = Common.convert_PdBm_PmW(pmax_err[0])
+            #scale = Common.convert_PdBm_PmW(pmax_val[0])
+            #scale_err = Common.convert_PdBm_PmW(pmax_err[0])
+            scale_err = pmax_err[0]**2
             for i in range(0, len(pmax_val), 1):
-                Z = 10.0*math.log10( Common.convert_PdBm_PmW( pmax_val[i] ) / scale  ) # compute the ratio of the quantities
+                #Z = 10.0*math.log10( Common.convert_PdBm_PmW( pmax_val[i] ) / scale  ) # compute the ratio of the quantities
                 # Is this error correct? 
-                dZ = math.fabs(math.log10( Common.convert_PdBm_PmW( pmax_err[i] ) / scale_err ) ) # compute the error associated with the scaling
+                #dZ = math.fabs(math.log10( Common.convert_PdBm_PmW( pmax_err[i] ) / scale_err ) ) # compute the error associated with the scaling
+
+                # Everything is on log-scale so no need to convert
+                Z = pmax_val[i] - pmax_val[0]
+                dZ = math.sqrt( pmax_err[i]**2 + scale_err )
                         
                 rspp = numpy.append(rspp,  Z)
                 rspp_err = numpy.append(rspp_err,  dZ)

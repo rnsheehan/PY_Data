@@ -4126,8 +4126,8 @@ def RSPP_Analysis():
     #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/I_%(v1)d_Nb_20/'%{"v1":Ival, "v2":theLaser, "v3":temperature, "v4":loopLength}
     #DATA_HOME = 'D:/Rob/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_RSPP_VVOA_3_%(v2)s_T_%(v3)d_D_%(v4)d/'%{"v2":theLaser, "v3":temperature, "v4":loopLength}
     #DATA_HOME = 'D:/LCR_DSHI_RSPP_%(v2)s_T_%(v3)d_D_%(v4)d_VVOA_9/'%{"v2":theLaser, "v3":temperature, "v4":loopLength}
-    #DATA_HOME = 'F:/'
-    DATA_HOME = 'D:/Rob/Research/Laser_Physics/Linewidth/Data/'
+    DATA_HOME = 'F:/'
+    #DATA_HOME = 'D:/Rob/Research/Laser_Physics/Linewidth/Data/'
 
     try:
         if os.path.isdir(DATA_HOME):

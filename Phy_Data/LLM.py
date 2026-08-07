@@ -4126,8 +4126,9 @@ def RSPP_Analysis():
     #DATA_HOME = 'C:/Users/robertsheehan/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_%(v2)s_T_%(v3)d_D_%(v4)d/I_%(v1)d_Nb_20/'%{"v1":Ival, "v2":theLaser, "v3":temperature, "v4":loopLength}
     #DATA_HOME = 'D:/Rob/Research/Laser_Physics/Linewidth/Data/LCR_DSHI_RSPP_VVOA_3_%(v2)s_T_%(v3)d_D_%(v4)d/'%{"v2":theLaser, "v3":temperature, "v4":loopLength}
     #DATA_HOME = 'D:/LCR_DSHI_RSPP_%(v2)s_T_%(v3)d_D_%(v4)d_VVOA_9/'%{"v2":theLaser, "v3":temperature, "v4":loopLength}
-    DATA_HOME = 'F:/'
-    #DATA_HOME = 'D:/Rob/Research/Laser_Physics/Linewidth/Data/'
+    #DATA_HOME = 'F:/'
+    #DATA_HOME = 'D:/Rob/Research/Laser_Physics/Linewidth/Data/RSPP_No_Att/'
+    DATA_HOME = 'D:/Rob/Research/Laser_Physics/Linewidth/Data/RSPP_3dB_Att/'
 
     try:
         if os.path.isdir(DATA_HOME):
@@ -4161,7 +4162,7 @@ def RSPP_Analysis():
             marks = []; labels = [];             
 
             count = 0
-            for i in range(0, len(VVOA_vals), 1):
+            for i in range(0, len(VVOA_vals)-2, 1):
                 dir_tmplt = 'LCR_DSHI_RSPP_%(v2)s_T_%(v3)d_D_%(v4)d_VVOA_%(v5)d/'%{"v2":theLaser, "v3":temperature, "v4":loopLength, "v5":i+1}
                 
                 os.chdir(dir_tmplt)
@@ -4231,7 +4232,7 @@ def RSPP_Analysis():
             args.y_label = r'P$_{max}$ ( dBm )'
             args.plt_range = [f_start, fend_max, -50, -20] if PLOT_VS_FBEATS else [1, Nbeats_max, -50, -20]
             args.plt_title = 'D = %(v1)d ( km )'%{"v1":loopLength}
-            args.fig_name = 'Pmax_Fbeat_D_%(v1)d'%{"v1":loopLength}
+            #args.fig_name = 'Pmax_Fbeat_D_%(v1)d'%{"v1":loopLength}
 
             Plotting.plot_multiple_curves_with_errors(hv_data_p, args)
 
@@ -4239,7 +4240,7 @@ def RSPP_Analysis():
             args.x_label = 'Beat Frequency ( MHz )' if PLOT_VS_FBEATS else 'Beat Number'
             args.y_label = r'RSPP ( dB )'
             args.plt_range = [f_start, fend_max, -20, 0]  if PLOT_VS_FBEATS else [1, Nbeats_max, -20, 0]
-            args.fig_name = 'RSPP_Fbeat_D_%(v1)d'%{"v1":loopLength}
+            #args.fig_name = 'RSPP_Fbeat_D_%(v1)d'%{"v1":loopLength}
 
             Plotting.plot_multiple_curves_with_errors(hv_data_r, args)
 
@@ -4250,7 +4251,7 @@ def RSPP_Analysis():
             args.x_label = r'V$_{VOA}$ ( V )'
             args.y_label = r'Loop Gain $\gamma$'
             args.plt_range = [VVOA_vals[0], VVOA_vals[-1], 0, 1.0]
-            args.fig_name = 'Loop_Gain_D_%(v1)d'%{"v1":loopLength}
+            #args.fig_name = 'Loop_Gain_D_%(v1)d'%{"v1":loopLength}
 
             Plotting.plot_single_curve(VVOA_sub, gamma_vals, args)
 

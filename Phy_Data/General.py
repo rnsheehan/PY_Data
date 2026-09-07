@@ -3553,7 +3553,7 @@ def Magnetometer_Plots():
 
     # R. Sheehan 25 - 2 - 2026
 
-    FUNC_NAME = ".Combine_Statistics()" # use this in exception handling messages
+    FUNC_NAME = ".Magnetometer_Plots()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
@@ -3638,6 +3638,219 @@ def Magnetometer_Plots():
            args.fig_name = 'Abs_Mag_Field_Time_Hist'
 
            Plotting.plot_multi_histogram(scaled_data, args)
+
+        else:
+            ERR_STATEMENT += ERR_STATEMENT + "\nCannot locate:" + DATA_HOME
+            raise Exception
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Diode_Laser_Meas_Data():
+
+    # Make plots of the measured data associated with the PY4113 Diode Laser Experiment
+    # R. Sheehan 7 - 9 - 2026
+
+    FUNC_NAME = ".Diode_Laser_Meas_Data()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        DATA_HOME = "c:/users/robertsheehan/Programming/LabVIEW/PY4113"
+
+        if os.path.isdir(DATA_HOME):
+            os.chdir(DATA_HOME)
+            HOME = os.getcwd()
+            print(HOME)
+
+            T_vals = numpy.arange(20, 37, 5)
+
+            print(T_vals)
+
+            # Make LIV Plots
+            PLOT_LIV = False
+
+            if PLOT_LIV:
+                filetmplt = 'JDSU_2026_LIV_T_%(v1)d.txt'
+                PLOT_VOLTS = False
+                plt_choice = 1 if PLOT_VOLTS else 2
+                hv_data = []
+                labels = []
+                marks = []
+                Tact = numpy.array([])
+                Par1 = numpy.array([])
+                Par2 = numpy.array([])
+                for i in range(0, len(T_vals), 1):
+                    filename = filetmplt%{"v1":T_vals[i]}
+                    if glob.glob(filename):
+                        # read in the data for plotting and analysing
+                        data = numpy.loadtxt(filename, delimiter = '\t', unpack = True)
+                        hv_data.append( [ data[0], data[plt_choice] ] )
+                        marks.append( Plotting.labs_lins[i] )
+                        labels.append( 'T = %(v1)d ( C )'%{"v1":T_vals[i]} )
+
+                        # analyse the linear portion of the data
+                        n_data = numpy.size(data[0])
+                        sub_n = 15
+                        subX = data[0][n_data-sub_n:n_data]
+                        subY = data[plt_choice][n_data-sub_n:n_data]
+                        lin_fit = Common.linear_fit(subX, subY, [1, 1])
+                        if PLOT_VOLTS:
+                            # compute Par1 = series resistance and Par2 = turn-on voltage
+                            #ideality = (data[plt_choice][1] - data[plt_choice][0]) / (data[0][1] - data[0][0])
+                            ideality = Common.linear_fit(data[0][0:2], data[plt_choice][0:2], [1, 1])
+                            print("T =",T_vals[i],", Slope =",1000.0*lin_fit[1],"( Ohm ), V_{on} =",lin_fit[0],"( V ), Ideality =",ideality[1])
+                            Tact = numpy.append(Tact, T_vals[i])
+                            Par1 = numpy.append(Par1, 1000.0*lin_fit[1]) # slope, units of Ohm
+                            Par2 = numpy.append(Par2, lin_fit[0]) # Von, units of Volt
+                        else:
+                            # compute Par1 = slope efficiency and Par2 = threshold current
+                            print("T =",T_vals[i],", SE =",lin_fit[1],"(W/A), I_{th} =",-1.0*lin_fit[0] / lin_fit[1],"( mA )")
+                            Tact = numpy.append(Tact, T_vals[i])
+                            Par1 = numpy.append(Par1, lin_fit[1]) # slope efficiency, units of W / A
+                            Par2 = numpy.append(Par2, -1.0*lin_fit[0] / lin_fit[1]) # Ith, units of mA
+
+                # Make a plot of the measured data
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = False
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                #args.log_x = True
+                args.x_label = ' Laser Current ( mA )'
+                args.y_label = 'Laser Voltage ( V )' if PLOT_VOLTS else 'Laser Power ( mW )'
+                args.plt_range = [0, 100, 0, 1.4] if PLOT_VOLTS else [0, 100, 0, 4]
+                args.fig_name = 'Laser_Voltage' if PLOT_VOLTS else 'Laser_Power'
+
+                Plotting.plot_multiple_curves(hv_data, args)            
+
+                del hv_data; del labels; del marks; 
+
+                # Make a plot of the extracted data
+                # Plot Par1
+                args = Plotting.plot_arg_single()
+
+                args.loud = True
+                args.x_label = ' Laser Temperature ( C )'
+                args.y_label = r'Laser Impedance ( $\Omega$ )' if PLOT_VOLTS else 'Slope Efficiency ( W / A )'
+                args.plt_range = [20, 35, 4.8, 5.2] if PLOT_VOLTS else [20, 35, 0.04, 0.05]
+                args.plt_title = r'R = %(v1)0.2f $\pm$ %(v2)0.2f ( $\Omega$ )'%{"v1":numpy.mean(Par1),"v2":numpy.std(Par1,ddof = 1)} if PLOT_VOLTS else r'SE = %(v1)0.3f $\pm$ %(v2)0.3f ( W / A )'%{"v1":numpy.mean(Par1),"v2":numpy.std(Par1,ddof = 1)}
+                args.fig_name = 'Laser_Impedance' if PLOT_VOLTS else 'Laser_Slope_Efficiency'
+
+                Plotting.plot_single_linear_fit_curve(Tact, Par1, args)
+
+                # Make a plot of the extracted data
+                # Plot Par2
+                args = Plotting.plot_arg_single()
+
+                # compute the rate of change of threshold current with temperature
+                thresh_fit = Common.linear_fit(Tact, Par2, [1, 1])                  
+
+                args.loud = True
+                args.x_label = ' Laser Temperature ( C )'
+                args.y_label = 'Laser Turn-On ( V )' if PLOT_VOLTS else 'Threshold Current ( mA )'
+                args.plt_range = [20, 35, 0.83, 0.84] if PLOT_VOLTS else [20, 35, 12, 17]
+                args.plt_title = r'$V_{on}$ = %(v1)0.3f $\pm$ %(v2)0.3f ( V )'%{"v1":numpy.mean(Par2),"v2":numpy.std(Par2,ddof = 1)} if PLOT_VOLTS else r'$\Delta I_{th} / \Delta T = %(v1)0.2f ( mA / K )$'%{"v1":thresh_fit[1]}
+                args.fig_name = 'Laser_Turnon' if PLOT_VOLTS else 'Laser_Threshold'
+
+                Plotting.plot_single_linear_fit_curve(Tact, Par2, args)
+
+            PLOT_SPECTRA = True
+            if PLOT_SPECTRA:
+                filetmplt = 'JDSU_2026_Spectrum_T_%(v1)d_I_%(v2)d.txt'
+                PLOT_LASING = False
+                plt_choice = 80 if PLOT_LASING else 10
+                hv_data = []
+                labels = []
+                marks = []
+                Tact = numpy.array([])
+                Par1 = numpy.array([])
+                Par2 = numpy.array([])
+                Par3 = numpy.array([])
+                for i in range(0, len(T_vals), 1):
+                    filename = filetmplt%{"v1":T_vals[i], "v2":plt_choice}
+                    if glob.glob(filename):
+                        print(filename)
+                        data = numpy.loadtxt(filename, delimiter = '\t', unpack = False)
+                        hv_data.append( [ data[0], data[1] ] )
+                        marks.append( Plotting.labs_lins[i] )
+                        labels.append('T = %(v1)d ( C )'%{"v1":T_vals[i]} )
+
+                        # extract data from the spectra
+                        # Par1 = lasing wavelength
+                        indx = numpy.argmax(data[1]) if PLOT_LASING else numpy.argmin(data[1])
+                        print("T =",T_vals[i],", lambda =",data[0][indx])
+                        Tact = numpy.append(Tact, T_vals[i])
+                        Par1 = numpy.append(Par1, data[0][indx]) # lasing / Bragg wavelength, units of nm
+
+                        # examine the separation between the peaks
+                        peaks, _ = scipy.signal.find_peaks(data[1], height = -67, distance = 150, width = 0.5)
+
+                        # print(data[0][peaks])
+                        # plt.plot(data[1])
+                        # plt.plot(peaks, data[1][peaks], "x")
+                        # plt.show()
+
+                        print(data[0][indx])
+                        tmp = numpy.array([])
+                        for j in reversed(range(0, len(peaks), 1)):
+                            delta_peak = data[0][peaks[j]] - data[0][peaks[j-1]]
+                            if data[0][peaks[j]] > data[0][indx] and delta_peak < 1.0:
+                                #print(data[0][peaks[j]],",",delta_peak)
+                                tmp = numpy.append(tmp, delta_peak) # Bragg grating fringe spacing, units of nm
+
+                            if data[0][peaks[j]] > data[0][indx] and delta_peak > 1.0:
+                                #print(data[0][peaks[j]],",",data[0][peaks[j]] - data[0][peaks[j-2]] if i==0 else delta_peak)
+                                Par3 = numpy.append(Par3, data[0][peaks[j]] - data[0][peaks[j-2]] if i==0 else delta_peak)
+                                
+
+                        Par2 = numpy.append(Par2, numpy.mean(tmp))
+                        del tmp; 
+
+                # Make a plot of the measured data
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = False
+                args.crv_lab_list = labels
+                args.mrk_list = marks
+                args.x_label = ' Wavelength ( nm )'
+                args.y_label = 'Laser Power ( dBm / 0.1 nm )'
+                args.plt_range = [1545, 1555, -72, -50]
+                args.plt_title = r'Lasing $I = %(v2)d ( mA ) > I_{th}$'%{"v2":plt_choice} if PLOT_LASING else r'Not Lasing $I = %(v2)d ( mA ) < I_{th}$'%{"v2":plt_choice}
+                args.fig_name = 'Spectrum_Lasing' if PLOT_LASING else 'Spectrum_Not_Lasing_Zoom'
+
+                Plotting.plot_multiple_curves(hv_data, args)
+
+                del hv_data; del labels; del marks; 
+
+                # Make a plot of the extracted data
+                # Plot Par1
+                args = Plotting.plot_arg_single()
+
+                # compute the rate of change of wavelength with temperature
+                wave_fit = Common.linear_fit(Tact, Par1, [1, 1])
+
+                args.loud = False
+                args.x_label = 'Laser Temperature ( C )'
+                args.y_label = r'Laser Wavelength ( nm )' if PLOT_LASING else 'Bragg Wavelength ( nm )'
+                args.plt_range = [20, 35, 1548, 1551]
+                args.plt_title = r'$\Delta \lambda / \Delta T = %(v1)0.3f ( nm / K )$'%{"v1":wave_fit[1]}
+                args.fig_name = 'Laser_Wavelength' if PLOT_LASING else 'Bragg_Wavelength'
+
+                Plotting.plot_single_linear_fit_curve(Tact, Par1, args)
+
+                # Make a plot of the Bragg grating data
+                args = Plotting.plot_arg_multiple()
+
+                args.loud = True
+                args.crv_lab_list = [r'$\Delta\lambda_{Stop}$ = %(v1)0.3f +/- %(v2)0.3f (nm)'%{"v1":numpy.mean(Par3), "v2":numpy.std(Par3,ddof=1)}, r'$\Delta\lambda_{Fringe}$ = %(v1)0.3f +/- %(v2)0.3f (nm)'%{"v1":numpy.mean(Par2), "v2":numpy.std(Par2,ddof=1)}]
+                args.mrk_list = [Plotting.labs[0], Plotting.labs[1]]
+                args.x_label = ' Wavelength ( nm )'
+                args.y_label = 'Bragg Grating Property ( nm )'
+                args.plt_range = [20, 35, 0, 2.5]
+                #args.plt_title = r'Lasing $I = %(v2)d ( mA ) > I_{th}$'%{"v2":plt_choice} if PLOT_LASING else r'Not Lasing $I = %(v2)d ( mA ) < I_{th}$'%{"v2":plt_choice}
+                args.fig_name = 'Bragg_Grating_Properties'
+
+                Plotting.plot_multiple_curves([[Tact, Par3], [Tact, Par2]], args)
 
         else:
             ERR_STATEMENT += ERR_STATEMENT + "\nCannot locate:" + DATA_HOME

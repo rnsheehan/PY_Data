@@ -91,7 +91,7 @@ if __name__ == '__main__':
 
     #LLM.Beat_Analysis()
 
-    LLM.RSPP_Analysis()
+    #LLM.RSPP_Analysis()
 
     #LLM.Summarise_Beat_Analysis()
     
@@ -144,3 +144,5 @@ if __name__ == '__main__':
     #General.Random_Signal()
 
     #General.Plot_While()
+
+    General.Diode_Laser_Meas_Data()

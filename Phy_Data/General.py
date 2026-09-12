@@ -3858,4 +3858,10 @@ def Diode_Laser_Meas_Data():
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
+
+def Synthetic_Michelson_Interferometer():
+
+    # 
+
+    pass
     
